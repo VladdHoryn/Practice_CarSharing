@@ -25,3 +25,39 @@
 
 ### Branch Names
 Гілки мають містити ID завдання (з Jira/Trello) та короткий опис:
+
+
+
+**Приклад:** `feature/CS-15-booking-system`
+
+## ✅ Code Review Policy
+
+**Критичне правило:** Жоден Pull Request (PR) не може бути прийнятий без **текстового коментаря "Approve"** від іншого учасника команди.
+
+### Процес Code Review:
+1. Автор створює PR і призначає **Reviewer**
+2. Reviewer перевіряє код і залишає коментар:
+   - **"Approve"** – якщо все добре, можна мержити
+   - Коментарі з правками – якщо потрібні зміни
+3. Після отримання **"Approve"** автор або reviewer може виконати merge
+4. **Не можна** мержити власний PR без чужого схвалення
+
+### Шаблон для reviewer:
+
+
+## 🔒 Branch Protection Rules (GitHub Settings)
+
+Для захисту гілки `main` у налаштуваннях GitHub увімкнено:
+- ✅ Require a pull request before merging
+- ✅ Require approvals (1 reviewer)
+- ✅ Dismiss stale reviews when new commits are pushed
+- ✅ Require conversation resolution before merging
+
+---
+
+*Ці правила є обов'язковими для всіх учасників команди.*
+
+
+## 📋 Правила розробки
+
+Усі учасники команди зобов'язані дотримуватись [Development Guide](DEVELOPMENT_GUIDE.md) – регламенту роботи з Git, іменування комітів та Code Review.
