@@ -1,0 +1,32 @@
+# .editorconfig – корінь репозиторію
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.java]
+indent_style = space
+indent_size = 2
+tab_width = 2
+
+[*.sql]
+indent_style = space
+indent_size = 2
+
+[*.{xml,xsd}]
+indent_style = space
+indent_size = 2
+
+[*.{yml,yaml,json}]
+indent_style = space
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+
+[Dockerfile]
+indent_style = space
+indent_size = 2
