@@ -1,0 +1,140 @@
+# .gitignore – корінь репозиторію
+
+# ===============================
+# Java
+# ===============================
+*.class
+*.jar
+*.war
+*.ear
+*.log
+*.ctxt
+*.lst
+*.jar.original
+hs_err_pid*
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+target/
+build/
+
+# ===============================
+# Maven
+# ===============================
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# ===============================
+# Gradle (якщо перейдете на Gradle)
+# ===============================
+.gradle/
+gradle-app.setting
+!gradle-wrapper.jar
+
+# ===============================
+# Spring Boot
+# ===============================
+spring-boot-devtools.log
+spring-shell.log
+application-local.properties
+application-dev.properties
+
+# ===============================
+# Секретні дані (КРИТИЧНО!)
+# ===============================
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.p12
+secrets/
+credentials/
+application-secrets.properties
+
+# ===============================
+# Database (PostgreSQL)
+# ===============================
+*.db
+*.sqlite
+*.sqlite3
+*.sqlite-journal
+dump.sql
+backup/
+
+# ===============================
+# IDE
+# ===============================
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+.idea_modules/
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/shelf/
+.idea/**/dictionaries
+
+# Eclipse
+.classpath
+.project
+.settings/
+bin/
+*.launch
+.factorypath
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# NetBeans
+nbproject/
+nb-configuration.xml
+
+# ===============================
+# Logs & Temp
+# ===============================
+logs/
+*.log
+*.tmp
+*.temp
+temp/
+
+# ===============================
+# OS
+# ===============================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ===============================
+# Testing
+# ===============================
+test-output/
+*.test
+coverage/
+.surefire/
+.jacoco/
+
+# ===============================
+# Code Quality
+# ===============================
+.spotbugs/
+checkstyle-cachefile
+checkstyle-checker.xml.cache
