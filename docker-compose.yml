@@ -1,0 +1,105 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  # =====================================================
+  # PostgreSQL Database
+  # =====================================================
+  postgres:
+    image: postgres:14-alpine
+    container_name: car_sharing_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-car_sharing_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres123}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - car_sharing_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-car_sharing_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # =====================================================
+  # pgAdmin - Database Admin Tool
+  # =====================================================
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: car_sharing_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@carsharing.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin123}
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - car_sharing_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # =====================================================
+  # Backend (Spring Boot)
+  # =====================================================
+  backend:
+    build: ./backend
+    container_name: car_sharing_backend
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-docker}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB:-car_sharing_db}
+      DB_USERNAME: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres123}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-key-do-not-use-in-production}
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    networks:
+      - car_sharing_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+  # =====================================================
+  # Frontend (Optional - React/Vue)
+  # =====================================================
+  # frontend:
+  #   build: ./frontend
+  #   container_name: car_sharing_frontend
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3000:80"
+  #   networks:
+  #     - car_sharing_network
+  #   depends_on:
+  #     backend:
+  #       condition: service_healthy
+
+# =====================================================
+# Volumes for persistent data
+# =====================================================
+volumes:
+  postgres_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+# =====================================================
+# Network for internal communication
+# =====================================================
+networks:
+  car_sharing_network:
+    driver: bridge
