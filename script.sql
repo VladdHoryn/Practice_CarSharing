@@ -19,29 +19,7 @@ CREATE TABLE users (
 );
 
 -- =====================================================
--- 2. Profiles table (1:1 with users)
--- =====================================================
-CREATE TABLE profiles (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
-    phone VARCHAR(20),
-    address TEXT,
-    preferences JSONB
-);
-
--- =====================================================
--- 3. Rental Companies table
--- =====================================================
-CREATE TABLE rental_companies (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(200) NOT NULL,
-    address TEXT,
-    contact_email VARCHAR(255),
-    contact_phone VARCHAR(20)
-);
-
--- =====================================================
--- 4. Cars table
+-- 2. Cars table
 -- =====================================================
 CREATE TABLE cars (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -50,13 +28,12 @@ CREATE TABLE cars (
     year INTEGER NOT NULL CHECK (year >= 1990 AND year <= EXTRACT(YEAR FROM NOW()) + 1),
     class VARCHAR(30) NOT NULL CHECK (class IN ('ECONOMY', 'COMFORT', 'BUSINESS')),
     price_per_day DECIMAL(10,2) NOT NULL CHECK (price_per_day > 0),
-    rental_company_id UUID NOT NULL REFERENCES rental_companies(id) ON DELETE RESTRICT,
     status VARCHAR(20) NOT NULL DEFAULT 'AVAILABLE' CHECK (status IN ('AVAILABLE', 'RENTED', 'MAINTENANCE')),
     image_url VARCHAR(500)
 );
 
 -- =====================================================
--- 5. Bookings table
+-- 3. Bookings table
 -- =====================================================
 CREATE TABLE bookings (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -71,7 +48,7 @@ CREATE TABLE bookings (
 );
 
 -- =====================================================
--- 6. Payments table
+-- 4. Payments table
 -- =====================================================
 CREATE TABLE payments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -84,7 +61,7 @@ CREATE TABLE payments (
 );
 
 -- =====================================================
--- 7. Split Access table (many-to-many between bookings and users)
+-- 5. Split Access table (many-to-many between bookings and users)
 -- =====================================================
 CREATE TABLE split_access (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -95,7 +72,7 @@ CREATE TABLE split_access (
 );
 
 -- =====================================================
--- 8. Reviews table
+-- 6. Reviews table
 -- =====================================================
 CREATE TABLE reviews (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -107,7 +84,7 @@ CREATE TABLE reviews (
 );
 
 -- =====================================================
--- 9. Notifications table
+-- 7. Notifications table
 -- =====================================================
 CREATE TABLE notifications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -127,7 +104,6 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_users_role ON users(role);
 
 -- Cars indexes
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_cars_rental_company_id ON cars(rental_company_id);
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_cars_status ON cars(status);
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_cars_class ON cars(class);
 
@@ -161,11 +137,6 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_notifications_created_at ON notifica
 COMMENT ON TABLE users IS 'System users with authentication and role-based access';
 COMMENT ON COLUMN users.role IS 'User role: CLIENT (regular customer) or ADMIN (system administrator)';
 COMMENT ON COLUMN users.is_active IS 'Soft delete flag - false means account is deactivated';
-
-COMMENT ON TABLE profiles IS 'Extended user profile information (1:1 relation with users)';
-COMMENT ON COLUMN profiles.preferences IS 'JSONB field for storing user preferences (notifications, language, etc.)';
-
-COMMENT ON TABLE rental_companies IS 'Car rental companies that provide vehicles to the platform';
 
 COMMENT ON TABLE cars IS 'Cars available for rent, owned by rental companies';
 COMMENT ON COLUMN cars.class IS 'Car class: ECONOMY, COMFORT, or BUSINESS';
