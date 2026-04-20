@@ -138,12 +138,10 @@ COMMENT ON TABLE users IS 'System users with authentication and role-based acces
 COMMENT ON COLUMN users.role IS 'User role: CLIENT (regular customer) or ADMIN (system administrator)';
 COMMENT ON COLUMN users.is_active IS 'Soft delete flag - false means account is deactivated';
 
-COMMENT ON TABLE cars IS 'Cars available for rent, owned by rental companies';
 COMMENT ON COLUMN cars.class IS 'Car class: ECONOMY, COMFORT, or BUSINESS';
 COMMENT ON COLUMN cars.status IS 'Current car status: AVAILABLE (free), RENTED (in use), MAINTENANCE (unavailable)';
 
 COMMENT ON TABLE bookings IS 'Car booking requests made by users';
-COMMENT ON COLUMN bookings.status IS 'Booking status: PENDING (waiting), CONFIRMED (approved), CANCELLED (by user), COMPLETED (rental finished)';
 
 COMMENT ON TABLE payments IS 'Payments for bookings, one-to-one relation';
 COMMENT ON COLUMN payments.status IS 'Payment status: PENDING, SUCCESS, FAILED, REFUNDED';
@@ -151,7 +149,6 @@ COMMENT ON COLUMN payments.status IS 'Payment status: PENDING, SUCCESS, FAILED, 
 COMMENT ON TABLE split_access IS 'Shared access for multiple drivers to the same booking (killer feature)';
 COMMENT ON COLUMN split_access.role IS 'Driver role: PRIMARY_DRIVER (main responsible) or CO_DRIVER (additional driver)';
 
-COMMENT ON TABLE reviews IS 'User reviews and ratings for cars after completed rentals';
 COMMENT ON COLUMN reviews.rating IS 'Rating from 1 (worst) to 5 (best)';
 
 COMMENT ON TABLE notifications IS 'User notifications about booking status, reminders, etc.';
