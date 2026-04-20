@@ -1,21 +1,250 @@
-version: '3.8'
-
 services:
-  # PostgreSQL Database
-  postgres:
-    image: postgres:14-alpine
-    container_name: car_sharing_postgres
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - car-sharing-network
+
+  eureka-server:
+    build:
+      context: ./eureka-server
+      dockerfile: Dockerfile
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - car-sharing-network
+
+  # =====================================================
+  # Existing services (production, inventory, sales)
+  # =====================================================
+  production-db:
+    image: mariadb:11
+    container_name: production-db
+    environment:
+      MYSQL_ROOT_PASSWORD: 12345
+      MYSQL_DATABASE: production_service_db
+    networks:
+      - car-sharing-network
+
+  production-service:
+    build:
+      context: ./production-service
+      dockerfile: Dockerfile
+    restart: always
+    container_name: production_service
+    depends_on:
+      - production-db
+      - eureka-server
+    environment:
+      DB_URL: jdbc:mariadb://production-db:3306/production_service_db
+      DB_USERNAME: root
+      DB_PASSWORD: 12345
+      INVENTORY_BASE_URL: http://inventory-service:8082
+    ports:
+      - "8081:8081"
+    networks:
+      - car-sharing-network
+
+  inventory-db:
+    image: mariadb:11
+    container_name: inventory-db
+    environment:
+      MYSQL_ROOT_PASSWORD: 12345
+      MYSQL_DATABASE: inventory_service_db
+    networks:
+      - car-sharing-network
+
+  inventory-service:
+    build:
+      context: ./inventory-service
+      dockerfile: Dockerfile
+    container_name: inventory-service
+    depends_on:
+      - inventory-db
+      - eureka-server
+    environment:
+      DB_URL: jdbc:mariadb://inventory-db:3306/inventory_service_db
+      DB_USERNAME: root
+      DB_PASSWORD: 12345
+      PRODUCTION_BASE_URL: http://production-service:8081
+    ports:
+      - "8082:8082"
+    networks:
+      - car-sharing-network
+
+  sales-db:
+    image: mariadb:11
+    container_name: sales-db
+    environment:
+      MYSQL_ROOT_PASSWORD: 12345
+      MYSQL_DATABASE: sales_service_db
+    networks:
+      - car-sharing-network
+
+  sales-service:
+    build:
+      context: ./sales-service
+      dockerfile: Dockerfile
+    container_name: sales-service
+    environment:
+      DB_URL: jdbc:mariadb://sales-db:3306/sales_service_db
+      DB_USERNAME: root
+      DB_PASSWORD: 12345
+    depends_on:
+      - sales-db
+      - eureka-server
+    ports:
+      - "8083:8083"
+    networks:
+      - car-sharing-network
+
+  # =====================================================
+  # USER SERVICE with PostgreSQL
+  # =====================================================
+  user-db:
+    image: postgres:15-alpine
+    container_name: user-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: car_sharing_db
+      POSTGRES_DB: user_service_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres123
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - user_postgres_data:/var/lib/postgresql/data
+      - ./docker/user-db-init:/docker-entrypoint-initdb.d
+    networks:
+      - car-sharing-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d user_service_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # pgAdmin (опціонально)
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    container_name: user-service
+    restart: always
+    depends_on:
+      user-db:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    environment:
+      DB_HOST: user-db
+      DB_PORT: 5432
+      DB_NAME: user_service_db
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres123
+    ports:
+      - "8084:8084"
+    networks:
+      - car-sharing-network
+
+  # =====================================================
+  # CAR SERVICE with PostgreSQL
+  # =====================================================
+  car-db:
+    image: postgres:15-alpine
+    container_name: car-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: car_service_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    ports:
+      - "5433:5432"
+    volumes:
+      - car_postgres_data:/var/lib/postgresql/data
+      - ./docker/car-db-init:/docker-entrypoint-initdb.d
+    networks:
+      - car-sharing-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d car_service_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  car-service:
+    build:
+      context: ./car-service
+      dockerfile: Dockerfile
+    container_name: car-service
+    restart: always
+    depends_on:
+      car-db:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    environment:
+      DB_HOST: car-db
+      DB_PORT: 5432
+      DB_NAME: car_service_db
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres123
+    ports:
+      - "8085:8085"
+    networks:
+      - car-sharing-network
+
+  # =====================================================
+  # BOOKING SERVICE with PostgreSQL
+  # =====================================================
+  booking-db:
+    image: postgres:15-alpine
+    container_name: booking-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: booking_service_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    ports:
+      - "5434:5432"
+    volumes:
+      - booking_postgres_data:/var/lib/postgresql/data
+      - ./docker/booking-db-init:/docker-entrypoint-initdb.d
+    networks:
+      - car-sharing-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d booking_service_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  booking-service:
+    build:
+      context: ./booking-service
+      dockerfile: Dockerfile
+    container_name: booking-service
+    restart: always
+    depends_on:
+      booking-db:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    environment:
+      DB_HOST: booking-db
+      DB_PORT: 5432
+      DB_NAME: booking_service_db
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres123
+    ports:
+      - "8086:8086"
+    networks:
+      - car-sharing-network
+
+  # =====================================================
+  # pgAdmin for database management (optional)
+  # =====================================================
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: car_sharing_pgadmin
@@ -25,25 +254,24 @@ services:
       PGADMIN_DEFAULT_PASSWORD: admin123
     ports:
       - "5050:80"
+    networks:
+      - car-sharing-network
     depends_on:
-      - postgres
+      - user-db
+      - car-db
+      - booking-db
 
-  # Backend
-  backend:
-    build: ./backend
-    container_name: car_sharing_backend
-    restart: unless-stopped
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_NAME: car_sharing_db
-      DB_USERNAME: postgres
-      DB_PASSWORD: postgres123
-    ports:
-      - "8080:8080"
-    depends_on:
-      - postgres
-
+# =====================================================
+# Volumes
+# =====================================================
 volumes:
-  postgres_data:
+  user_postgres_data:
+  car_postgres_data:
+  booking_postgres_data:
+
+# =====================================================
+# Network
+# =====================================================
+networks:
+  car-sharing-network:
+    driver: bridge
