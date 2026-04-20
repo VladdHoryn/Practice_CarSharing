@@ -5,6 +5,7 @@ import org.example.domain.User;
 import org.example.dto.UserRequest;
 import org.example.dto.UserResponse;
 import org.example.repository.UserRepository;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,12 +15,17 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserApplicationService {
   private final UserRepository userRepository;
+  private final BCryptPasswordEncoder passwordEncoder;
+
+  private String encodeString(String line){
+    return passwordEncoder.encode(line);
+  }
 
   // CREATE
   public UserResponse createUser(UserRequest request) {
     User user = new User();
     user.setName(request.getName());
-    user.setPassword(request.getPassword());
+    user.setPassword(encodeString(request.getPassword()));
     user.setRole(request.getRole());
 
     User savedUser = userRepository.save(user);
@@ -48,7 +54,7 @@ public class UserApplicationService {
       .orElseThrow(() -> new RuntimeException("User not found"));
 
     user.setName(request.getName());
-    user.setPassword(request.getPassword());
+    user.setPassword(encodeString(request.getPassword()));
     user.setRole(request.getRole());
 
     return mapToResponse(userRepository.save(user));
