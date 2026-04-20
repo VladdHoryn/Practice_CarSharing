@@ -1,44 +1,140 @@
-target/
-!.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+# .gitignore – корінь репозиторію
 
-### IntelliJ IDEA ###
-.idea/modules.xml
-.idea/jarRepositories.xml
-.idea/compiler.xml
-.idea/libraries/
-*.iws
+# ===============================
+# Java
+# ===============================
+*.class
+*.jar
+*.war
+*.ear
+*.log
+*.ctxt
+*.lst
+*.jar.original
+hs_err_pid*
+.idea/
 *.iml
+*.iws
 *.ipr
-
-### Eclipse ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
+out/
+target/
 build/
-!**/src/main/**/build/
-!**/src/test/**/build/
 
-### VS Code ###
-.vscode/
+# ===============================
+# Maven
+# ===============================
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
 
-### Mac OS ###
-.DS_Store
+# ===============================
+# Gradle (якщо перейдете на Gradle)
+# ===============================
+.gradle/
+gradle-app.setting
+!gradle-wrapper.jar
 
-# .gitignore
-node_modules/
-dist/
-build/
+# ===============================
+# Spring Boot
+# ===============================
+spring-boot-devtools.log
+spring-shell.log
+application-local.properties
+application-dev.properties
+
+# ===============================
+# Секретні дані (КРИТИЧНО!)
+# ===============================
 .env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.p12
+secrets/
+credentials/
+application-secrets.properties
+
+# ===============================
+# Database (PostgreSQL)
+# ===============================
+*.db
+*.sqlite
+*.sqlite3
+*.sqlite-journal
+dump.sql
+backup/
+
+# ===============================
+# IDE
+# ===============================
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+.idea_modules/
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/shelf/
+.idea/**/dictionaries
+
+# Eclipse
+.classpath
+.project
+.settings/
+bin/
+*.launch
+.factorypath
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# NetBeans
+nbproject/
+nb-configuration.xml
+
+# ===============================
+# Logs & Temp
+# ===============================
+logs/
+*.log
+*.tmp
+*.temp
+temp/
+
+# ===============================
+# OS
+# ===============================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ===============================
+# Testing
+# ===============================
+test-output/
+*.test
+coverage/
+.surefire/
+.jacoco/
+
+# ===============================
+# Code Quality
+# ===============================
+.spotbugs/
+checkstyle-cachefile
+checkstyle-checker.xml.cache

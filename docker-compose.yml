@@ -1,25 +1,49 @@
 version: '3.8'
+
 services:
-  db:
-    image: postgres:15
+  # PostgreSQL Database
+  postgres:
+    image: postgres:14-alpine
+    container_name: car_sharing_postgres
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: mydb
-      POSTGRES_PASSWORD: password
+      POSTGRES_DB: car_sharing_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
     ports:
       - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
+  # pgAdmin (опціонально)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: car_sharing_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@carsharing.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+
+  # Backend
   backend:
     build: ./backend
+    container_name: car_sharing_backend
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: car_sharing_db
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres123
     ports:
       - "8080:8080"
     depends_on:
-      - db
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/mydb
+      - postgres
 
-  frontend:
-    build: ./frontend
-    ports:
-      - "3000:80"
-    stdin_open: true
-    tty: true
+volumes:
+  postgres_data:
