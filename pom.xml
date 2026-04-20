@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
          https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
@@ -13,16 +13,22 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.4</version>
+        <version>3.5.3</version>
         <relativePath/>
     </parent>
+
+  <modules>
+    <module>backend/user-service</module>
+    <module>backend/car-service</module>
+    <module>backend/booking-service</module>
+  </modules>
 
     <properties>
         <java.version>21</java.version>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        
+
         <!-- Plugin versions -->
         <spotless.version>2.43.0</spotless.version>
         <checkstyle.version>3.3.1</checkstyle.version>
@@ -58,7 +64,7 @@
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-database-postgresql</artifactId>
         </dependency>
-      
+
         <!-- Database -->
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -162,7 +168,6 @@
                 <version>${checkstyle.version}</version>
                 <configuration>
                     <configLocation>google_checks.xml</configLocation>
-                    <encoding>UTF-8</encoding>
                     <consoleOutput>true</consoleOutput>
                     <failsOnError>true</failsOnError>
                     <violationSeverity>warning</violationSeverity>
