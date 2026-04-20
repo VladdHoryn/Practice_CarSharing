@@ -1,5 +1,6 @@
 package org.example.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.application.UserApplicationService;
 import org.example.dto.UserRequest;
@@ -17,7 +18,7 @@ public class UserController {
 
   // CREATE
   @PostMapping
-  public ResponseEntity<UserResponse> createUser(@RequestBody UserRequest request) {
+  public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserRequest request) {
     UserResponse response = userService.createUser(request);
     return ResponseEntity.ok(response);
   }
@@ -48,5 +49,17 @@ public class UserController {
   public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
     userService.deleteUser(id);
     return ResponseEntity.noContent().build();
+  }
+
+  // ACTIVATE USER
+  @PatchMapping("/{id}/activate")
+  public ResponseEntity<UserResponse> activateUser(@PathVariable Long id) {
+    return ResponseEntity.ok(userService.activateUser(id));
+  }
+
+  // DEACTIVATE USER
+  @PatchMapping("/{id}/deactivate")
+  public ResponseEntity<UserResponse> deactivateUser(@PathVariable Long id) {
+    return ResponseEntity.ok(userService.deactivateUser(id));
   }
 }
