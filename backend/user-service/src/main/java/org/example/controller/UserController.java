@@ -49,4 +49,16 @@ public class UserController {
     userService.deleteUser(id);
     return ResponseEntity.noContent().build();
   }
+
+  // ACTIVATE USER
+  @PatchMapping("/{id}/activate")
+  public ResponseEntity<UserResponse> activateUser(@PathVariable Long id) {
+    return ResponseEntity.ok(userService.activateUser(id));
+  }
+
+  // DEACTIVATE USER
+  @PatchMapping("/{id}/deactivate")
+  public ResponseEntity<UserResponse> deactivateUser(@PathVariable Long id) {
+    return ResponseEntity.ok(userService.deactivateUser(id));
+  }
 }

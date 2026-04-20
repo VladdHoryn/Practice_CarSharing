@@ -77,11 +77,7 @@ public class UserApplicationService {
 
   // DELETE (soft delete через deactivate)
   public void deleteUser(Long id) {
-    User user = userRepository.findById(id)
-      .orElseThrow(() -> new RuntimeException("User not found"));
-
-    user.deactivate();
-    userRepository.save(user);
+    userRepository.deleteById(id);
   }
 
   // ACTIVATE USER
@@ -90,6 +86,16 @@ public class UserApplicationService {
       .orElseThrow(() -> new RuntimeException("User not found"));
 
     user.activate();
+    return mapToResponse(userRepository.save(user));
+  }
+
+  // DEACTIVATE USER
+  public UserResponse deactivateUser(Long id) {
+    User user = userRepository.findById(id)
+      .orElseThrow(() -> new RuntimeException("User not found"));
+
+    user.deactivate();
+
     return mapToResponse(userRepository.save(user));
   }
 
