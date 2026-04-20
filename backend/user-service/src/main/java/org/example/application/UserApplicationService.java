@@ -2,6 +2,7 @@ package org.example.application;
 
 import lombok.RequiredArgsConstructor;
 import org.example.domain.User;
+import org.example.domain.UserRole;
 import org.example.dto.UserRequest;
 import org.example.dto.UserResponse;
 import org.example.repository.UserRepository;
@@ -17,16 +18,22 @@ public class UserApplicationService {
   private final UserRepository userRepository;
   private final BCryptPasswordEncoder passwordEncoder;
 
-  private String encodeString(String line){
-    return passwordEncoder.encode(line);
+  private String encodePassword(String rawPassword) {
+    return passwordEncoder.encode(rawPassword);
   }
 
   // CREATE
   public UserResponse createUser(UserRequest request) {
+
+    if (userRepository.existsByEmail(request.getEmail())) {
+      throw new RuntimeException("User with this email already exists");
+    }
+
     User user = new User();
-    user.setName(request.getName());
-    user.setPassword(encodeString(request.getPassword()));
-    user.setRole(request.getRole());
+    user.setFullName(request.getFullName());
+    user.setEmail(request.getEmail());
+    user.setPasswordHash(encodePassword(request.getPassword()));
+    user.setRole(request.getRole() != null ? request.getRole() : UserRole.GUEST);
 
     User savedUser = userRepository.save(user);
     return mapToResponse(savedUser);
@@ -53,24 +60,48 @@ public class UserApplicationService {
     User user = userRepository.findById(id)
       .orElseThrow(() -> new RuntimeException("User not found"));
 
-    user.setName(request.getName());
-    user.setPassword(encodeString(request.getPassword()));
-    user.setRole(request.getRole());
+    user.setFullName(request.getFullName());
+    user.setEmail(request.getEmail());
+
+    // оновлюємо пароль тільки якщо переданий
+    if (request.getPassword() != null && !request.getPassword().isBlank()) {
+      user.setPasswordHash(encodePassword(request.getPassword()));
+    }
+
+    if (request.getRole() != null) {
+      user.setRole(request.getRole());
+    }
 
     return mapToResponse(userRepository.save(user));
   }
 
-  // DELETE
+  // DELETE (soft delete через deactivate)
   public void deleteUser(Long id) {
-    userRepository.deleteById(id);
+    User user = userRepository.findById(id)
+      .orElseThrow(() -> new RuntimeException("User not found"));
+
+    user.deactivate();
+    userRepository.save(user);
+  }
+
+  // ACTIVATE USER
+  public UserResponse activateUser(Long id) {
+    User user = userRepository.findById(id)
+      .orElseThrow(() -> new RuntimeException("User not found"));
+
+    user.activate();
+    return mapToResponse(userRepository.save(user));
   }
 
   // MAPPER
   private UserResponse mapToResponse(User user) {
     return UserResponse.builder()
       .id(user.getId())
-      .name(user.getName())
+      .fullName(user.getFullName())
+      .email(user.getEmail())
       .role(user.getRole())
+      .isActive(user.isActive())
+      .createdAt(user.getCreatedAt())
       .build();
   }
 }
