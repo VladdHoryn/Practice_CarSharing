@@ -24,9 +24,8 @@ public class User {
   private String fullName;
 
   @NotBlank(message = "Password is required")
-  @Size(min = 6, message = "Password must be at least 6 characters long")
   @Column(name = "password", nullable = false)
-  private String password;
+  private String passwordHash;
 
   @NotBlank(message = "Email is required")
   @Email(message = "Invalid email format")
@@ -59,6 +58,6 @@ public class User {
   }
 
   public boolean isActive() {
-    return Boolean.TRUE.equals(this.isActive);
+    return isActive;
   }
 }
