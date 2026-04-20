@@ -15,7 +15,10 @@ import java.time.LocalDateTime;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
   // 400
-  @ExceptionHandler(IllegalArgumentException.class)
+  @ExceptionHandler ({
+    IllegalArgumentException.class,
+    RuntimeException.class
+  })
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   public ErrorResponse handleBadRequest(IllegalArgumentException ex,
                                         HttpServletRequest request) {
