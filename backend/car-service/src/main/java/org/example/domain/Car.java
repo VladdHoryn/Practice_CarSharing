@@ -22,35 +22,43 @@ public class Car {
 
   @NotBlank(message = "Brand cannot be empty")
   @Size(min = 2, max = 50, message = "Brand must be between 2 and 50 characters")
+  @Column(name = "brand", nullable = false)
   public String brand;
 
   @NotBlank(message = "Model cannot be empty")
   @Size(min = 1, max = 50, message = "Model must be between 1 and 50 characters")
+  @Column(name = "model", nullable = false)
   public String model;
 
   @NotNull(message = "Year is required")
   @Min(value = 1950, message = "Year must be >= 1950")
+  @Column(name = "year", nullable = false)
   public Integer year;
 
   @NotNull(message = "Car class is required")
   @Enumerated(value = EnumType.STRING)
+  @Column(name = "car_class", nullable = false)
   public CarClass carClass;
 
   @NotNull(message = "Price per day is required")
   @Positive(message = "Price per day must be greater than 0")
+  @Column(name = "price_per_day", nullable = false)
   public Float pricePerDay;
 
   @NotNull(message = "User ID is required")
+  @Column(name = "user_id", nullable = false)
   public Long userId;
 
   @NotNull(message = "Car status is required")
   @Enumerated(value = EnumType.STRING)
+  @Column(name = "status", nullable = false)
   public CarStatus status;
 
   @Pattern(
     regexp = "^(https?://.*)?$",
     message = "Image URL must be valid URL"
   )
+  @Column(name = "image_url")
   public String imageUrl;
 
   @PrePersist
