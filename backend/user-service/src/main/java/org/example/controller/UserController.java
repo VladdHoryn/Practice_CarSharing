@@ -1,5 +1,6 @@
 package org.example.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.application.UserApplicationService;
 import org.example.dto.UserRequest;
@@ -17,7 +18,7 @@ public class UserController {
 
   // CREATE
   @PostMapping
-  public ResponseEntity<UserResponse> createUser(@RequestBody UserRequest request) {
+  public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserRequest request) {
     UserResponse response = userService.createUser(request);
     return ResponseEntity.ok(response);
   }
