@@ -21,30 +21,6 @@
 
 ---
 
-## Table: `profiles`
-
-| Column | Type | Constraints | Description |
-|--------|------|-------------|-------------|
-| `id` | `UUID` | PK, NOT NULL, DEFAULT `gen_random_uuid()` | Unique profile identifier |
-| `user_id` | `UUID` | FK → `users(id)`, NOT NULL, UNIQUE, ON DELETE `CASCADE` | Reference to parent user |
-| `phone` | `VARCHAR(20)` | | Contact phone number |
-| `address` | `TEXT` | | Physical address (free text) |
-| `preferences` | `JSONB` | | JSON object for user preferences (notifications, language, etc.) |
-
----
-
-## Table: `rental_companies`
-
-| Column | Type | Constraints | Description |
-|--------|------|-------------|-------------|
-| `id` | `UUID` | PK, NOT NULL, DEFAULT `gen_random_uuid()` | Unique company identifier |
-| `name` | `VARCHAR(200)` | NOT NULL | Legal company name |
-| `address` | `TEXT` | | Company headquarters address |
-| `contact_email` | `VARCHAR(255)` | | Official contact email |
-| `contact_phone` | `VARCHAR(20)` | | Official contact phone |
-
----
-
 ## Table: `cars`
 
 | Column | Type | Constraints | Description |
@@ -55,7 +31,6 @@
 | `year` | `INTEGER` | NOT NULL, CHECK (≥1990, ≤next year) | Manufacturing year |
 | `class` | `VARCHAR(30)` | NOT NULL, CHECK (`ECONOMY`, `COMFORT`, `BUSINESS`) | Comfort/price class |
 | `price_per_day` | `DECIMAL(10,2)` | NOT NULL, CHECK (>0) | Rental price in local currency |
-| `rental_company_id` | `UUID` | FK → `rental_companies(id)`, NOT NULL, ON DELETE `RESTRICT` | Owner company reference |
 | `status` | `VARCHAR(20)` | NOT NULL, DEFAULT `AVAILABLE`, CHECK (`AVAILABLE`, `RENTED`, `MAINTENANCE`) | Current availability |
 | `image_url` | `VARCHAR(500)` | | URL to car photo/image |
 
