@@ -24,17 +24,18 @@ END$$;
 -- =====================================================
 CREATE TABLE IF NOT EXISTS cars (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    owner_id UUID NOT NULL,
+    owner_id UUID NOT NULL,                    -- посилання на user-service (USER з роллю OWNER)
     brand VARCHAR(50) NOT NULL,
     model VARCHAR(50) NOT NULL,
     year INTEGER NOT NULL CHECK (year >= 1990),
-    class car_class NOT NULL DEFAULT 'ECONOMY',
+    class VARCHAR(30) NOT NULL CHECK (class IN ('ECONOMY', 'COMFORT', 'BUSINESS', 'LUXURY')),
     price_per_day DECIMAL(10,2) NOT NULL CHECK (price_per_day > 0),
-    status car_status NOT NULL DEFAULT 'AVAILABLE',
+    status VARCHAR(20) NOT NULL DEFAULT 'AVAILABLE' CHECK (status IN ('AVAILABLE', 'RENTED', 'MAINTENANCE', 'UNAVAILABLE')),
     license_plate VARCHAR(20) NOT NULL UNIQUE,
     location_city VARCHAR(100) NOT NULL,
     image_url VARCHAR(500),
-    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 -- =====================================================
