@@ -1,0 +1,284 @@
+/* src/pages/CarCatalogPage.module.css */
+
+.pageContainer {
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    padding-bottom: 60px;
+}
+
+/* --- Hero Section (Банер) --- */
+.heroSection {
+    background-color: #2c3e50;
+    color: #ffffff;
+    padding: 80px 10%;
+    position: relative;
+    overflow: hidden;
+}
+
+.heroTitle {
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1.4;
+    margin-bottom: 16px;
+}
+
+.highlight {
+    color: #f39c12;
+}
+
+.heroSubtitle {
+    font-size: 18px;
+    color: #e0e0e0;
+    line-height: 1.5;
+}
+
+/* --- Catalog Section (Новий лейаут з фільтрами) --- */
+.catalogSection {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+.sectionTitle {
+    font-size: 24px;
+    color: #1a1a1a;
+    margin-bottom: 30px;
+    font-weight: 700;
+}
+
+/* Сітка для фільтрів та карток */
+.catalogLayout {
+    display: grid;
+    grid-template-columns: 280px 1fr; /* 280px для фільтрів, решта для карток */
+    gap: 30px;
+    align-items: start;
+}
+
+/* --- Бічна панель фільтрів --- */
+.filterSidebar {
+    background: #ffffff;
+    padding: 24px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    position: sticky;
+    top: 90px; /* Прилипає під час скролу */
+}
+
+.filterHeader {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eaeaea;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.resetBtn {
+    background: none;
+    border: none;
+    color: #3ba4f6;
+    font-size: 12px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.filterGroup {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.filterGroup label {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.filterGroup select {
+    padding: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+}
+
+.filterGroup input[type="range"] {
+    width: 100%;
+    margin-top: 5px;
+}
+
+.priceValue {
+    font-size: 14px;
+    font-weight: 700;
+    color: #333;
+    margin-top: 8px;
+    text-align: right;
+}
+
+/* --- Car Grid --- */
+.carGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 25px;
+}
+
+.noResults {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 50px;
+    background: #fff;
+    border-radius: 8px;
+    color: #666;
+    font-size: 16px;
+}
+
+/* --- Car Card (Залишається без змін) --- */
+.carCard {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.carBrand {
+    font-size: 20px;
+    font-weight: 700;
+    color: #333;
+    margin: 0;
+}
+
+.carPriceBlock {
+    text-align: right;
+}
+
+.carPrice {
+    font-size: 18px;
+    font-weight: 700;
+    color: #333;
+}
+
+.priceNote {
+    display: block;
+    font-size: 11px;
+    color: #888;
+    margin-top: 2px;
+}
+
+.carSubtitle {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.imageGallery {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.mainImagePlaceholder {
+    flex: 1;
+    height: 180px;
+    background-color: #e9ecef;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #adb5bd;
+    font-size: 14px;
+}
+
+.thumbnailColumn {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 80px;
+}
+
+.thumbPlaceholder {
+    height: 54px;
+    background-color: #e9ecef;
+    border-radius: 4px;
+}
+
+.specsList {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 24px 0;
+    font-size: 13px;
+    color: #444;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.specsList li {
+    display: flex;
+    align-items: center;
+}
+
+.specLabel {
+    font-weight: 600;
+    width: 140px;
+    color: #333;
+}
+
+.cardActions {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+.bookBtn {
+    background-color: #3ba4f6;
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    padding: 12px 32px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: background-color 0.2s;
+}
+
+.bookBtn:hover {
+    background-color: #288ee0;
+}
+
+.detailsBtn {
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 12px;
+    text-decoration: underline;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Адаптивність */
+@media (max-width: 900px) {
+    .catalogLayout {
+        grid-template-columns: 1fr;
+    }
+    .filterSidebar {
+        position: relative;
+        top: 0;
+    }
+}
