@@ -1,0 +1,76 @@
+.header {
+    background-color: #e9ecef; /* Світло-сірий фон з макету */
+    height: 80px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 5%;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.logo {
+    font-size: 28px;
+    font-weight: 800;
+    color: #2c3e50;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    text-decoration: none;
+}
+
+.logo span {
+    color: #3ba4f6; /* Блакитний елемент логотипу */
+}
+
+.nav {
+    display: flex;
+    gap: 25px;
+}
+
+.navLink {
+    text-decoration: none;
+    color: #2c3e50;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    transition: color 0.2s;
+}
+
+.navLink:hover {
+    color: #3ba4f6;
+}
+
+.rightSection {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+.languageSelect {
+    font-size: 13px;
+    color: #666;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.langOption {
+    font-weight: 700;
+    color: #2c3e50;
+    cursor: pointer;
+}
+
+.activeLang {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+}
+
+.userIcon {
+    color: #2c3e50;
+    font-size: 20px;
+    cursor: pointer;
+    text-decoration: none;
+}

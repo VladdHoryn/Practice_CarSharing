@@ -1,0 +1,214 @@
+/* src/pages/BookingPage.module.css */
+
+.pageContainer {
+    background-color: #f8f9fa;
+    min-height: calc(100vh - 70px);
+    padding: 40px 10%;
+    color: #333;
+}
+
+.pageTitle {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 30px;
+}
+
+.contentGrid {
+    display: grid;
+    grid-template-columns: 2fr 1fr; /* Ліва форма ширша, правий чек вужчий */
+    gap: 40px;
+}
+
+/* --- Секції форми (Ліва колонка) --- */
+.formSection {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 30px;
+}
+
+.sectionTitle {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #f1f1f1;
+    padding-bottom: 10px;
+}
+
+/* Дати */
+.dateRow {
+    display: flex;
+    gap: 20px;
+}
+
+.inputGroup {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.inputGroup label {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 6px;
+}
+
+.inputGroup input, .inputGroup select {
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+}
+
+.inputGroup input:focus, .inputGroup select:focus {
+    border-color: #3ba4f6;
+}
+
+/* --- Split Access (Кілер-фіча) --- */
+.splitAccessBox {
+    background-color: #f0f7ff; /* Виділяємо кольором */
+    border: 1px solid #cce4ff;
+    border-radius: 6px;
+    padding: 20px;
+}
+
+.splitAccessHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.splitAccessHeader p {
+    font-size: 13px;
+    color: #555;
+    margin: 0;
+}
+
+.addDriverBtn {
+    background-color: #fff;
+    border: 1px dashed #3ba4f6;
+    color: #3ba4f6;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.2s;
+}
+
+.addDriverBtn:hover {
+    background-color: #e6f2ff;
+}
+
+.driverRow {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+    align-items: flex-end;
+}
+
+.removeBtn {
+    background: none;
+    border: none;
+    color: #dc3545;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 10px;
+}
+
+/* Оплата */
+.paymentOptions {
+    display: flex;
+    gap: 20px;
+}
+
+.paymentOption {
+    flex: 1;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s;
+}
+
+.paymentOption.selected {
+    border-color: #3ba4f6;
+    background-color: #f0f7ff;
+}
+
+/* --- Чек (Права колонка) --- */
+.summaryCard {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    position: sticky;
+    top: 90px; /* Прилипає при скролі */
+}
+
+.summaryCar {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    align-items: center;
+}
+
+.summaryCarImg {
+    width: 80px;
+    height: 60px;
+    background: #e9ecef;
+    border-radius: 4px;
+}
+
+.summaryDetails {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px 0;
+}
+
+.summaryDetails li {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #555;
+}
+
+.totalRow {
+    display: flex;
+    justify-content: space-between;
+    font-size: 20px;
+    font-weight: 700;
+    border-top: 1px solid #eee;
+    padding-top: 15px;
+    margin-bottom: 25px;
+}
+
+.confirmBtn {
+    width: 100%;
+    background-color: #3ba4f6;
+    color: #fff;
+    border: none;
+    border-radius: 24px;
+    padding: 16px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+.confirmBtn:hover {
+    background-color: #288ee0;
+}
+
+@media (max-width: 900px) {
+    .contentGrid {
+        grid-template-columns: 1fr;
+    }
+}
