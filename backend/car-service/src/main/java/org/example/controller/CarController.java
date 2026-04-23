@@ -45,6 +45,8 @@ public class CarController {
         car.setPricePerDay(request.pricePerDay());
         car.setImageUrl(request.imageUrl());
 
+        car.setUserId(request.userId());
+
         Car createdCar = carService.createCar(car);
 
         return ResponseEntity.created(URI.create("/car/v1/" + createdCar.getId()))

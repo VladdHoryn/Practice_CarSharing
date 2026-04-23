@@ -12,7 +12,7 @@
     <groupId>com.carsharing</groupId>
     <artifactId>car-sharing</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-  </parent>
+    <relativePath>../../pom.xml</relativePath> </parent>
 
   <properties>
     <maven.compiler.source>21</maven.compiler.source>
