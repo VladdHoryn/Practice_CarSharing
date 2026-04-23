@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-    baseURL: 'http://localhost:8080/api',
+    baseURL: 'http://localhost:8085', // Повертаємо 8085, бо тепер бекенд у Докері!
     headers: {
         'Content-Type': 'application/json',
     },
