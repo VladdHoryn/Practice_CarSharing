@@ -1,10 +1,9 @@
-// src/services/authService.js
-import api from './api';
+// src/services/auth.service.js
+import apiClient from '../api/apiClient';
 
 export const authService = {
     login: async (credentials) => {
-        // Очікує { email, password }
-        const response = await api.post('/auth/login', credentials);
+        const response = await apiClient.post('/auth/login', credentials);
         if (response.data.token) {
             localStorage.setItem('token', response.data.token);
         }
@@ -12,8 +11,7 @@ export const authService = {
     },
 
     register: async (userData) => {
-        // Очікує { email, password, full_name, role, phone }
-        const response = await api.post('/auth/register', userData);
+        const response = await apiClient.post('/users/register', userData);
         return response.data;
     },
 

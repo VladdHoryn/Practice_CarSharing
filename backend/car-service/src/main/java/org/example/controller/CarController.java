@@ -16,6 +16,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/car/v1")
+@CrossOrigin(origins = "http://localhost:3000") // <--- ДОДАТИ ОЦЕЙ РЯДОК!
 @RequiredArgsConstructor
 public class CarController {
 
