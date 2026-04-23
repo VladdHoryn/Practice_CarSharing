@@ -1,44 +1,47 @@
 -- =====================================================
--- USER SERVICE - Initial Schema Migration
+-- User Service - Initial Schema Migration
+-- Version: V1
+-- Based on: User.java, UserRole.java
 -- =====================================================
 
--- =====================================================
--- ENUMS
--- =====================================================
+-- Create ENUM type for user roles (matches UserRole.java)
+CREATE TYPE user_role_enum AS ENUM ('GUEST', 'RENTER', 'OWNER', 'MODERATOR', 'ADMINISTRATOR');
 
-CREATE TYPE user_role AS ENUM ('RENTER', 'OWNER', 'MODERATOR', 'ADMINISTRATOR');
-
--- =====================================================
--- TABLE
--- =====================================================
-
+-- Create users table (matches User.java)
 CREATE TABLE users (
     id BIGSERIAL PRIMARY KEY,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
     full_name VARCHAR(100) NOT NULL,
-    phone VARCHAR(20),
-    role user_role NOT NULL DEFAULT 'RENTER',
-    is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+    password VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    role user_role_enum NOT NULL,
+    created_at DATE NOT NULL DEFAULT CURRENT_DATE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
 );
 
--- =====================================================
--- INDEXES
--- =====================================================
-
+-- Create indexes for performance
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_role ON users(role);
+CREATE INDEX idx_users_is_active ON users(is_active);
+
+-- Add table comments
+COMMENT ON TABLE users IS 'System users with authentication and role-based access';
+COMMENT ON COLUMN users.id IS 'Auto-increment primary key (BIGSERIAL)';
+COMMENT ON COLUMN users.full_name IS 'User full name (2-100 characters)';
+COMMENT ON COLUMN users.password IS 'Hashed password (BCrypt recommended)';
+COMMENT ON COLUMN users.email IS 'Unique email address for login';
+COMMENT ON COLUMN users.role IS 'User role: GUEST, RENTER, OWNER, MODERATOR, ADMINISTRATOR';
+COMMENT ON COLUMN users.created_at IS 'Account creation date';
+COMMENT ON COLUMN users.is_active IS 'Soft delete flag - false means account is deactivated';
 
 -- =====================================================
--- SEED DATA
+-- Seed data (for testing)
 -- =====================================================
-
 -- Password: "password123" (BCrypt hash)
-INSERT INTO users (email, password_hash, full_name, phone, role)
-VALUES
-  ('admin@carsharing.com', '$2a$10$N9qo8uLOickgx2ZMRZoMy.Mr5vKqYqKqYqKqYqKqYqKqYqKqYqKq', 'System Administrator', '+380501234567', 'ADMINISTRATOR'),
-  ('renter1@example.com', '$2a$10$N9qo8uLOickgx2ZMRZoMy.Mr5vKqYqKqYqKqYqKqYqKqYqKqYqKq', 'John Doe', '+380671234567', 'RENTER'),
-  ('owner1@example.com', '$2a$10$N9qo8uLOickgx2ZMRZoMy.Mr5vKqYqKqYqKqYqKqYqKqYqKqYqKq', 'Jane Smith', '+380931234567', 'OWNER'),
-  ('moderator@example.com', '$2a$10$N9qo8uLOickgx2ZMRZoMy.Mr5vKqYqKqYqKqYqKqYqKqYqKqYqKq', 'Bob Johnson', '+380501234568', 'MODERATOR');
+INSERT INTO users (full_name, password, email, role, is_active)
+VALUES 
+    ('System Administrator', '$2a$10$N9qo8uLOickgx2ZMRZoMy.Mr5vKqYqKqYqKqYqKqYqKqYqKqYqKq', 'admin@carsharing.com', 'ADMINISTRATOR', true),
+    ('John Renter', '$2a$10$N9qo8uLOickgx2ZMRZoMy.Mr5vKqYqKqYqKqYqKqYqKqYqKqYqKq', 'renter1@example.com', 'RENTER', true),
+    ('Jane Owner', '$2a$10$N9qo8uLOickgx2ZMRZoMy.Mr5vKqYqKqYqKqYqKqYqKqYqKqYqKq', 'owner1@example.com', 'OWNER', true),
+    ('Bob Moderator', '$2a$10$N9qo8uLOickgx2ZMRZoMy.Mr5vKqYqKqYqKqYqKqYqKqYqKqYqKq', 'moderator@example.com', 'MODERATOR', true),
+    ('Guest User', '$2a$10$N9qo8uLOickgx2ZMRZoMy.Mr5vKqYqKqYqKqYqKqYqKqYqKqYqKq', 'guest@example.com', 'GUEST', true)
+ON CONFLICT (email) DO NOTHING;
