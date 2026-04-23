@@ -1,15 +1,21 @@
 import apiClient from '../api/apiClient';
 
 export const carService = {
-    // Отримуємо тільки доступні авто (GET /car/v1/available)
-    getAvailableCars: async () => {
-        const response = await apiClient.get('/car/v1/available');
-        return response.data; // Поверне масив CarResponse
-    },
+  getAllCars: async () => {
+    const response = await apiClient.get('/car/v1');
+    return response.data;
+  },
 
-    // Отримати авто за ID (GET /car/v1/{id})
-    getCarById: async (id) => {
-        const response = await apiClient.get(`/car/v1/${id}`);
-        return response.data;
-    }
+  getAvailableCars: async () => {
+    // ТИМЧАСОВИЙ ФІКС: Робимо запит до робочого ендпоінту з усіма авто
+    const response = await apiClient.get('/car/v1');
+
+    // І самі відфільтровуємо тільки ті, що AVAILABLE
+    return response.data.filter(car => car.status === 'AVAILABLE');
+  },
+
+  getCarById: async (id) => {
+    const response = await apiClient.get(`/car/v1/${id}`);
+    return response.data;
+  }
 };
