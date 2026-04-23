@@ -11,16 +11,16 @@ import org.example.dto.RentCarRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/cars")
+@RequestMapping("/car/v1")
 @RequiredArgsConstructor
 public class CarController {
 
   private final CarApplicationService carService;
 
-  // 🔹 Mapper (тимчасово тут)
   private CarResponse toResponse(Car car) {
     return new CarResponse(
       car.getId(),
@@ -35,7 +35,6 @@ public class CarController {
     );
   }
 
-  // CREATE
   @PostMapping
   public ResponseEntity<CarResponse> createCar(@RequestBody @Valid CreateCarRequest request) {
 
@@ -49,16 +48,16 @@ public class CarController {
 
     Car createdCar = carService.createCar(car);
 
-    return ResponseEntity.ok(toResponse(createdCar));
+    return ResponseEntity
+      .created(URI.create("/car/v1/" + createdCar.getId()))
+      .body(toResponse(createdCar));
   }
 
-  // READ BY ID
   @GetMapping("/{id}")
   public ResponseEntity<CarResponse> getCarById(@PathVariable Long id) {
     return ResponseEntity.ok(toResponse(carService.getCarById(id)));
   }
 
-  // READ ALL
   @GetMapping
   public ResponseEntity<List<CarResponse>> getAllCars() {
     return ResponseEntity.ok(
@@ -69,7 +68,6 @@ public class CarController {
     );
   }
 
-  // GET AVAILABLE
   @GetMapping("/available")
   public ResponseEntity<List<CarResponse>> getAvailableCars() {
     return ResponseEntity.ok(
@@ -80,7 +78,6 @@ public class CarController {
     );
   }
 
-  // RENT
   @PostMapping("/{carId}/rent")
   public ResponseEntity<CarResponse> rentCar(
     @PathVariable Long carId,
@@ -91,7 +88,6 @@ public class CarController {
     );
   }
 
-  // RETURN
   @PostMapping("/{carId}/return")
   public ResponseEntity<CarResponse> returnCar(@PathVariable Long carId) {
     return ResponseEntity.ok(
@@ -99,7 +95,6 @@ public class CarController {
     );
   }
 
-  // SEND TO MAINTENANCE
   @PostMapping("/{carId}/maintenance")
   public ResponseEntity<CarResponse> sendToMaintenance(@PathVariable Long carId) {
     return ResponseEntity.ok(
@@ -107,7 +102,6 @@ public class CarController {
     );
   }
 
-  // COMPLETE MAINTENANCE
   @PostMapping("/{carId}/maintenance/complete")
   public ResponseEntity<CarResponse> completeMaintenance(@PathVariable Long carId) {
     return ResponseEntity.ok(
@@ -115,7 +109,6 @@ public class CarController {
     );
   }
 
-  // DELETE
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> deleteCar(@PathVariable Long id) {
     carService.deleteCar(id);

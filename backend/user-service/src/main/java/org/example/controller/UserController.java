@@ -16,26 +16,22 @@ import java.util.List;
 public class UserController {
   private final UserApplicationService userService;
 
-  // CREATE
   @PostMapping
   public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserRequest request) {
     UserResponse response = userService.createUser(request);
     return ResponseEntity.ok(response);
   }
 
-  // READ ALL
   @GetMapping
   public ResponseEntity<List<UserResponse>> getAllUsers() {
     return ResponseEntity.ok(userService.getAllUsers());
   }
 
-  // READ BY ID
   @GetMapping("/{id}")
   public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
     return ResponseEntity.ok(userService.getUserById(id));
   }
 
-  // UPDATE
   @PutMapping("/{id}")
   public ResponseEntity<UserResponse> updateUser(
     @PathVariable Long id,
@@ -44,20 +40,17 @@ public class UserController {
     return ResponseEntity.ok(userService.updateUser(id, request));
   }
 
-  // DELETE
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
     userService.deleteUser(id);
     return ResponseEntity.noContent().build();
   }
 
-  // ACTIVATE USER
   @PatchMapping("/{id}/activate")
   public ResponseEntity<UserResponse> activateUser(@PathVariable Long id) {
     return ResponseEntity.ok(userService.activateUser(id));
   }
 
-  // DEACTIVATE USER
   @PatchMapping("/{id}/deactivate")
   public ResponseEntity<UserResponse> deactivateUser(@PathVariable Long id) {
     return ResponseEntity.ok(userService.deactivateUser(id));
