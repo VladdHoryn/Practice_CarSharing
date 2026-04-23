@@ -22,17 +22,13 @@ public class CarApplicationService {
 
     car.setStatus(CarStatus.AVAILABLE);
 
-    Car savedCar = carRepository.save(car);
-
-    log.info("Car created with id={}", savedCar.getId());
-
-    return savedCar;
+    return carRepository.save(car);
   }
 
 
   public Car getCarById(Long id) {
     return carRepository.findById(id)
-      .orElseThrow(() -> new RuntimeException("Car not found with id: " + id));
+      .orElseThrow(() -> new IllegalArgumentException("Car not found with id: " + id));
   }
 
   public List<Car> getAllCars() {
@@ -40,10 +36,7 @@ public class CarApplicationService {
   }
 
   public List<Car> getAvailableCars() {
-    return carRepository.findAll()
-      .stream()
-      .filter(Car::isAvailableForRent)
-      .toList();
+    return carRepository.findByStatus(CarStatus.AVAILABLE);
   }
 
   @Transactional
@@ -94,10 +87,7 @@ public class CarApplicationService {
   public void deleteCar(Long id) {
     log.info("Deleting car id={}", id);
 
-    if (!carRepository.existsById(id)) {
-      throw new RuntimeException("Car not found");
-    }
-
-    carRepository.deleteById(id);
+    Car car = getCarById(id);
+    carRepository.delete(car);
   }
 }
