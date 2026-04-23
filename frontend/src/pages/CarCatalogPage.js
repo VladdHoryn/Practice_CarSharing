@@ -11,7 +11,7 @@ const CarCatalogPage = () => {
 
     const [filters, setFilters] = useState({
         brand: 'all',
-        maxPrice: 100 // Максимальна ціна за замовчуванням
+        maxPrice: 200 // Максимальна ціна за замовчуванням
     });
 
     // Завантажуємо реальні дані з бекенду (Spring Boot)
