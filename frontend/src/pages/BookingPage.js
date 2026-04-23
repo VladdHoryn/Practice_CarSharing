@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styles from './BookingPage.module.css';
+import { carService } from '../services/car.service'; // Підключаємо сервіс!
 
 const BookingPage = () => {
     const { id } = useParams();
@@ -11,17 +12,39 @@ const BookingPage = () => {
     const [paymentMethod, setPaymentMethod] = useState('CARD'); // CARD або CASH
     const [coDrivers, setCoDrivers] = useState([]); // Split Access
 
-    // Мокові дані авто
-    const car = { id: id, brand: 'Dacia Logan', pricePerDay: 29 };
+    // Стейт для реального авто з бекенду
+    const [car, setCar] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // Обчислення кількості днів та загальної суми
+    // Обчислення кількості днів
     const [days, setDays] = useState(0);
 
+    // 1. Завантажуємо реальну машину з БД при відкритті сторінки
+    useEffect(() => {
+        const fetchCarForBooking = async () => {
+            try {
+                setLoading(true);
+                const data = await carService.getCarById(id);
+                setCar(data);
+                setError(null);
+            } catch (err) {
+                console.error('Помилка завантаження авто для бронювання:', err);
+                setError('Не вдалося завантажити дані автомобіля.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchCarForBooking();
+    }, [id]);
+
+    // 2. Рахуємо дні при зміні дат
     useEffect(() => {
         if (dates.start && dates.end) {
             const start = new Date(dates.start);
             const end = new Date(dates.end);
-            const diffTime = Math.abs(end - start);
+            const diffTime = end - start;
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             setDays(diffDays > 0 ? diffDays : 0);
         } else {
@@ -31,7 +54,7 @@ const BookingPage = () => {
 
     // Функції для Split Access
     const addCoDriver = () => {
-        if (coDrivers.length < 4) { // Максимум 5 водіїв (1 основний + 4 додаткових)
+        if (coDrivers.length < 4) {
             setCoDrivers([...coDrivers, { email: '', licenseNumber: '' }]);
         } else {
             alert('Досягнуто ліміт водіїв (максимум 5 на одне авто)');
@@ -52,7 +75,7 @@ const BookingPage = () => {
     // Відправка форми
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (days <= 0) return alert('Оберіть коректні дати');
+        if (days <= 0) return alert('Оберіть коректні дати (дата завершення має бути пізніше дати початку)');
 
         const bookingData = {
             carId: car.id,
@@ -63,10 +86,16 @@ const BookingPage = () => {
             totalPrice: days * car.pricePerDay
         };
 
+        // Тут ми пізніше підключимо booking.service.js
         console.log('Дані на бекенд (/api/bookings):', bookingData);
-        alert('Бронювання успішно створено!');
+        alert('Бронювання успішно створено! (Дані виведено в консоль)');
         navigate('/catalog');
     };
+
+    // Відображення під час очікування відповіді від сервера
+    if (loading) return <div className={styles.pageContainer} style={{padding: '100px', textAlign: 'center'}}>Підготовка сторінки бронювання... ⏳</div>;
+    if (error) return <div className={styles.pageContainer} style={{padding: '100px', textAlign: 'center', color: 'red'}}>{error}</div>;
+    if (!car) return null;
 
     return (
         <div className={styles.pageContainer}>
@@ -184,9 +213,17 @@ const BookingPage = () => {
                         <h2 className={styles.sectionTitle}>Ваше замовлення</h2>
 
                         <div className={styles.summaryCar}>
-                            <div className={styles.summaryCarImg}></div>
+                            {/* Відображаємо реальне фото з бекенду */}
+                            <div className={styles.summaryCarImg}>
+                                {car.imageUrl ? (
+                                    <img src={car.imageUrl} alt={car.brand} style={{width: '100%', height: '100%', objectFit: 'cover', borderRadius: '4px'}}/>
+                                ) : (
+                                    <div style={{width: '100%', height: '100%', backgroundColor: '#eee', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>Фото</div>
+                                )}
+                            </div>
                             <div>
-                                <strong>{car.brand}</strong>
+                                {/* Відображаємо реальну марку і модель */}
+                                <strong>{car.brand} {car.model}</strong>
                                 <div style={{fontSize: '13px', color: '#666'}}>{car.pricePerDay}€ / доба</div>
                             </div>
                         </div>

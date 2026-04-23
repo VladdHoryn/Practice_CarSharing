@@ -1,38 +1,50 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styles from './CarDetailsPage.module.css';
+import { carService } from '../services/car.service'; // Підключаємо наш реальний сервіс
 
 const CarDetailsPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+
+    // Додаємо стани для завантаження та помилок
     const [car, setCar] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
-        // Тимчасові мокові дані, що ідеально підходять під макет
-        const mockCarDetails = {
-            id: id || '1',
-            brand: 'Dacia Logan',
-            subtitle: 'Механічна, 1.2 л.',
-            pricing: [
-                { period: '1-3 доби', price: '29€' },
-                { period: '4-7 діб', price: '25€' }, // Зробив трохи реалістичніше за макет
-                { period: '8-15 діб', price: '22€' },
-                { period: '16+ діб', price: '19€' },
-                { period: 'Депозит', price: '200€' }
-            ],
-            description: 'Dacia Logan - це надійний, практичний, сучасний автомобіль для щоденних поїздок. Відмінно підійде як для їзди по місту, так і для тривалих подорожей. Компактний седан з містким багажником відмінно підійде для поїздок з сім\'єю і друзями.',
-            specs: {
-                engine: '1.2 л., 92 к.с., бензин',
-                consumption: '6-8л/100км',
-                transmission: 'механічна',
-                ac: 'так',
-                doors: '4'
+        const fetchCarDetails = async () => {
+            try {
+                setLoading(true);
+                // Робимо запит до бекенду: GET /car/v1/{id}
+                const data = await carService.getCarById(id);
+                setCar(data);
+                setError(null);
+            } catch (err) {
+                console.error('Помилка завантаження деталей авто:', err);
+                setError('На жаль, не вдалося знайти інформацію про цей автомобіль.');
+            } finally {
+                setLoading(false);
             }
         };
-        setCar(mockCarDetails);
+
+        fetchCarDetails();
     }, [id]);
 
-    if (!car) return <div className={styles.pageContainer}>Завантаження...</div>;
+    // Відображення під час очікування відповіді від сервера
+    if (loading) return <div className={styles.pageContainer} style={{padding: '100px', textAlign: 'center'}}>Завантаження інформації про авто... ⏳</div>;
+    if (error) return <div className={styles.pageContainer} style={{padding: '100px', textAlign: 'center', color: 'red'}}>{error}</div>;
+    if (!car) return null;
+
+    // Розраховуємо ціни зі знижками на основі базової ціни з БД
+    const basePrice = car.pricePerDay;
+    const pricing = [
+        { period: '1-3 доби', price: `${basePrice}€` },
+        { period: '4-7 діб', price: `${Math.round(basePrice * 0.9)}€` }, // 10% знижка
+        { period: '8-15 діб', price: `${Math.round(basePrice * 0.8)}€` }, // 20% знижка
+        { period: '16+ діб', price: `${Math.round(basePrice * 0.7)}€` }, // 30% знижка
+        { period: 'Депозит', price: '200€' }
+    ];
 
     return (
         <div className={styles.pageContainer}>
@@ -43,13 +55,18 @@ const CarDetailsPage = () => {
                 {/* Ліва колонка: Назва та Фото */}
                 <div>
                     <div className={styles.carHeader}>
-                        <h1 className={styles.carTitle}>{car.brand}</h1>
-                        <p className={styles.carSubtitle}>{car.subtitle}</p>
+                        {/* Підтягуємо реальні марку та модель */}
+                        <h1 className={styles.carTitle}>{car.brand} {car.model}</h1>
+                        <p className={styles.carSubtitle}>{car.year} рік, клас: {car.carClass}</p>
                     </div>
 
                     <div className={styles.mainImagePlaceholder}>
-                        {/* <img src={car.imageUrl} alt={car.brand} style={{width: '100%', borderRadius: '4px'}}/> */}
-                        [Фото авто: {car.brand}]
+                        {/* Якщо в базі є лінк на фото - показуємо його, інакше заглушку */}
+                        {car.imageUrl ? (
+                            <img src={car.imageUrl} alt={`${car.brand} ${car.model}`} style={{width: '100%', height: '100%', objectFit: 'cover', borderRadius: '4px'}}/>
+                        ) : (
+                            `[Фото авто: ${car.brand} ${car.model}]`
+                        )}
                     </div>
 
                     <div className={styles.thumbnailGallery}>
@@ -64,7 +81,7 @@ const CarDetailsPage = () => {
                     <p className={styles.sectionSubtitle}>Вартість залежить від терміну оренди</p>
 
                     <ul className={styles.priceTable}>
-                        {car.pricing.map((item, index) => (
+                        {pricing.map((item, index) => (
                             <li key={index} className={styles.priceRow}>
                                 <span>{item.period}</span>
                                 <span className={styles.priceValue}>{item.price}</span>
@@ -94,7 +111,9 @@ const CarDetailsPage = () => {
                 <div>
                     <h2 className={styles.sectionTitle}>Про цей автомобіль:</h2>
                     <p className={styles.descText}>
-                        {car.description}
+                        {car.brand} {car.model} ({car.year}) - це чудовий вибір у класі {car.carClass}.
+                        Надійний, практичний та сучасний автомобіль для щоденних поїздок.
+                        Відмінно підійде як для їзди по місту, так і для тривалих подорожей з сім'єю чи друзями.
                     </p>
                 </div>
 
@@ -102,11 +121,12 @@ const CarDetailsPage = () => {
                 <div>
                     <h2 className={styles.sectionTitle}>Характеристики автомобіля:</h2>
                     <ul className={styles.specsList}>
-                        <li><strong>Двигун:</strong> {car.specs.engine}</li>
-                        <li><strong>Витрата пального:</strong> {car.specs.consumption}</li>
-                        <li><strong>Коробка:</strong> {car.specs.transmission}</li>
-                        <li><strong>Кондиціонер:</strong> {car.specs.ac}</li>
-                        <li><strong>Дверей:</strong> {car.specs.doors}</li>
+                        {/* Ці поля поки захардкоджені, бо їх ще немає в DTO/Entity */}
+                        <li><strong>Двигун:</strong> 2.0 л., бензин (демо)</li>
+                        <li><strong>Витрата пального:</strong> 7л/100км (демо)</li>
+                        <li><strong>Коробка:</strong> Автомат (демо)</li>
+                        <li><strong>Кондиціонер:</strong> так (демо)</li>
+                        <li><strong>Клас авто:</strong> {car.carClass}</li>
                     </ul>
                 </div>
 
