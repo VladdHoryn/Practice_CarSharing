@@ -1,7 +1,5 @@
 package org.example.application;
 
-import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.example.domain.User;
 import org.example.domain.UserRole;
@@ -10,110 +8,107 @@ import org.example.dto.UserResponse;
 import org.example.repository.UserRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class UserApplicationService {
-    private final UserRepository userRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
+  private final UserRepository userRepository;
+  private final BCryptPasswordEncoder passwordEncoder;
 
-    private String encodePassword(String rawPassword) {
-        return passwordEncoder.encode(rawPassword);
+  private String encodePassword(String rawPassword) {
+    return passwordEncoder.encode(rawPassword);
+  }
+
+  // CREATE
+  public UserResponse createUser(UserRequest request) {
+
+    if (userRepository.existsByEmail(request.getEmail())) {
+      throw new RuntimeException("User with this email already exists");
     }
 
-    // CREATE
-    public UserResponse createUser(UserRequest request) {
+    User user = new User();
+    user.setFullName(request.getFullName());
+    user.setEmail(request.getEmail());
+    user.setPasswordHash(encodePassword(request.getPassword()));
+    user.setRole(request.getRole() != null ? request.getRole() : UserRole.GUEST);
 
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("User with this email already exists");
-        }
+    User savedUser = userRepository.save(user);
+    return mapToResponse(savedUser);
+  }
 
-        User user = new User();
-        user.setFullName(request.getFullName());
-        user.setEmail(request.getEmail());
-        user.setPasswordHash(encodePassword(request.getPassword()));
-        user.setRole(request.getRole() != null ? request.getRole() : UserRole.GUEST);
+  // READ ALL
+  public List<UserResponse> getAllUsers() {
+    return userRepository.findAll()
+      .stream()
+      .map(this::mapToResponse)
+      .collect(Collectors.toList());
+  }
 
-        User savedUser = userRepository.save(user);
-        return mapToResponse(savedUser);
+  // READ BY ID
+  public UserResponse getUserById(Long id) {
+    User user = userRepository.findById(id)
+      .orElseThrow(() -> new RuntimeException("User not found"));
+
+    return mapToResponse(user);
+  }
+
+  // UPDATE
+  public UserResponse updateUser(Long id, UserRequest request) {
+    User user = userRepository.findById(id)
+      .orElseThrow(() -> new RuntimeException("User not found"));
+
+    user.setFullName(request.getFullName());
+    user.setEmail(request.getEmail());
+
+    // оновлюємо пароль тільки якщо переданий
+    if (request.getPassword() != null && !request.getPassword().isBlank()) {
+      user.setPasswordHash(encodePassword(request.getPassword()));
     }
 
-    // READ ALL
-    public List<UserResponse> getAllUsers() {
-        return userRepository.findAll().stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+    if (request.getRole() != null) {
+      user.setRole(request.getRole());
     }
 
-    // READ BY ID
-    public UserResponse getUserById(Long id) {
-        User user =
-                userRepository
-                        .findById(id)
-                        .orElseThrow(() -> new RuntimeException("User not found"));
+    return mapToResponse(userRepository.save(user));
+  }
 
-        return mapToResponse(user);
-    }
+  // DELETE (soft delete через deactivate)
+  public void deleteUser(Long id) {
+    userRepository.deleteById(id);
+  }
 
-    // UPDATE
-    public UserResponse updateUser(Long id, UserRequest request) {
-        User user =
-                userRepository
-                        .findById(id)
-                        .orElseThrow(() -> new RuntimeException("User not found"));
+  // ACTIVATE USER
+  public UserResponse activateUser(Long id) {
+    User user = userRepository.findById(id)
+      .orElseThrow(() -> new RuntimeException("User not found"));
 
-        user.setFullName(request.getFullName());
-        user.setEmail(request.getEmail());
+    user.activate();
+    return mapToResponse(userRepository.save(user));
+  }
 
-        // оновлюємо пароль тільки якщо переданий
-        if (request.getPassword() != null && !request.getPassword().isBlank()) {
-            user.setPasswordHash(encodePassword(request.getPassword()));
-        }
+  // DEACTIVATE USER
+  public UserResponse deactivateUser(Long id) {
+    User user = userRepository.findById(id)
+      .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (request.getRole() != null) {
-            user.setRole(request.getRole());
-        }
+    user.deactivate();
 
-        return mapToResponse(userRepository.save(user));
-    }
+    return mapToResponse(userRepository.save(user));
+  }
 
-    // DELETE (soft delete через deactivate)
-    public void deleteUser(Long id) {
-        userRepository.deleteById(id);
-    }
-
-    // ACTIVATE USER
-    public UserResponse activateUser(Long id) {
-        User user =
-                userRepository
-                        .findById(id)
-                        .orElseThrow(() -> new RuntimeException("User not found"));
-
-        user.activate();
-        return mapToResponse(userRepository.save(user));
-    }
-
-    // DEACTIVATE USER
-    public UserResponse deactivateUser(Long id) {
-        User user =
-                userRepository
-                        .findById(id)
-                        .orElseThrow(() -> new RuntimeException("User not found"));
-
-        user.deactivate();
-
-        return mapToResponse(userRepository.save(user));
-    }
-
-    // MAPPER
-    private UserResponse mapToResponse(User user) {
-        return UserResponse.builder()
-                .id(user.getId())
-                .fullName(user.getFullName())
-                .email(user.getEmail())
-                .role(user.getRole())
-                .isActive(user.isActive())
-                .createdAt(user.getCreatedAt())
-                .build();
-    }
+  // MAPPER
+  private UserResponse mapToResponse(User user) {
+    return UserResponse.builder()
+      .id(user.getId())
+      .fullName(user.getFullName())
+      .email(user.getEmail())
+      .role(user.getRole())
+      .isActive(user.isActive())
+      .createdAt(user.getCreatedAt())
+      .build();
+  }
 }
