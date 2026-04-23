@@ -81,7 +81,7 @@ services:
       - "5433:5432"
     volumes:
       - car_postgres_data:/var/lib/postgresql/data
-      - ./docker/car-db-init:/docker-entrypoint-initdb.d
+    #      - ./docker/car-db-init:/docker-entrypoint-initdb.d
     networks:
       - car-sharing-network
     healthcheck:
@@ -90,27 +90,27 @@ services:
       timeout: 5s
       retries: 5
 
-#  car-service:
-#    build:
-#      context: ./car-service
-#      dockerfile: Dockerfile
-#    container_name: car-service
-#    restart: always
-#    depends_on:
-#      car-db:
-#        condition: service_healthy
+  car-service:
+    build:
+      context: ./backend/car-service
+      dockerfile: Dockerfile
+    container_name: car-service
+    restart: always
+    depends_on:
+      car-db:
+        condition: service_healthy
 #      eureka-server:
 #        condition: service_started
-#    environment:
-#      DB_HOST: car-db
-#      DB_PORT: 5432
-#      DB_NAME: car_service_db
-#      DB_USERNAME: postgres
-#      DB_PASSWORD: postgres123
-#    ports:
-#      - "8085:8085"
-#    networks:
-#      - car-sharing-network
+    environment:
+      DB_HOST: car-db
+      DB_PORT: 5432
+      DB_NAME: car_service_db
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres123
+    ports:
+      - "8085:8085"
+    networks:
+      - car-sharing-network
 
   # =====================================================
   # BOOKING SERVICE with PostgreSQL
