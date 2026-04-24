@@ -19,5 +19,8 @@ public record CreateCarRequest(
   Float pricePerDay,
 
   @Pattern(regexp = "^(https?://.*)?$")
-  String imageUrl
+  String imageUrl,
+
+  @NotNull
+  Long userId
 ) {}
