@@ -1,0 +1,28 @@
+-- =====================================================
+-- Booking Service - Add cancel_deadline column
+-- Version: V7
+-- =====================================================
+
+-- Add cancel_deadline column
+ALTER TABLE bookings 
+ADD COLUMN cancel_deadline TIMESTAMP;
+
+-- Set cancel_deadline based on start_date (can't cancel within 24 hours of start)
+UPDATE bookings 
+SET cancel_deadline = start_date - INTERVAL '1 day'
+WHERE cancel_deadline IS NULL;
+
+-- Make it NOT NULL after setting values
+ALTER TABLE bookings 
+ALTER COLUMN cancel_deadline SET NOT NULL;
+
+-- Add check constraint: cancel_deadline must be before start_date
+ALTER TABLE bookings 
+ADD CONSTRAINT check_cancel_deadline_before_start 
+CHECK (cancel_deadline < start_date);
+
+-- Create index for cancellation queries
+CREATE INDEX idx_bookings_cancel_deadline ON bookings(cancel_deadline);
+
+-- Add comment
+COMMENT ON COLUMN bookings.cancel_deadline IS 'Last date when booking can be cancelled (usually 24h before start_date)';
