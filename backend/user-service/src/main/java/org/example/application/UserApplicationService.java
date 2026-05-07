@@ -3,6 +3,8 @@ package org.example.application;
 import lombok.RequiredArgsConstructor;
 import org.example.domain.User;
 import org.example.domain.UserRole;
+import org.example.dto.AuthResponse;
+import org.example.dto.LoginRequest;
 import org.example.dto.UserRequest;
 import org.example.dto.UserResponse;
 import org.example.repository.UserRepository;
@@ -21,6 +23,57 @@ public class UserApplicationService {
 
   private String encodePassword(String rawPassword) {
     return passwordEncoder.encode(rawPassword);
+  }
+
+  public AuthResponse register(UserRequest request) {
+
+    if (userRepository.existsByEmail(request.getEmail())) {
+      throw new RuntimeException("User with this email already exists");
+    }
+
+    User user = new User();
+
+    user.setFullName(request.getFullName());
+    user.setEmail(request.getEmail());
+    user.setPasswordHash(encodePassword(request.getPassword()));
+
+    user.setRole(
+      request.getRole() != null
+        ? request.getRole()
+        : UserRole.RENTER
+    );
+
+    User savedUser = userRepository.save(user);
+
+    return AuthResponse.builder()
+      .message("Registration successful")
+      .user(mapToResponse(savedUser))
+      .build();
+  }
+
+  public AuthResponse login(LoginRequest request) {
+
+    User user = userRepository.findByEmail(request.getEmail())
+      .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+
+    if (!user.isActive()) {
+      throw new RuntimeException("Account is deactivated");
+    }
+
+    boolean passwordMatches =
+      passwordEncoder.matches(
+        request.getPassword(),
+        user.getPasswordHash()
+      );
+
+    if (!passwordMatches) {
+      throw new RuntimeException("Invalid email or password");
+    }
+
+    return AuthResponse.builder()
+      .message("Login successful")
+      .user(mapToResponse(user))
+      .build();
   }
 
   // CREATE
