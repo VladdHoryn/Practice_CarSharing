@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
@@ -43,9 +44,13 @@ public class User {
   @Column(name = "is_active", nullable = false)
   private Boolean isActive;
 
+  @Column(name = "updated_at", nullable = false)
+  private LocalDateTime updatedAt;
+
   @PrePersist
   protected void onCreate() {
     this.createdAt = LocalDate.now();
+    this.updatedAt = LocalDateTime.now();
     this.isActive = true;
   }
 
