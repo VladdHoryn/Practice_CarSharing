@@ -7,6 +7,7 @@ import org.example.dto.AuthResponse;
 import org.example.dto.LoginRequest;
 import org.example.dto.UserRequest;
 import org.example.dto.UserResponse;
+import org.example.exception.InvalidCredentialsException;
 import org.example.repository.UserRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -54,7 +55,7 @@ public class UserApplicationService {
   public AuthResponse login(LoginRequest request) {
 
     User user = userRepository.findByEmail(request.getEmail())
-      .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+      .orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
 
     if (!user.isActive()) {
       throw new RuntimeException("Account is deactivated");
@@ -67,7 +68,7 @@ public class UserApplicationService {
       );
 
     if (!passwordMatches) {
-      throw new RuntimeException("Invalid email or password");
+      throw new InvalidCredentialsException("Invalid email or password");
     }
 
     return AuthResponse.builder()

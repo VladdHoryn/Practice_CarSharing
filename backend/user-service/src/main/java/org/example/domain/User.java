@@ -5,6 +5,8 @@ import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -20,7 +22,7 @@ public class User {
   private Long id;
 
   @NotBlank(message = "Full name is required")
-  @Size(min = 2, max = 50, message = "Full name must be between 2 and 100 characters")
+  @Size(min = 2, max = 100, message = "Full name must be between 2 and 100 characters")
   @Column(name = "full_name", nullable = false)
   private String fullName;
 
@@ -34,8 +36,8 @@ public class User {
   private String email;
 
   @NotNull(message = "Role is required")
-  @Enumerated(EnumType.STRING)
-  @Column(name = "role", nullable = false)
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+  @Column(name = "role", nullable = false, columnDefinition = "user_role_enum")
   private UserRole role;
 
   @Column(name = "created_at", nullable = false, updatable = false)
