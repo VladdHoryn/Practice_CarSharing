@@ -23,48 +23,48 @@ services:
   # =====================================================
   # USER SERVICE with PostgreSQL
   # =====================================================
-#  user-db:
-#    image: postgres:15-alpine
-#    container_name: user-db
-#    restart: unless-stopped
-#    environment:
-#      POSTGRES_DB: user_service_db
-#      POSTGRES_USER: postgres
-#      POSTGRES_PASSWORD: postgres123
-#    ports:
-#      - "5432:5432"
-#    volumes:
-#      - user_postgres_data:/var/lib/postgresql/data
+  user-db:
+    image: postgres:15-alpine
+    container_name: user-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: user_service_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    ports:
+      - "5432:5432"
+    volumes:
+      - user_postgres_data:/var/lib/postgresql/data
 #      - ./docker/user-db-init:/docker-entrypoint-initdb.d
-#    networks:
-#      - car-sharing-network
-#    healthcheck:
-#      test: ["CMD-SHELL", "pg_isready -U postgres -d user_service_db"]
-#      interval: 10s
-#      timeout: 5s
-#      retries: 5
+    networks:
+      - car-sharing-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d user_service_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-#  user-service:
-#    build:
-#      context: ./user-service
-#      dockerfile: Dockerfile
-#    container_name: user-service
-#    restart: always
-#    depends_on:
-#      user-db:
-#        condition: service_healthy
+  user-service:
+    build:
+      context: ./backend/user-service
+      dockerfile: Dockerfile
+    container_name: user-service
+    restart: always
+    depends_on:
+      user-db:
+        condition: service_healthy
 #      eureka-server:
 #        condition: service_started
-#    environment:
-#      DB_HOST: user-db
-#      DB_PORT: 5432
-#      DB_NAME: user_service_db
-#      DB_USERNAME: postgres
-#      DB_PASSWORD: postgres123
-#    ports:
-#      - "8084:8084"
-#    networks:
-#      - car-sharing-network
+    environment:
+      DB_HOST: user-db
+      DB_PORT: 5432
+      DB_NAME: user_service_db
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres123
+    ports:
+      - "8081:8081"
+    networks:
+      - car-sharing-network
 
   # =====================================================
   # CAR SERVICE with PostgreSQL
