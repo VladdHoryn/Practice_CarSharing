@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import styles from './RegisterPage.module.css';
+import { authService } from '../services/auth.service'; // Підключаємо наш сервіс
 
 const RegisterPage = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -15,6 +17,9 @@ const RegisterPage = () => {
   });
 
   const [showPassword, setShowPassword] = useState(false);
+  // Додаємо стани для помилок та завантаження
+  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -24,16 +29,51 @@ const RegisterPage = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Дані для відправки на бекенд:', formData);
-    // Тут буде виклик axios.post('/api/users/register', formData)
+    setError(null);
+
+    // Базова перевірка паролів
+    if (formData.password !== formData.confirmPassword) {
+      setError("Паролі не співпадають!");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      // Формуємо об'єкт для бекенду (підганяємо під DTO UserRequest)
+      const userData = {
+        fullName: `${formData.firstName} ${formData.lastName}`.trim(),
+        email: formData.email,
+        password: formData.password,
+        role: formData.isOwner ? 'OWNER' : 'RENTER'
+      };
+
+      console.log('Відправляємо на бекенд:', userData);
+
+      // Викликаємо бекенд
+      const response = await authService.register(userData);
+
+      alert(response.message || "Реєстрація успішна!");
+      navigate('/login'); // Перекидаємо на логін
+
+    } catch (err) {
+      console.error('Помилка реєстрації:', err);
+      // Ловимо повідомлення про помилку від бекенду (напр. "User with this email already exists")
+      setError(err.response?.data?.message || "Помилка при реєстрації. Спробуйте ще раз.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className={styles.pageContainer}>
       <div className={styles.authCard}>
         <h2 className={styles.title}>Реєстрація</h2>
+
+        {/* Вивід помилки червоним кольором, якщо вона є */}
+        {error && <div style={{color: 'red', marginBottom: '15px', textAlign: 'center'}}>{error}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className={styles.formGroup}>
@@ -95,10 +135,10 @@ const RegisterPage = () => {
                 onChange={handleChange}
                 required
               />
-              {/* Тут можна вставити SVG іконку ока, для прикладу використано емодзі/текст */}
               <span
                 className={styles.iconRight}
                 onClick={() => setShowPassword(!showPassword)}
+                style={{cursor: 'pointer'}}
               >
                 👁️
               </span>
@@ -119,6 +159,7 @@ const RegisterPage = () => {
               <span
                 className={styles.iconRight}
                 onClick={() => setShowPassword(!showPassword)}
+                style={{cursor: 'pointer'}}
               >
                 👁️
               </span>
@@ -136,7 +177,7 @@ const RegisterPage = () => {
             <label htmlFor="remember" className={styles.checkboxLabel}>Remember me</label>
           </div>
 
-          {/* Світч ролей згідно з макетом */}
+          {/* Світч ролей */}
           <div className={styles.roleToggle}>
             <span style={{ color: !formData.isOwner ? '#333' : '#999' }}>Я хочу орендувати</span>
             <label className={styles.switch}>
@@ -151,8 +192,8 @@ const RegisterPage = () => {
             <span style={{ color: formData.isOwner ? '#333' : '#999' }}>Я хочу здати автомобіль</span>
           </div>
 
-          <button type="submit" className={styles.submitBtn}>
-            Підтвердити
+          <button type="submit" className={styles.submitBtn} disabled={isLoading}>
+            {isLoading ? 'Завантаження...' : 'Підтвердити'}
           </button>
         </form>
 
