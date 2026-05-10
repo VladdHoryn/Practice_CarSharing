@@ -115,48 +115,47 @@ services:
   # =====================================================
   # BOOKING SERVICE with PostgreSQL
   # =====================================================
-  #  booking-db:
-  #    image: postgres:15-alpine
-  #    container_name: booking-db
-  #    restart: unless-stopped
-  #    environment:
-  #      POSTGRES_DB: booking_service_db
-  #      POSTGRES_USER: postgres
-  #      POSTGRES_PASSWORD: postgres123
-  #    ports:
-  #      - "5434:5432"
-  #    volumes:
-  #      - booking_postgres_data:/var/lib/postgresql/data
-  #      - ./docker/booking-db-init:/docker-entrypoint-initdb.d
-  #    networks:
-  #      - car-sharing-network
-  #    healthcheck:
-  #      test: ["CMD-SHELL", "pg_isready -U postgres -d booking_service_db"]
-  #      interval: 10s
-  #      timeout: 5s
-  #      retries: 5
+  booking-db:
+    image: postgres:15-alpine
+    container_name: booking-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: booking_service_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    ports:
+      - "5434:5432"
+    volumes:
+      - booking_postgres_data:/var/lib/postgresql/data
+    networks:
+      - car-sharing-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d booking_service_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  #  booking-service:
-  #    build:
-  #      context: ./booking-service
-  #      dockerfile: Dockerfile
-  #    container_name: booking-service
-  #    restart: always
-  #    depends_on:
-  #      booking-db:
-  #        condition: service_healthy
-  #      eureka-server:
-  #        condition: service_started
-  #    environment:
-  #      DB_HOST: booking-db
-  #      DB_PORT: 5432
-  #      DB_NAME: booking_service_db
-  #      DB_USERNAME: postgres
-  #      DB_PASSWORD: postgres123
-  #    ports:
-  #      - "8086:8086"
-  #    networks:
-  #      - car-sharing-network
+  booking-service:
+    build:
+      context: ./booking-service
+      dockerfile: Dockerfile
+    container_name: booking-service
+    restart: always
+    depends_on:
+      booking-db:
+        condition: service_healthy
+#      eureka-server:
+#        condition: service_started
+    environment:
+      DB_HOST: booking-db
+      DB_PORT: 5432
+      DB_NAME: booking_service_db
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres123
+    ports:
+      - "8082:8082"
+    networks:
+      - car-sharing-network
 
   payment-db:
     image: postgres:15-alpine
@@ -172,7 +171,7 @@ services:
       - payment_postgres_data:/var/lib/postgresql/data
     #      - ./docker/car-db-init:/docker-entrypoint-initdb.d
     networks:
-      - payment-sharing-network
+      - car-sharing-network
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres -d car_service_db" ]
       interval: 10s
