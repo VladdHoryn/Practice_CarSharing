@@ -24,11 +24,3 @@ INSERT INTO bookings (user_id, car_id, start_date, end_date, status, total_price
     
     -- CANCELLED (1)
     (6, 6, CURRENT_TIMESTAMP + INTERVAL '20 days', CURRENT_TIMESTAMP + INTERVAL '24 days', 'CANCELLED', 380.00, (CURRENT_TIMESTAMP + INTERVAL '20 days') - INTERVAL '1 day');
-
-DO $$
-DECLARE
-    booking_count INTEGER;
-BEGIN
-    SELECT COUNT(*) INTO booking_count FROM bookings;
-    RAISE NOTICE 'Bookings seeded: %', booking_count;
-END $$;
