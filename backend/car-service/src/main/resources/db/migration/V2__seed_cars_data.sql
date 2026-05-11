@@ -38,19 +38,3 @@ INSERT INTO cars (brand, model, year, car_class, price_per_day, user_id, status,
     -- =====================================================
     ('Tesla', 'Model 3', 2024, 'BUSINESS', 140.00, 2, 'AVAILABLE', 'https://example.com/tesla-model3.jpg'),
     ('Tesla', 'Model Y', 2024, 'LUXURY', 180.00, 3, 'AVAILABLE', 'https://example.com/tesla-modely.jpg');
-
--- Verify the number of inserted cars
-DO $$
-DECLARE
-    car_count INTEGER;
-BEGIN
-    SELECT COUNT(*) INTO car_count FROM cars;
-    IF car_count < 10 THEN
-        RAISE NOTICE 'Warning: Only % cars were inserted, expected at least 10', car_count;
-    ELSE
-        RAISE NOTICE 'Success: % cars have been inserted', car_count;
-    END IF;
-END $$;
-
--- Add summary comment
-COMMENT ON TABLE cars IS 'Total 12 cars inserted: OWNER1(id=2): 5 cars, OWNER2(id=3): 6 cars, EXTRA: 1 car';
