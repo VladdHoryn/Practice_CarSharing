@@ -5,7 +5,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.domain.Car;
 import org.example.domain.CarStatus;
+import org.example.dto.CarFilterDto;
 import org.example.repository.CarRepository;
+import org.example.specification.CarSpecification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,80 +18,126 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class CarApplicationService {
-  private final CarRepository carRepository;
 
-  @Transactional
-  public Car createCar(Car car) {
-    log.info("Creating new car: brand={}, model={}", car.getBrand(), car.getModel());
+    private final CarRepository carRepository;
 
-    car.setStatus(CarStatus.AVAILABLE);
+    // =====================================================
+    // CRUD Operations
+    // =====================================================
 
-    return carRepository.save(car);
-  }
+    @Transactional
+    public Car createCar(Car car) {
+        log.info("Creating new car: brand={}, model={}", car.getBrand(), car.getModel());
 
+        if (car.getBrand() == null || car.getBrand().isBlank()) {
+            throw new IllegalArgumentException("Brand is required");
+        }
+        if (car.getModel() == null || car.getModel().isBlank()) {
+            throw new IllegalArgumentException("Model is required");
+        }
+        if (car.getPricePerDay() == null || car.getPricePerDay() <= 0) {
+            throw new IllegalArgumentException("Price per day must be positive");
+        }
 
-  public Car getCarById(Long id) {
-    return carRepository.findById(id)
-      .orElseThrow(() -> new IllegalArgumentException("Car not found with id: " + id));
-  }
+        car.setStatus(CarStatus.AVAILABLE);
+        return carRepository.save(car);
+    }
 
-  public List<Car> getAllCars() {
-    return carRepository.findAll();
-  }
+    public Car getCarById(Long id) {
+        log.debug("Fetching car by id: {}", id);
+        return carRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Car not found with id: " + id));
+    }
 
-  public List<Car> getAvailableCars() {
-    return carRepository.findByStatus(CarStatus.AVAILABLE);
-  }
+    public List<Car> getAllCars() {
+        log.debug("Fetching all cars");
+        return carRepository.findAll();
+    }
 
-  @Transactional
-  public Car rentCar(Long carId, Long userId) {
-    log.info("Rent request: carId={}, userId={}", carId, userId);
+    @Transactional
+    public void deleteCar(Long id) {
+        log.info("Deleting car id={}", id);
+        Car car = getCarById(id);
+        carRepository.delete(car);
+    }
 
-    Car car = getCarById(carId);
+    // =====================================================
+    // Filtering Operations (from old CarService)
+    // =====================================================
 
-    car.rent(userId);
+    public Page<Car> getFilteredCars(CarFilterDto filter, Pageable pageable) {
+        log.debug("Filtering cars with criteria: {}", filter);
+        return carRepository.findAll(CarSpecification.filterBy(filter), pageable);
+    }
 
-    return carRepository.save(car);
-  }
+    public List<Car> getCarsByBrand(String brand) {
+        log.debug("Fetching cars by brand: {}", brand);
+        if (brand == null || brand.isBlank()) {
+            throw new IllegalArgumentException("Brand cannot be empty");
+        }
+        return carRepository.findAll((root, query, cb) -> 
+            cb.equal(root.get("brand"), brand));
+    }
 
-  @Transactional
-  public Car returnCar(Long carId) {
-    log.info("Return request: carId={}", carId);
+    public List<Car> getAvailableCars() {
+        log.debug("Fetching available cars");
+        return carRepository.findByStatus(CarStatus.AVAILABLE);
+    }
 
-    Car car = getCarById(carId);
+    public List<Car> getCarsByClass(String carClass) {
+        log.debug("Fetching cars by class: {}", carClass);
+        if (carClass == null || carClass.isBlank()) {
+            throw new IllegalArgumentException("Car class cannot be empty");
+        }
+        return carRepository.findAll((root, query, cb) -> 
+            cb.equal(root.get("carClass"), carClass));
+    }
 
-    car.returnFromRent();
+    // =====================================================
+    // Business Logic Operations
+    // =====================================================
 
-    return carRepository.save(car);
-  }
+    @Transactional
+    public Car rentCar(Long carId, Long userId) {
+        log.info("Rent request: carId={}, userId={}", carId, userId);
 
-  @Transactional
-  public Car sendToMaintenance(Long carId) {
-    log.info("Send to maintenance: carId={}", carId);
+        if (userId == null || userId <= 0) {
+            throw new IllegalArgumentException("Valid user ID is required");
+        }
 
-    Car car = getCarById(carId);
+        Car car = getCarById(carId);
+        car.rent(userId);
 
-    car.sendToMaintenance();
+        return carRepository.save(car);
+    }
 
-    return carRepository.save(car);
-  }
+    @Transactional
+    public Car returnCar(Long carId) {
+        log.info("Return request: carId={}", carId);
 
-  @Transactional
-  public Car completeMaintenance(Long carId) {
-    log.info("Complete maintenance: carId={}", carId);
+        Car car = getCarById(carId);
+        car.returnFromRent();
 
-    Car car = getCarById(carId);
+        return carRepository.save(car);
+    }
 
-    car.completeMaintenance();
+    @Transactional
+    public Car sendToMaintenance(Long carId) {
+        log.info("Send to maintenance: carId={}", carId);
 
-    return carRepository.save(car);
-  }
+        Car car = getCarById(carId);
+        car.sendToMaintenance();
 
-  @Transactional
-  public void deleteCar(Long id) {
-    log.info("Deleting car id={}", id);
+        return carRepository.save(car);
+    }
 
-    Car car = getCarById(id);
-    carRepository.delete(car);
-  }
+    @Transactional
+    public Car completeMaintenance(Long carId) {
+        log.info("Complete maintenance: carId={}", carId);
+
+        Car car = getCarById(carId);
+        car.completeMaintenance();
+
+        return carRepository.save(car);
+    }
 }
