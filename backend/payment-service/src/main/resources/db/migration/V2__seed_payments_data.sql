@@ -15,11 +15,3 @@ INSERT INTO payments (booking_id, amount, method, status, transaction_id, paymen
     (9, 300.00, 'ONLINE', 'SUCCESS', 'txn_success_009', CURRENT_TIMESTAMP - INTERVAL '17 days'),
     (10, 360.00, 'CASH', 'SUCCESS', NULL, CURRENT_TIMESTAMP - INTERVAL '13 days'),
     (11, 380.00, 'ONLINE', 'REFUNDED', 'txn_refund_011', CURRENT_TIMESTAMP - INTERVAL '5 days');
-
-DO $$
-DECLARE
-    payment_count INTEGER;
-BEGIN
-    SELECT COUNT(*) INTO payment_count FROM payments;
-    RAISE NOTICE 'Payments seeded: %', payment_count;
-END $$;
