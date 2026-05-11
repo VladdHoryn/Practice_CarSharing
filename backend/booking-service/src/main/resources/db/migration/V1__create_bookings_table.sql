@@ -19,11 +19,6 @@ CREATE TABLE bookings (
     CONSTRAINT check_dates CHECK (end_date > start_date AND cancel_deadline < start_date)
 );
 
-CREATE INDEX idx_bookings_user_id ON bookings(user_id);
-CREATE INDEX idx_bookings_car_id ON bookings(car_id);
-CREATE INDEX idx_bookings_status ON bookings(status);
-CREATE INDEX idx_bookings_dates ON bookings(start_date, end_date);
-
 CREATE OR REPLACE FUNCTION update_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -36,5 +31,3 @@ CREATE TRIGGER update_bookings_updated_at
     BEFORE UPDATE ON bookings
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at();
-
-COMMENT ON TABLE bookings IS 'Car booking requests';
