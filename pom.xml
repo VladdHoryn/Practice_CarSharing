@@ -21,6 +21,7 @@
     <module>backend/car-service</module>
     <module>backend/booking-service</module>
     <module>backend/user-service</module>
+    <module>backend/payment-service</module>
   </modules>
 
   <properties>
