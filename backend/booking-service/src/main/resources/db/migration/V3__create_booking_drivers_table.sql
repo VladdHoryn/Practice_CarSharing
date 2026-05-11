@@ -16,8 +16,3 @@ CREATE TABLE booking_drivers (
         (SELECT COUNT(*) FROM booking_drivers bd WHERE bd.booking_id = booking_id) <= 3
     )
 );
-
-CREATE INDEX idx_booking_drivers_booking ON booking_drivers(booking_id);
-CREATE INDEX idx_booking_drivers_user ON booking_drivers(user_id);
-
-COMMENT ON TABLE booking_drivers IS 'Split access - multiple drivers per booking (max 3)';
