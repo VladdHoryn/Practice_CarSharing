@@ -1,6 +1,6 @@
 -- =====================================================
 -- Booking Service - Add cancel_deadline column
--- Version: V7
+-- Version: V5
 -- =====================================================
 
 -- Add cancel_deadline column
