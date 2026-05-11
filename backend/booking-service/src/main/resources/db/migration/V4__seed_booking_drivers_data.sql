@@ -15,11 +15,3 @@ INSERT INTO booking_drivers (booking_id, user_id, role) VALUES
     (9, 5, 'PRIMARY_DRIVER'),
     (10, 7, 'PRIMARY_DRIVER'), (10, 4, 'CO_DRIVER'),
     (11, 6, 'PRIMARY_DRIVER'), (11, 4, 'CO_DRIVER'), (11, 5, 'CO_DRIVER');
-
-DO $$
-DECLARE
-    driver_count INTEGER;
-BEGIN
-    SELECT COUNT(*) INTO driver_count FROM booking_drivers;
-    RAISE NOTICE 'Booking drivers seeded: %', driver_count;
-END $$;
