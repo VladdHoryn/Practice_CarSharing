@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styles from './LoginPage.module.css';
+import { authService } from '../services/auth.service'; // Підключаємо сервіс
 
 const LoginPage = () => {
+  const navigate = useNavigate();
   const [credentials, setCredentials] = useState({
     email: '',
     password: '',
@@ -10,7 +12,8 @@ const LoginPage = () => {
   });
 
   const [showPassword, setShowPassword] = useState(false);
-  const navigate = useNavigate();
+  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -20,21 +23,45 @@ const LoginPage = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Спроба входу з даними:', credentials);
+    setError(null);
 
-    // TODO: Тут буде виклик API axios.post('/api/auth/login', credentials)
-    // Якщо логін успішний:
-    // 1. Зберігаємо токен (напр., localStorage.setItem('token', response.data.token))
-    // 2. Перенаправляємо в каталог:
-    navigate('/catalog');
+    try {
+      setIsLoading(true);
+
+      const loginData = {
+        email: credentials.email,
+        password: credentials.password
+      };
+
+      console.log('Спроба входу з даними:', loginData);
+
+      // Виклик API
+      const response = await authService.login(loginData);
+
+      // Якщо все ок, об'єкт юзера вже зберігся в localStorage (через auth.service)
+      alert(response.message || "Вхід успішний!");
+
+      // Перенаправляємо в каталог
+      navigate('/catalog');
+
+    } catch (err) {
+      console.error('Помилка входу:', err);
+      // Відображаємо помилку від бекенду ("Invalid email or password" або "Account is deactivated")
+      setError(err.response?.data?.message || "Невірний email або пароль.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className={styles.pageContainer}>
       <div className={styles.authCard}>
         <h2 className={styles.title}>Вхід</h2>
+
+        {/* Вивід помилки червоним кольором */}
+        {error && <div style={{color: 'red', marginBottom: '15px', textAlign: 'center'}}>{error}</div>}
 
         <form onSubmit={handleSubmit}>
             <div className={styles.formGroup}>
@@ -62,6 +89,7 @@ const LoginPage = () => {
               <span
                 className={styles.iconRight}
                 onClick={() => setShowPassword(!showPassword)}
+                style={{cursor: 'pointer'}}
               >
                 👁️
               </span>
@@ -79,8 +107,8 @@ const LoginPage = () => {
             <label htmlFor="rememberMe" className={styles.checkboxLabel}>Remember me</label>
           </div>
 
-          <button type="submit" className={styles.submitBtn}>
-            Підтвердити
+          <button type="submit" className={styles.submitBtn} disabled={isLoading}>
+            {isLoading ? 'Завантаження...' : 'Підтвердити'}
           </button>
         </form>
 

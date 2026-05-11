@@ -2,8 +2,6 @@ package org.example.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.example.dto.ErrorResponse;
-import org.example.exception.InvalidCredentialsException;
-import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -21,7 +19,7 @@ public class GlobalExceptionHandler {
     RuntimeException.class
   })
   @ResponseStatus(HttpStatus.BAD_REQUEST)
-  public ErrorResponse handleBadRequest(RuntimeException  ex,
+  public ErrorResponse handleBadRequest(IllegalArgumentException ex,
                                         HttpServletRequest request) {
 
     return new ErrorResponse(
@@ -31,19 +29,6 @@ public class GlobalExceptionHandler {
       ex.getMessage(),
       request.getRequestURI()
     );
-  }
-
-  @ExceptionHandler(InvalidCredentialsException.class)
-  public ErrorResponse handleInvalidCredentials(
-    InvalidCredentialsException ex, HttpServletRequest request
-  ) {
-    return new ErrorResponse(
-      LocalDateTime.now(),
-      HttpStatus.UNAUTHORIZED.value(),
-      HttpStatus.UNAUTHORIZED.getReasonPhrase(),
-      ex.getMessage(),
-      request.getRequestURI()
-      );
   }
 
   // 500

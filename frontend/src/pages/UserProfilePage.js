@@ -1,19 +1,50 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './UserProfilePage.module.css';
+import { authService } from '../services/auth.service';
 
 const UserProfilePage = () => {
     const navigate = useNavigate();
-    // Стейт для перемикання вкладок
     const [activeTab, setActiveTab] = useState('order');
 
-    // Мокові дані для історії замовлень
+    // Стейт для реальних даних користувача
+    const [user, setUser] = useState({
+        id: '',
+        firstName: '',
+        lastName: '',
+        email: '',
+        role: ''
+    });
+
+    // При завантаженні сторінки перевіряємо, чи є юзер
+    useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            const parsedUser = JSON.parse(storedUser);
+
+            // Розбиваємо fullName на Ім'я та Прізвище
+            const nameParts = parsedUser.fullName ? parsedUser.fullName.split(' ') : [''];
+            const firstName = nameParts[0] || '';
+            const lastName = nameParts.slice(1).join(' ') || '';
+
+            setUser({
+                id: parsedUser.id,
+                firstName: firstName,
+                lastName: lastName,
+                email: parsedUser.email,
+                role: parsedUser.role
+            });
+        } else {
+            // Якщо користувач не залогінений - викидаємо на сторінку логіну
+            navigate('/login');
+        }
+    }, [navigate]);
+
+    // Мокові дані для історії замовлень (поки не підключили booking-service)
     const historyData = [
-        // Якщо хочеш побачити пусту таблицю, просто зроби цей масив пустим: []
         { id: 1, car: 'Dacia Logan', period: '12.05.2025 - 15.05.2025', city: 'Київ', price: '87€' }
     ];
 
-    // Меню сайдбару
     const menuItems = [
         { id: 'order', label: 'Замовити авто', icon: '🔑' },
         { id: 'history', label: 'Історія замовлень', icon: '🕒' },
@@ -22,18 +53,29 @@ const UserProfilePage = () => {
     ];
 
     const handleLogout = () => {
-        // Тут буде логіка очищення токена (localStorage.removeItem('token'))
-        navigate('/login');
+        authService.logout(); // Очищаємо localStorage
+        navigate('/login');   // Перекидаємо на логін
     };
 
-    // Функція для рендеру вмісту в залежності від активної вкладки
+    // Обробник зміни даних у формі профілю
+    const handleProfileChange = (e) => {
+        setUser({ ...user, [e.target.name]: e.target.value });
+    };
+
+    const handleProfileSubmit = (e) => {
+        e.preventDefault();
+        // Тут в майбутньому буде запит до бекенду на оновлення даних: axios.put(`/user/v1/${user.id}`, ...)
+        alert('Ця функція скоро запрацює! Ваші нові дані: ' + user.firstName + ' ' + user.lastName);
+    };
+
     const renderTabContent = () => {
         switch (activeTab) {
             case 'order':
                 return (
                     <>
                         <h2 className={styles.tabTitle}>Замовити авто</h2>
-                        <p className={styles.greeting}>Привіт, макс!</p>
+                        {/* Підставляємо реальне ім'я */}
+                        <p className={styles.greeting}>Привіт, {user.firstName || 'Гість'}!</p>
                         <p className={styles.infoText}>
                             Спеціально для вас ми відображаємо статус доступності для всіх авто, щоб процес підбору став для вас ще швидше та зрозуміліше.
                         </p>
@@ -113,15 +155,43 @@ const UserProfilePage = () => {
                     <>
                         <h2 className={styles.tabTitle}>Персональні дані</h2>
 
-                        <form onSubmit={(e) => { e.preventDefault(); alert('Дані збережено!'); }}>
+                        <form onSubmit={handleProfileSubmit}>
                             <div className={styles.formGrid}>
                                 <div className={styles.inputGroup}>
                                     <label>Ім'я</label>
-                                    <input type="text" defaultValue="Макс" />
+                                    <input
+                                        type="text"
+                                        name="firstName"
+                                        value={user.firstName}
+                                        onChange={handleProfileChange}
+                                    />
                                 </div>
                                 <div className={styles.inputGroup}>
                                     <label>Прізвище</label>
-                                    <input type="text" defaultValue="Журик" />
+                                    <input
+                                        type="text"
+                                        name="lastName"
+                                        value={user.lastName}
+                                        onChange={handleProfileChange}
+                                    />
+                                </div>
+                                <div className={styles.inputGroup}>
+                                    <label>Email (не змінюється)</label>
+                                    <input
+                                        type="email"
+                                        value={user.email}
+                                        disabled
+                                        style={{backgroundColor: '#f5f5f5'}}
+                                    />
+                                </div>
+                                <div className={styles.inputGroup}>
+                                    <label>Ваша роль</label>
+                                    <input
+                                        type="text"
+                                        value={user.role === 'OWNER' ? 'Орендодавець' : 'Орендар'}
+                                        disabled
+                                        style={{backgroundColor: '#f5f5f5'}}
+                                    />
                                 </div>
                             </div>
 

@@ -3,6 +3,8 @@ package org.example.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.application.UserApplicationService;
+import org.example.dto.AuthResponse;
+import org.example.dto.LoginRequest;
 import org.example.dto.UserRequest;
 import org.example.dto.UserResponse;
 import org.springframework.http.ResponseEntity;
@@ -12,9 +14,30 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/user/v1")
+@CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
 public class UserController {
   private final UserApplicationService userService;
+
+  @PostMapping("/register")
+  public ResponseEntity<AuthResponse> register(
+    @Valid @RequestBody UserRequest request
+  ) {
+
+    AuthResponse response = userService.register(request);
+
+    return ResponseEntity.ok(response);
+  }
+
+  @PostMapping("/login")
+  public ResponseEntity<AuthResponse> login(
+    @Valid @RequestBody LoginRequest request
+  ) {
+
+    AuthResponse response = userService.login(request);
+
+    return ResponseEntity.ok(response);
+  }
 
   @PostMapping
   public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserRequest request) {

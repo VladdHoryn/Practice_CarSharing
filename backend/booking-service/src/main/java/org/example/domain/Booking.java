@@ -44,7 +44,8 @@ public class Booking {
 
   @NotNull(message = "Total price is required")
   @Positive(message = "Total price must be positive")
-  @Column(name = "total_price", nullable = false)
+  @Digits(integer = 10, fraction = 2)
+  @Column(name = "total_price", nullable = false, precision = 12, scale = 2)
   private Float totalPrice;
 
   @Column(name = "created_at", nullable = false, updatable = false)

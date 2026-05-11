@@ -5,6 +5,7 @@ import lombok.Data;
 import org.example.domain.UserRole;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -15,4 +16,5 @@ public class UserResponse {
   private UserRole role;
   private Boolean isActive;
   private LocalDate createdAt;
+  private LocalDateTime updatedAt;
 }

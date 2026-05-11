@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.domain.Booking;
+import org.example.domain.BookingStatus;
 import org.example.repository.BookingRepository;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +32,11 @@ public class BookingApplicationService {
     booking.setStartDate(start);
     booking.setEndDate(end);
 
+    booking.setStatus(BookingStatus.CREATED);
+
     booking.calculateTotalPrice(pricePerDay);
+
+    booking.setCreatedAt(LocalDateTime.now());
 
     Booking saved = bookingRepository.save(booking);
 
