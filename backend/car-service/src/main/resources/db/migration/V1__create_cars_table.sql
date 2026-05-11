@@ -8,18 +8,6 @@
 CREATE TYPE car_class_enum AS ENUM ('ECONOMY', 'COMFORT', 'BUSINESS', 'LUXURY');
 CREATE TYPE car_status_enum AS ENUM ('AVAILABLE', 'RENTED', 'MAINTENANCE');
 
--- Create cars table (matches Car.java)
-CREATE TABLE cars (
-    id BIGSERIAL PRIMARY KEY,
-    brand VARCHAR(50) NOT NULL,
-    model VARCHAR(50) NOT NULL,
-    year INTEGER NOT NULL CHECK (year >= 1950),
-    car_class car_class_enum NOT NULL,
-    price_per_day DECIMAL(10,2) NOT NULL CHECK (price_per_day > 0),
-    user_id BIGINT NOT NULL,
-    status car_status_enum NOT NULL,
-    image_url VARCHAR(500) CHECK (image_url IS NULL OR image_url ~ '^https?://.*')
-);
 
 -- Create indexes for performance
 CREATE INDEX idx_cars_user_id ON cars(user_id);
