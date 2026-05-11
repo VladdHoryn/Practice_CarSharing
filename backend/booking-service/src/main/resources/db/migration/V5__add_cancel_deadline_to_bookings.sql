@@ -20,9 +20,3 @@ ALTER COLUMN cancel_deadline SET NOT NULL;
 ALTER TABLE bookings 
 ADD CONSTRAINT check_cancel_deadline_before_start 
 CHECK (cancel_deadline < start_date);
-
--- Create index for cancellation queries
-CREATE INDEX idx_bookings_cancel_deadline ON bookings(cancel_deadline);
-
--- Add comment
-COMMENT ON COLUMN bookings.cancel_deadline IS 'Last date when booking can be cancelled (usually 24h before start_date)';
