@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
@@ -45,8 +46,8 @@ public class Booking {
   @NotNull(message = "Total price is required")
   @Positive(message = "Total price must be positive")
   @Digits(integer = 10, fraction = 2)
-  @Column(name = "total_price", nullable = false, precision = 12, scale = 2)
-  private Float totalPrice;
+  @Column(name = "total_price", nullable = false, precision = 10, scale = 2)
+  private BigDecimal totalPrice;
 
   @Column(name = "created_at", nullable = false, updatable = false)
   private LocalDateTime createdAt;
@@ -119,14 +120,14 @@ public class Booking {
     this.status = BookingStatus.COMPLETED;
   }
 
-  public void calculateTotalPrice(float pricePerDay) {
+  public void calculateTotalPrice(BigDecimal pricePerDay) {
     long days = Duration.between(startDate, endDate).toDays();
 
     if (days <= 0) {
       throw new IllegalStateException("Booking must be at least 1 day");
     }
 
-    this.totalPrice = days * pricePerDay;
+    this.totalPrice = pricePerDay.multiply(BigDecimal.valueOf(days));
   }
 
   public boolean isActive() {

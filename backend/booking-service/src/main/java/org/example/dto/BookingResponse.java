@@ -2,6 +2,7 @@ package org.example.dto;
 
 import org.example.domain.BookingStatus;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public record BookingResponse(
@@ -11,6 +12,6 @@ public record BookingResponse(
   LocalDateTime startDate,
   LocalDateTime endDate,
   BookingStatus status,
-  Float totalPrice,
+  BigDecimal totalPrice,
   LocalDateTime createdAt
 ) {}

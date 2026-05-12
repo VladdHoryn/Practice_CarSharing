@@ -8,6 +8,7 @@ import org.example.domain.BookingStatus;
 import org.example.repository.BookingRepository;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -22,7 +23,7 @@ public class BookingApplicationService {
   public Booking createBooking(Long userId, Long carId,
                                LocalDateTime start,
                                LocalDateTime end,
-                               Float pricePerDay) {
+                               BigDecimal pricePerDay) {
 
     log.info("Creating booking: userId={}, carId={}", userId, carId);
 

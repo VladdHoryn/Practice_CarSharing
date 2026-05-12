@@ -2,6 +2,7 @@ package org.example.dto;
 
 import jakarta.validation.constraints.NotNull;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public record CreateBookingRequest(
@@ -9,5 +10,5 @@ public record CreateBookingRequest(
   @NotNull Long carId,
   @NotNull LocalDateTime startDate,
   @NotNull LocalDateTime endDate,
-  @NotNull Float pricePerDay
+  @NotNull BigDecimal pricePerDay
 ) {}
