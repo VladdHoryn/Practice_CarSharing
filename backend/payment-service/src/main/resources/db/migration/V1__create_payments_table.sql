@@ -3,8 +3,8 @@
 -- Version: V1
 -- =====================================================
 
-CREATE TYPE payment_method_enum AS ENUM ('CARD', 'CASH', 'ONLINE');
-CREATE TYPE payment_status_enum AS ENUM ('PENDING', 'SUCCESS', 'FAILED', 'REFUNDED');
+CREATE TYPE payment_method_enum AS ENUM ('CARD', 'GOOGLE_PAY', 'APPLE_PAY');
+CREATE TYPE payment_status_enum AS ENUM ('CREATED', 'PENDING', 'PROCESSING', 'SUCCESS', 'FAILED', 'CANCELLED', 'REFUNDED');
 
 CREATE TABLE payments (
     id BIGSERIAL PRIMARY KEY,
