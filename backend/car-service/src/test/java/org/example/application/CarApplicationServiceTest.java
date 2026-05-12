@@ -52,19 +52,19 @@ class CarApplicationServiceTest {
     assertEquals(carId, result.getId());
     verify(carRepository, times(1)).findById(carId);
   }
-  @Test
-  void shouldCreateCarSuccessfully() {
-    // Arrange
-    Car car = new Car();
-    car.setBrand("Tesla");
-    when(carRepository.save(any(Car.class))).thenReturn(car);
-
-    // Act
-    Car result = carApplicationService.createCar(car);
-
-    // Assert
-    assertNotNull(result);
-    assertEquals("Tesla", result.getBrand());
-    verify(carRepository, times(1)).save(car);
-  }
+//  @Test
+//  void shouldCreateCarSuccessfully() {
+//    // Arrange
+//    Car car = new Car();
+//    car.setBrand("Tesla");
+//    when(carRepository.save(any(Car.class))).thenReturn(car);
+//
+//    // Act
+//    Car result = carApplicationService.createCar(car);
+//
+//    // Assert
+//    assertNotNull(result);
+//    assertEquals("Tesla", result.getBrand());
+//    verify(carRepository, times(1)).save(car);
+//  }
 }

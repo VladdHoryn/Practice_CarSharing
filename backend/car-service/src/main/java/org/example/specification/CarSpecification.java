@@ -13,11 +13,11 @@ public class CarSpecification {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            if (filter.getBrand() != null && !filter.getBrand().isEmpty()) {
+            if (filter.getBrand() != null && !filter.getBrand().isBlank()) {
                 predicates.add(criteriaBuilder.equal(root.get("brand"), filter.getBrand()));
             }
 
-            if (filter.getModel() != null && !filter.getModel().isEmpty()) {
+            if (filter.getModel() != null && !filter.getModel().isBlank()) {
                 predicates.add(criteriaBuilder.like(root.get("model"), "%" + filter.getModel() + "%"));
             }
 
@@ -29,7 +29,7 @@ public class CarSpecification {
                 predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("year"), filter.getMaxYear()));
             }
 
-            if (filter.getCarClass() != null && !filter.getCarClass().isEmpty()) {
+            if (filter.getCarClass() != null && !filter.getCarClass().isBlank()) {
                 predicates.add(criteriaBuilder.equal(root.get("carClass"), filter.getCarClass()));
             }
 
@@ -45,7 +45,7 @@ public class CarSpecification {
                 predicates.add(criteriaBuilder.equal(root.get("status"), filter.getStatus()));
             }
 
-            if (filter.getLocationCity() != null && !filter.getLocationCity().isEmpty()) {
+            if (filter.getLocationCity() != null && !filter.getLocationCity().isBlank()) {
                 predicates.add(criteriaBuilder.equal(root.get("locationCity"), filter.getLocationCity()));
             }
 
