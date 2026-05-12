@@ -5,6 +5,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("paymetns/v1")
+@RequestMapping("payment/v1")
 public class PaymentController {
 }

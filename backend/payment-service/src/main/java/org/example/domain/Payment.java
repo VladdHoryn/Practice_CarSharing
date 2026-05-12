@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -27,8 +28,8 @@ public class Payment {
   @NotNull(message = "Total price is required")
   @Positive(message = "Total price must be positive")
   @Digits(integer = 10, fraction = 2)
-  @Column(name = "amount", nullable = false, precision = 12, scale = 2)
-  private Float  amount;
+  @Column(name = "amount", nullable = false, precision = 10, scale = 2)
+  private BigDecimal amount;
 
   @NotBlank(message = "Payment method cannot be blank")
   @Enumerated(EnumType.STRING)
@@ -39,10 +40,6 @@ public class Payment {
   @Enumerated(EnumType.STRING)
   @Column(name = "status", nullable = false)
   private PaymentStatus status;
-
-  @NotNull(message = "Transaction id cannot be null")
-  @Column(name = "transaction_id", nullable = false)
-  private Long transactionId;
 
   @PastOrPresent(message = "Payment date cannot be in the future")
   @Column(name = "payment_date", nullable = false)
