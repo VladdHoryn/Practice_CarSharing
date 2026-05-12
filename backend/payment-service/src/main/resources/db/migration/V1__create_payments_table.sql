@@ -10,9 +10,8 @@ CREATE TABLE payments (
     id BIGSERIAL PRIMARY KEY,
     booking_id BIGINT NOT NULL UNIQUE,
     amount DECIMAL(10,2) NOT NULL CHECK (amount > 0),
-    method payment_method_enum NOT NULL DEFAULT 'ONLINE',
-    status payment_status_enum NOT NULL DEFAULT 'PENDING',
-    transaction_id VARCHAR(255),
+    method payment_method_enum NOT NULL DEFAULT 'CARD',
+    status payment_status_enum NOT NULL DEFAULT 'CREATED',
     payment_date TIMESTAMP,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

@@ -137,7 +137,7 @@ services:
 
   booking-service:
     build:
-      context: ./booking-service
+      context: ./backend/booking-service
       dockerfile: Dockerfile
     container_name: booking-service
     restart: always
@@ -166,14 +166,14 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres123
     ports:
-      - "5433:5432"
+      - "5435:5432"
     volumes:
       - payment_postgres_data:/var/lib/postgresql/data
     #      - ./docker/car-db-init:/docker-entrypoint-initdb.d
     networks:
       - car-sharing-network
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres -d car_service_db" ]
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d payment_service_db" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -185,7 +185,7 @@ services:
     container_name: payment-service
     restart: always
     depends_on:
-      car-db:
+      payment-db:
         condition: service_healthy
     #      eureka-server:
     #        condition: service_started
@@ -198,7 +198,7 @@ services:
     ports:
       - "8084:8084"
     networks:
-      - payment-sharing-network
+      - car-sharing-network
 
   # =====================================================
   # pgAdmin for database management (optional)
@@ -226,6 +226,7 @@ volumes:
   user_postgres_data:
   car_postgres_data:
   booking_postgres_data:
+  payment_postgres_data:
 
 # =====================================================
 # Network

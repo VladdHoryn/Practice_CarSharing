@@ -1,8 +1,9 @@
 package org.example.application;
 
+import java.util.List;
+
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.example.domain.Car;
 import org.example.domain.CarStatus;
 import org.example.dto.CarFilterDto;
@@ -12,7 +13,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -45,7 +47,8 @@ public class CarApplicationService {
 
     public Car getCarById(Long id) {
         log.debug("Fetching car by id: {}", id);
-        return carRepository.findById(id)
+        return carRepository
+                .findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Car not found with id: " + id));
     }
 
@@ -75,8 +78,7 @@ public class CarApplicationService {
         if (brand == null || brand.isBlank()) {
             throw new IllegalArgumentException("Brand cannot be empty");
         }
-        return carRepository.findAll((root, query, cb) -> 
-            cb.equal(root.get("brand"), brand));
+        return carRepository.findAll((root, query, cb) -> cb.equal(root.get("brand"), brand));
     }
 
     public List<Car> getAvailableCars() {
@@ -89,8 +91,7 @@ public class CarApplicationService {
         if (carClass == null || carClass.isBlank()) {
             throw new IllegalArgumentException("Car class cannot be empty");
         }
-        return carRepository.findAll((root, query, cb) -> 
-            cb.equal(root.get("carClass"), carClass));
+        return carRepository.findAll((root, query, cb) -> cb.equal(root.get("carClass"), carClass));
     }
 
     // =====================================================

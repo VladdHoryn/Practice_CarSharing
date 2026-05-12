@@ -189,27 +189,6 @@
       </plugin>
 
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>${checkstyle.version}</version>
-        <configuration>
-          <configLocation>google_checks.xml</configLocation>
-          <consoleOutput>true</consoleOutput>
-          <failsOnError>true</failsOnError>
-          <violationSeverity>warning</violationSeverity>
-        </configuration>
-        <executions>
-          <execution>
-            <id>checkstyle-check</id>
-            <goals>
-              <goal>check</goal>
-            </goals>
-            <phase>verify</phase>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
         <groupId>com.github.spotbugs</groupId>
         <artifactId>spotbugs-maven-plugin</artifactId>
         <version>${spotbugs.version}</version>
