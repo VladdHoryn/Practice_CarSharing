@@ -1,14 +1,13 @@
 package org.example.dto;
 
-import jakarta.validation.constraints.NotNull;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import jakarta.validation.constraints.NotNull;
+
 public record CreateBookingRequest(
-  @NotNull Long userId,
-  @NotNull Long carId,
-  @NotNull LocalDateTime startDate,
-  @NotNull LocalDateTime endDate,
-  @NotNull BigDecimal pricePerDay
-) {}
+        @NotNull Long userId,
+        @NotNull Long carId,
+        @NotNull LocalDateTime startDate,
+        @NotNull LocalDateTime endDate,
+        @NotNull BigDecimal pricePerDay) {}
