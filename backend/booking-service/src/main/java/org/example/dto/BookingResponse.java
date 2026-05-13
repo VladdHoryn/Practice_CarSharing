@@ -15,5 +15,4 @@ public record BookingResponse(
         BigDecimal totalPrice,
         LocalDateTime cancelDeadline,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt
-        ) {}
+        LocalDateTime updatedAt) {}
