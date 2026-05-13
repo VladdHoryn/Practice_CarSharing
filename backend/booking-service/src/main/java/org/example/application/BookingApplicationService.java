@@ -43,6 +43,8 @@ public class BookingApplicationService {
 
         booking.setCreatedAt(LocalDateTime.now());
 
+        booking.setCancelDeadline(start.minusDays(2));
+
         Booking saved = bookingRepository.save(booking);
 
         return saved;

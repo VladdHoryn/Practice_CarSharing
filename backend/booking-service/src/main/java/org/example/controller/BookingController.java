@@ -29,7 +29,9 @@ public class BookingController {
                 booking.getEndDate(),
                 booking.getStatus(),
                 booking.getTotalPrice(),
-                booking.getCreatedAt());
+                booking.getCancelDeadline(),
+                booking.getCreatedAt(),
+                booking.getUpdatedAt());
     }
 
     @PostMapping
