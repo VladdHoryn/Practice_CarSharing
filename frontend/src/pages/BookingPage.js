@@ -39,6 +39,13 @@ const BookingPage = () => {
         fetchCarForBooking();
     }, [id]);
 
+    useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        if (!storedUser) {
+            // Якщо не залогінений - кидаємо на сторінку логіну
+            navigate('/login');
+        }
+    }, [navigate]);
     // 2. Рахуємо дні при зміні дат
     useEffect(() => {
         if (dates.start && dates.end) {
@@ -88,11 +95,10 @@ const BookingPage = () => {
 
         // Тут ми пізніше підключимо booking.service.js
         console.log('Дані на бекенд (/api/bookings):', bookingData);
-        alert('Бронювання успішно створено! (Дані виведено в консоль)');
+
         navigate('/catalog');
     };
 
-    // Відображення під час очікування відповіді від сервера
     if (loading) return <div className={styles.pageContainer} style={{padding: '100px', textAlign: 'center'}}>Підготовка сторінки бронювання... ⏳</div>;
     if (error) return <div className={styles.pageContainer} style={{padding: '100px', textAlign: 'center', color: 'red'}}>{error}</div>;
     if (!car) return null;
