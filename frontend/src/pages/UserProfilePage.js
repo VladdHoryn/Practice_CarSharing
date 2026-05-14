@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './UserProfilePage.module.css';
 import { authService } from '../services/auth.service';
+import { bookingService } from '../services/booking.service';
 
 // --- SVG ІКОНКИ ДЛЯ МЕНЮ ---
 const Icons = {
@@ -22,10 +23,11 @@ const UserProfilePage = () => {
         firstName: '',
         lastName: '',
         email: '',
-        role: '' // 'RENTER' або 'OWNER'
+        role: ''
     });
 
     const [activeTab, setActiveTab] = useState('');
+    const [bookings, setBookings] = useState([]);
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
@@ -81,8 +83,21 @@ const UserProfilePage = () => {
         { day: 'Чт', value: 45 }, { day: 'Пт', value: 75 }, { day: 'Сб', value: 95 }, { day: 'Нд', value: 80 }
     ];
 
+    const handleProfileSubmit = (e) => {
+        e.preventDefault();
+        alert('Ця функція скоро запрацює! Ваші нові дані: ' + user.firstName + ' ' + user.lastName);
+    };
+
+    // Завантаження бронювань при переході на вкладку history
+    useEffect(() => {
+        if (activeTab === 'history' && user.id) {
+            bookingService.getUserBookings(user.id)
+                .then(data => setBookings(data))
+                .catch(err => console.error("Помилка завантаження бронювань:", err));
+        }
+    }, [activeTab, user.id]);
+
     const renderTabContent = () => {
-        // --- Вкладки ВЛАСНИКА (OWNER) ---
         if (activeTab === 'fleet') {
             return (
                 <>
@@ -90,50 +105,25 @@ const UserProfilePage = () => {
                     <button className={styles.addCarBtn}>+ ДОДАТИ АВТО</button>
 
                     <div className={styles.filtersRow}>
-                        <div className={styles.inputGroup}>
-                            <label>Марка</label>
-                            <select><option>all</option></select>
-                        </div>
-                        <div className={styles.inputGroup}>
-                            <label>Статус</label>
-                            <select><option>all</option></select>
-                        </div>
-                        <div className={styles.inputGroup}>
-                            <label>Рік</label>
-                            <select><option>all</option></select>
-                        </div>
-                        <div className={styles.inputGroup}>
-                            <label>VIN</label>
-                            <input type="text" placeholder="Пошук за VIN" />
-                        </div>
+                        <div className={styles.inputGroup}><label>Марка</label><select><option>all</option></select></div>
+                        <div className={styles.inputGroup}><label>Статус</label><select><option>all</option></select></div>
+                        <div className={styles.inputGroup}><label>Рік</label><select><option>all</option></select></div>
+                        <div className={styles.inputGroup}><label>VIN</label><input type="text" placeholder="Пошук за VIN" /></div>
                     </div>
 
                     <table className={styles.historyTable}>
                         <thead>
-                        <tr>
-                            <th>Фото</th>
-                            <th>Модель</th>
-                            <th>VIN</th>
-                            <th>Рік</th>
-                            <th>Пробіг</th>
-                            <th>Статус</th>
-                            <th>Ціна</th>
-                            <th>Дії</th>
-                        </tr>
+                            <tr><th>Фото</th><th>Модель</th><th>VIN</th><th>Рік</th><th>Пробіг</th><th>Статус</th><th>Ціна</th><th>Дії</th></tr>
                         </thead>
                         <tbody>
-                        {mockFleet.map(car => (
-                            <tr key={car.id}>
-                                <td><img src={car.photo} alt="car" className={styles.carThumb}/></td>
-                                <td>{car.model}</td>
-                                <td>{car.vin}</td>
-                                <td>{car.year}</td>
-                                <td>{car.mileage}</td>
-                                <td>{car.status}</td>
-                                <td>{car.price}</td>
-                                <td><span style={{color: '#3ba4f6', cursor:'pointer'}}>Редаг.</span></td>
-                            </tr>
-                        ))}
+                            {mockFleet.map(car => (
+                                <tr key={car.id}>
+                                    <td><img src={car.photo} alt="car" className={styles.carThumb}/></td>
+                                    <td>{car.model}</td><td>{car.vin}</td><td>{car.year}</td><td>{car.mileage}</td>
+                                    <td>{car.status}</td><td>{car.price}</td>
+                                    <td><span style={{color: '#3ba4f6', cursor:'pointer'}}>Редаг.</span></td>
+                                </tr>
+                            ))}
                         </tbody>
                     </table>
                 </>
@@ -144,24 +134,11 @@ const UserProfilePage = () => {
             return (
                 <>
                     <h2 className={styles.tabTitle}>Аналітика та звіти</h2>
-
                     <div className={styles.statsContainer}>
-                        <div className={styles.statCard}>
-                            <div className={styles.statCardTitle}>Кількість бронювань</div>
-                            <div className={styles.statCardValue}>150</div>
-                        </div>
-                        <div className={styles.statCard}>
-                            <div className={styles.statCardTitle}>Загальна виручка</div>
-                            <div className={styles.statCardValue}>250 000 грн</div>
-                        </div>
-                        <div className={styles.statCard}>
-                            <div className={styles.statCardTitle}>Рівень завантаженості</div>
-                            <div className={styles.statCardValue}>75%</div>
-                        </div>
-                        <div className={styles.statCard}>
-                            <div className={styles.statCardTitle}>Кількість авто</div>
-                            <div className={styles.statCardValue}>5</div>
-                        </div>
+                        <div className={styles.statCard}><div className={styles.statCardTitle}>Кількість бронювань</div><div className={styles.statCardValue}>150</div></div>
+                        <div className={styles.statCard}><div className={styles.statCardTitle}>Загальна виручка</div><div className={styles.statCardValue}>250 000 грн</div></div>
+                        <div className={styles.statCard}><div className={styles.statCardTitle}>Рівень завантаженості</div><div className={styles.statCardValue}>75%</div></div>
+                        <div className={styles.statCard}><div className={styles.statCardTitle}>Кількість авто</div><div className={styles.statCardValue}>5</div></div>
                     </div>
 
                     <div className={styles.chartsGrid}>
@@ -169,10 +146,7 @@ const UserProfilePage = () => {
                             <div className={styles.chartTitle}>Виручка за місяць</div>
                             <div className={styles.cssBarChart}>
                                 {mockAnalyticsDays.map((item, i) => (
-                                    <div key={i} className={styles.barCol}>
-                                        <div className={styles.barFill} style={{ height: `${item.value - 20}%` }}></div>
-                                        <span className={styles.barLabel}>Міс {i+1}</span>
-                                    </div>
+                                    <div key={i} className={styles.barCol}><div className={styles.barFill} style={{ height: `${item.value - 20}%` }}></div><span className={styles.barLabel}>Міс {i+1}</span></div>
                                 ))}
                             </div>
                         </div>
@@ -180,49 +154,21 @@ const UserProfilePage = () => {
                             <div className={styles.chartTitle}>Завантаженість по днях тижня</div>
                             <div className={styles.cssBarChart}>
                                 {mockAnalyticsDays.map((item, i) => (
-                                    <div key={i} className={styles.barCol}>
-                                        <div className={styles.barFill} style={{ height: `${item.value}%` }}></div>
-                                        <span className={styles.barLabel}>{item.day}</span>
-                                    </div>
+                                    <div key={i} className={styles.barCol}><div className={styles.barFill} style={{ height: `${item.value}%` }}></div><span className={styles.barLabel}>{item.day}</span></div>
                                 ))}
                             </div>
                         </div>
                     </div>
-
-                    <table className={styles.historyTable}>
-                        <thead>
-                        <tr>
-                            <th>Фото</th>
-                            <th>Модель</th>
-                            <th>Стан</th>
-                            <th>Дохід</th>
-                            <th>Кількість бронювань</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {mockFleet.map(car => (
-                            <tr key={car.id}>
-                                <td><img src={car.photo} alt="car" className={styles.carThumb}/></td>
-                                <td>{car.model}</td>
-                                <td>{car.status}</td>
-                                <td><strong>20 000 грн</strong></td>
-                                <td>5</td>
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
                 </>
             );
         }
 
-        // --- Вкладки ОРЕНДАРЯ (RENTER) ---
         if (activeTab === 'order') {
             return (
                 <>
                     <h2 className={styles.tabTitle}>Замовити авто</h2>
                     <p className={styles.greeting}>Привіт, {user.firstName || 'Гість'}!</p>
                     <p className={styles.infoText}>Спеціально для вас ми відображаємо статус доступності для всіх авто, щоб процес підбору став для вас ще швидше та зрозуміліше.</p>
-
                     <p className={styles.greeting}>Ваша персональна знижка на оренду авто становить <span className={styles.discount}>0%</span></p>
                     <p className={styles.infoText}>Для замовлення авто натисніть кнопку нижче.</p>
                     <button className={styles.primaryBtn} onClick={() => navigate('/catalog')}>ЗАБРОНЮВАТИ АВТО</button>
@@ -235,8 +181,24 @@ const UserProfilePage = () => {
                 <>
                     <h2 className={styles.tabTitle}>Історія замовлень</h2>
                     <table className={styles.historyTable}>
-                        <thead><tr><th>Авто</th><th>Період оренди</th><th>Місто</th><th>Ціна</th><th>Ваш відгук</th><th>Повтор оренди</th></tr></thead>
-                        <tbody><tr><td colSpan="6" className={styles.emptyState}>У вас ще немає замовлень.</td></tr></tbody>
+                        <thead>
+                            <tr><th>ID Бронювання</th><th>ID Авто</th><th>Період</th><th>Статус</th><th>Сума</th></tr>
+                        </thead>
+                        <tbody>
+                            {bookings.length > 0 ? (
+                                bookings.map(order => (
+                                    <tr key={order.id}>
+                                        <td>#{order.id}</td>
+                                        <td><strong>Авто ID: {order.carId}</strong></td>
+                                        <td>{order.startDate.split('T')[0]} — {order.endDate.split('T')[0]}</td>
+                                        <td><span className={styles.statusBadge} style={{color: order.status === 'CREATED' ? '#28a745' : '#666'}}>{order.status}</span></td>
+                                        <td><strong>{order.totalPrice}€</strong></td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr><td colSpan="5" className={styles.emptyState}>У вас ще немає замовлень.</td></tr>
+                            )}
+                        </tbody>
                     </table>
                 </>
             );
@@ -246,61 +208,30 @@ const UserProfilePage = () => {
             return (
                 <>
                     <h2 className={styles.tabTitle}>Завантажені документи</h2>
-                    <p className={styles.greeting} style={{fontSize: '18px'}}>Документи</p>
                     <p className={styles.infoText}>Тут ви можете завантажити зображення документів, що засвідчують вашу особу.</p>
-
-                    <div className={styles.docRow}>
-                        <div className={styles.docLabel}>Паспорт 1 та 2 сторінка</div>
-                        <input type="file" className={styles.docInput} />
-                    </div>
-                    <div className={styles.docRow}>
-                        <div className={styles.docLabel}>Паспорт прописка</div>
-                        <input type="file" className={styles.docInput} />
-                    </div>
-                    <div className={styles.docRow}>
-                        <div className={styles.docLabel}>Водійське посвідчення</div>
-                        <input type="file" className={styles.docInput} />
-                    </div>
-
+                    <div className={styles.docRow}><div className={styles.docLabel}>Паспорт 1 та 2 сторінка</div><input type="file" className={styles.docInput} /></div>
+                    <div className={styles.docRow}><div className={styles.docLabel}>Паспорт прописка</div><input type="file" className={styles.docInput} /></div>
+                    <div className={styles.docRow}><div className={styles.docLabel}>Водійське посвідчення</div><input type="file" className={styles.docInput} /></div>
                     <button className={styles.primaryBtn} style={{marginTop: '20px'}}>Надіслати</button>
                 </>
             );
         }
 
-        // --- СПІЛЬНА ВКЛАДКА: ПЕРСОНАЛЬНІ ДАНІ ---
         if (activeTab === 'profile') {
             return (
                 <>
                     <h2 className={styles.tabTitle}>Персональні дані</h2>
-                    <form>
+                    <form onSubmit={handleProfileSubmit}>
                         <div className={styles.formGrid}>
-                            <div className={styles.inputGroup}>
-                                <label>Ім'я</label>
-                                <input type="text" defaultValue={user.firstName} />
-                            </div>
-                            <div className={styles.inputGroup}>
-                                <label>Прізвище</label>
-                                <input type="text" defaultValue={user.lastName} />
-                            </div>
-                            <div className={styles.inputGroup}>
-                                <label>Email (не змінюється)</label>
-                                <input type="email" value={user.email} disabled style={{background:'#eee', cursor: 'not-allowed'}}/>
-                            </div>
-                            {/* ПОЛЕ "РОЛЬ" ПРИБРАНО ЗВІДСИ */}
+                            <div className={styles.inputGroup}><label>Ім'я</label><input type="text" name="firstName" defaultValue={user.firstName} /></div>
+                            <div className={styles.inputGroup}><label>Прізвище</label><input type="text" name="lastName" defaultValue={user.lastName} /></div>
+                            <div className={styles.inputGroup}><label>Email (не змінюється)</label><input type="email" value={user.email} disabled style={{background:'#eee', cursor: 'not-allowed'}}/></div>
                         </div>
-
                         <h3 className={styles.sectionSubtitle}>Зміна пароля</h3>
                         <div className={styles.formGrid}>
-                            <div className={styles.inputGroup}>
-                                <label>Новий пароль</label>
-                                <input type="password" />
-                            </div>
-                            <div className={styles.inputGroup}>
-                                <label>Повторіть новий пароль</label>
-                                <input type="password" />
-                            </div>
+                            <div className={styles.inputGroup}><label>Новий пароль</label><input type="password" /></div>
+                            <div className={styles.inputGroup}><label>Повторіть новий пароль</label><input type="password" /></div>
                         </div>
-
                         <button type="submit" className={styles.primaryBtn}>Зберегти зміни</button>
                     </form>
                 </>
