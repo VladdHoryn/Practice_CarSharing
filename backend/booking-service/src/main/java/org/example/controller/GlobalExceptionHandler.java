@@ -15,18 +15,18 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler({IllegalArgumentException.class, RuntimeException.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleBadRequest(
+            RuntimeException ex, HttpServletRequest request) { // <-- ЗМІНЕНО ТУТ
 
-  @ExceptionHandler({IllegalArgumentException.class, RuntimeException.class})
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
-  public ErrorResponse handleBadRequest(RuntimeException ex, HttpServletRequest request) { // <-- ЗМІНЕНО ТУТ
-
-    return new ErrorResponse(
-      LocalDateTime.now(),
-      HttpStatus.BAD_REQUEST.value(),
-      HttpStatus.BAD_REQUEST.getReasonPhrase(),
-      ex.getMessage(),
-      request.getRequestURI());
-  }
+        return new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI());
+    }
 
     // 500
     @ExceptionHandler(Exception.class)

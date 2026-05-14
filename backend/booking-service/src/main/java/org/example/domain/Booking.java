@@ -111,25 +111,25 @@ public class Booking {
         this.status = BookingStatus.CONFIRMED;
     }
 
-  public void cancel() {
-    log.info("Booking id={} -> CANCELLED", id);
+    public void cancel() {
+        log.info("Booking id={} -> CANCELLED", id);
 
-    if (status == BookingStatus.COMPLETED) {
-      throw new IllegalStateException("Cannot cancel completed booking");
+        if (status == BookingStatus.COMPLETED) {
+            throw new IllegalStateException("Cannot cancel completed booking");
+        }
+
+        if (status == BookingStatus.CANCELLED) {
+            throw new IllegalStateException("Booking is already cancelled");
+        }
+
+        if (LocalDateTime.now().isAfter(cancelDeadline)) {
+            throw new IllegalStateException(
+                    "Cancellation deadline has expired. Cancel was allowed until: "
+                            + cancelDeadline);
+        }
+
+        this.status = BookingStatus.CANCELLED;
     }
-
-    if (status == BookingStatus.CANCELLED) {
-      throw new IllegalStateException("Booking is already cancelled");
-    }
-
-    if (LocalDateTime.now().isAfter(cancelDeadline)) {
-      throw new IllegalStateException(
-        "Cancellation deadline has expired. Cancel was allowed until: "
-          + cancelDeadline);
-    }
-
-    this.status = BookingStatus.CANCELLED;
-  }
 
     public void complete() {
         log.info("Booking id={} -> COMPLETED", id);

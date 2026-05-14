@@ -55,25 +55,24 @@ public class CarController {
                 .body(toResponse(createdCar));
     }
 
-  @PutMapping("/{id}")
-  public ResponseEntity<CarResponse> updateCar(
-    @PathVariable Long id,
-    @RequestBody @Valid CreateCarRequest request) {
+    @PutMapping("/{id}")
+    public ResponseEntity<CarResponse> updateCar(
+            @PathVariable Long id, @RequestBody @Valid CreateCarRequest request) {
 
-    Car car = new Car();
-    car.setBrand(request.brand());
-    car.setModel(request.model());
-    car.setYear(request.year());
-    car.setCarClass(CarClass.valueOf(request.carClass()));
-    car.setPricePerDay(request.pricePerDay());
-    car.setImageUrl(request.imageUrl());
+        Car car = new Car();
+        car.setBrand(request.brand());
+        car.setModel(request.model());
+        car.setYear(request.year());
+        car.setCarClass(CarClass.valueOf(request.carClass()));
+        car.setPricePerDay(request.pricePerDay());
+        car.setImageUrl(request.imageUrl());
 
-    car.setUserId(request.userId());
+        car.setUserId(request.userId());
 
-    Car updatedCar = carService.updateCar(id, car);
+        Car updatedCar = carService.updateCar(id, car);
 
-    return ResponseEntity.ok(toResponse(updatedCar));
-  }
+        return ResponseEntity.ok(toResponse(updatedCar));
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<CarResponse> getCarById(@PathVariable Long id) {
@@ -105,7 +104,7 @@ public class CarController {
 
     @GetMapping("available/{id}")
     public Boolean isCarAvailable(@PathVariable Long id) {
-      return carService.isAvailableById(id);
+        return carService.isAvailableById(id);
     }
 
     @PostMapping("/{carId}/rent")
