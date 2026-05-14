@@ -5,6 +5,9 @@ import java.time.Year;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -51,7 +54,7 @@ public class Car {
     private Long userId;
 
     @NotNull(message = "Car status is required")
-    @Enumerated(value = EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "status", nullable = false)
     private CarStatus status;
 

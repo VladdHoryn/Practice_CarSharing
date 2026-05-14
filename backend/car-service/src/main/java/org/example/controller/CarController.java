@@ -66,6 +66,18 @@ public class CarController {
         return ResponseEntity.ok(carService.getAllCars().stream().map(this::toResponse).toList());
     }
 
+    @GetMapping("/unconfirmed")
+    public ResponseEntity<List<CarResponse>> getAllUnconfirmedCars() {
+        return ResponseEntity.ok(
+                carService.getUnconfirmedCars().stream().map(this::toResponse).toList());
+    }
+
+    @GetMapping("/owner/{id}")
+    public ResponseEntity<List<CarResponse>> getCarsByUserId(@PathVariable Long id) {
+        return ResponseEntity.ok(
+                carService.getCarsByUserId(id).stream().map(this::toResponse).toList());
+    }
+
     @GetMapping("/available")
     public ResponseEntity<List<CarResponse>> getAvailableCars() {
         return ResponseEntity.ok(

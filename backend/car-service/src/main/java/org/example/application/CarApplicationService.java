@@ -41,7 +41,7 @@ public class CarApplicationService {
             throw new IllegalArgumentException("Price per day must be positive");
         }
 
-        car.setStatus(CarStatus.AVAILABLE);
+        car.setStatus(CarStatus.UNCONFIRMED);
         return carRepository.save(car);
     }
 
@@ -84,6 +84,16 @@ public class CarApplicationService {
     public List<Car> getAvailableCars() {
         log.debug("Fetching available cars");
         return carRepository.findByStatus(CarStatus.AVAILABLE);
+    }
+
+    public List<Car> getUnconfirmedCars() {
+        log.debug("Fetching unconfirmed cars");
+        return carRepository.findByStatus(CarStatus.UNCONFIRMED);
+    }
+
+    public List<Car> getCarsByUserId(Long userId) {
+        log.debug("Fetching cars by userId: {}", userId);
+        return carRepository.findCarByUserId(userId);
     }
 
     public List<Car> getCarsByClass(String carClass) {

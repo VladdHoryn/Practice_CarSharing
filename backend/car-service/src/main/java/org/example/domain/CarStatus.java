@@ -3,5 +3,6 @@ package org.example.domain;
 public enum CarStatus {
     AVAILABLE,
     RENTED,
-    MAINTENANCE
+    MAINTENANCE,
+    UNCONFIRMED
 }

@@ -13,4 +13,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CarRepository extends JpaRepository<Car, Long>, JpaSpecificationExecutor<Car> {
     public List<Car> findByStatus(@NotNull(message = "Car status is required") CarStatus status);
+
+    public List<Car> findCarByUserId(
+            @NotNull(message = "Owner does not have any cars") Long userId);
 }
