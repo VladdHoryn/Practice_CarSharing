@@ -1,11 +1,6 @@
 -- =====================================================
 -- Payment Service - Seed payments data
--- Version: V2
--- =====================================================
-
--- =====================================================
--- Payment Service - Seed payments data
--- Version: V2
+-- Version: V2 (updated for V3 constraints)
 -- =====================================================
 
 INSERT INTO payments (
@@ -21,13 +16,13 @@ INSERT INTO payments (
 ) VALUES
 
 -- 1
-(1, 75.00, 'GOOGLE_PAY', 'PENDING', NULL, NULL, 'USD', 'idem_1', NULL),
+(1, 75.00, 'GOOGLE_PAY', 'PENDING', CURRENT_TIMESTAMP, NULL, 'USD', 'idem_1', NULL),
 -- 2
 (2, 100.00, 'CARD', 'FAILED', CURRENT_TIMESTAMP - INTERVAL '1 day', 'prov_2', 'USD', 'idem_2', NULL),
 -- 3
 (3, 450.00, 'APPLE_PAY', 'SUCCESS', CURRENT_TIMESTAMP, 'prov_3', 'EUR', 'idem_3', NULL),
 -- 4
-(4, 300.00, 'CARD', 'PENDING', NULL, NULL, 'USD', 'idem_4', NULL),
+(4, 300.00, 'CARD', 'PENDING', CURRENT_TIMESTAMP, NULL, 'USD', 'idem_4', NULL),
 -- 5
 (5, 196.00, 'GOOGLE_PAY', 'SUCCESS', CURRENT_TIMESTAMP - INTERVAL '2 days', 'prov_5', 'EUR', 'idem_5', NULL),
 -- 6
