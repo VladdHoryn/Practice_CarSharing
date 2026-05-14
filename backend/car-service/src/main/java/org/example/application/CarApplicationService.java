@@ -88,7 +88,7 @@ public class CarApplicationService {
 
     public List<Car> getUnconfirmedCars() {
       log.debug("Fetching unconfirmed cars");
-      return carRepository.findByStatus(CarStatus.AVAILABLE);
+      return carRepository.findByStatus(CarStatus.UNCONFIRMED);
     }
 
   public List<Car> getCarsByUserId(Long userId) {
