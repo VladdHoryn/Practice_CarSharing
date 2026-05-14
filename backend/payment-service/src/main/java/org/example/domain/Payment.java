@@ -18,112 +18,125 @@ import lombok.extern.slf4j.Slf4j;
 @NoArgsConstructor
 @Slf4j
 public class Payment {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @NotNull(message = "Booking id cannot be null")
-    @Column(name = "booking_id", nullable = false)
-    private Long bookingId;
+  @NotNull(message = "Booking id cannot be null")
+  @Column(name = "booking_id", nullable = false)
+  private Long bookingId;
 
-    @NotNull(message = "Total price is required")
-    @Positive(message = "Total price must be positive")
-    @Digits(integer = 10, fraction = 2)
-    @Column(name = "amount", nullable = false, precision = 10, scale = 2)
-    private BigDecimal amount;
+  @NotNull(message = "Total price is required")
+  @Positive(message = "Total price must be positive")
+  @Digits(integer = 10, fraction = 2)
+  @Column(name = "amount", nullable = false, precision = 10, scale = 2)
+  private BigDecimal amount;
 
-    @NotBlank(message = "Payment method cannot be blank")
-    @Enumerated(EnumType.STRING)
-    @Column(name = "method", nullable = false)
-    private PaymentMethod method;
+  @NotBlank(message = "Payment method cannot be blank")
+  @Enumerated(EnumType.STRING)
+  @Column(name = "method", nullable = false)
+  private PaymentMethod method;
 
-    @NotNull(message = "Payment status cannot be null")
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private PaymentStatus status;
+  @NotNull(message = "Payment status cannot be null")
+  @Enumerated(EnumType.STRING)
+  @Column(name = "status", nullable = false)
+  private PaymentStatus status;
 
-    @PastOrPresent(message = "Payment date cannot be in the future")
-    @Column(name = "payment_date", nullable = false)
-    private LocalDateTime paymentDate;
+  @PastOrPresent(message = "Payment date cannot be in the future")
+  @Column(name = "payment_date", nullable = false)
+  private LocalDateTime paymentDate;
 
-    @PrePersist
-    public void prePersist() {
-        if (paymentDate == null) {
-            paymentDate = LocalDateTime.now();
-        }
-
-        if (status == null) {
-            status = PaymentStatus.CREATED;
-        }
-
-        log.info("Creating payment: bookingId={}, amount={}, status={}", bookingId, amount, status);
+  @PrePersist
+  public void prePersist() {
+    if (paymentDate == null) {
+      paymentDate = LocalDateTime.now();
     }
 
-    public boolean canBeProcessed() {
-        return status == PaymentStatus.CREATED || status == PaymentStatus.PENDING;
+    if (status == null) {
+      status = PaymentStatus.CREATED;
     }
 
-    public void markAsSuccess() {
-        validateTransition(PaymentStatus.SUCCESS);
+    log.info("Creating payment: bookingId={}, amount={}, status={}", bookingId, amount, status);
+  }
 
-        this.status = PaymentStatus.SUCCESS;
+  public boolean canBeProcessed() {
+    return status == PaymentStatus.CREATED || status == PaymentStatus.PENDING;
+  }
 
-        log.info("Payment {} successfully completed", id);
+  public void markAsSuccess() {
+    validateTransition(PaymentStatus.SUCCESS);
+
+    this.status = PaymentStatus.SUCCESS;
+
+    log.info("Payment {} successfully completed", id);
+  }
+
+  public void markAsFailed() {
+    validateTransition(PaymentStatus.FAILED);
+
+    this.status = PaymentStatus.FAILED;
+
+    log.warn("Payment {} failed", id);
+  }
+
+  public void markAsPending() {
+    validateTransition(PaymentStatus.PENDING);
+
+    this.status = PaymentStatus.PENDING;
+
+    log.info("Payment {} moved to PENDING", id);
+  }
+
+  public void markAsProcessing() {
+    validateTransition(PaymentStatus.PROCESSING);
+
+    this.status = PaymentStatus.PROCESSING;
+
+    log.info("Payment {} moved to PROCESSING", id);
+  }
+
+  public void cancel() {
+    validateTransition(PaymentStatus.CANCELLED);
+
+    this.status = PaymentStatus.CANCELLED;
+
+    log.warn("Payment {} cancelled", id);
+  }
+
+  public void refund() {
+    if (status != PaymentStatus.SUCCESS) {
+      throw new IllegalStateException("Only SUCCESS payments can be refunded");
     }
 
-    public void markAsFailed() {
-        validateTransition(PaymentStatus.FAILED);
+    this.status = PaymentStatus.REFUNDED;
 
-        this.status = PaymentStatus.FAILED;
+    log.info("Payment {} refunded", id);
+  }
 
-        log.warn("Payment {} failed", id);
+  private void validateTransition(PaymentStatus targetStatus) {
+
+    boolean valid =
+      switch (status) {
+        case CREATED -> targetStatus == PaymentStatus.PENDING
+          || targetStatus == PaymentStatus.CANCELLED
+          || targetStatus == PaymentStatus.FAILED;
+
+        case PENDING -> targetStatus == PaymentStatus.PROCESSING
+          || targetStatus == PaymentStatus.CANCELLED
+          || targetStatus == PaymentStatus.FAILED;
+
+        case PROCESSING -> targetStatus == PaymentStatus.SUCCESS
+          || targetStatus == PaymentStatus.FAILED;
+
+        case SUCCESS -> targetStatus == PaymentStatus.REFUNDED;
+
+        case FAILED, CANCELLED, REFUNDED -> false;
+      };
+
+    if (!valid) {
+      throw new IllegalStateException(
+        String.format(
+          "Invalid payment status transition: %s -> %s", status, targetStatus));
     }
-
-    public void cancel() {
-        validateTransition(PaymentStatus.CANCELLED);
-
-        this.status = PaymentStatus.CANCELLED;
-
-        log.warn("Payment {} cancelled", id);
-    }
-
-    public void refund() {
-        if (status != PaymentStatus.SUCCESS) {
-            throw new IllegalStateException("Only SUCCESS payments can be refunded");
-        }
-
-        this.status = PaymentStatus.REFUNDED;
-
-        log.info("Payment {} refunded", id);
-    }
-
-    private void validateTransition(PaymentStatus targetStatus) {
-
-        boolean valid =
-                switch (status) {
-                    case CREATED ->
-                            targetStatus == PaymentStatus.PENDING
-                                    || targetStatus == PaymentStatus.CANCELLED
-                                    || targetStatus == PaymentStatus.FAILED;
-
-                    case PENDING ->
-                            targetStatus == PaymentStatus.PROCESSING
-                                    || targetStatus == PaymentStatus.CANCELLED
-                                    || targetStatus == PaymentStatus.FAILED;
-
-                    case PROCESSING ->
-                            targetStatus == PaymentStatus.SUCCESS
-                                    || targetStatus == PaymentStatus.FAILED;
-
-                    case SUCCESS -> targetStatus == PaymentStatus.REFUNDED;
-
-                    case FAILED, CANCELLED, REFUNDED -> false;
-                };
-
-        if (!valid) {
-            throw new IllegalStateException(
-                    String.format(
-                            "Invalid payment status transition: %s -> %s", status, targetStatus));
-        }
-    }
+  }
 }
