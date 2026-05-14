@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styles from './BookingPage.module.css';
-import { carService } from '../services/car.service'; // Підключаємо сервіс!
+import { carService } from '../services/car.service';
+import { bookingService } from '../services/booking.service';
+import { toast } from 'react-toastify';
 
 const BookingPage = () => {
     const { id } = useParams();
@@ -9,8 +11,8 @@ const BookingPage = () => {
 
     // Стейт для бронювання
     const [dates, setDates] = useState({ start: '', end: '' });
-    const [paymentMethod, setPaymentMethod] = useState('CARD'); // CARD або CASH
-    const [coDrivers, setCoDrivers] = useState([]); // Split Access
+    const [paymentMethod, setPaymentMethod] = useState('CARD');
+    const [coDrivers, setCoDrivers] = useState([]);
 
     // Стейт для реального авто з бекенду
     const [car, setCar] = useState(null);
@@ -79,26 +81,47 @@ const BookingPage = () => {
         setCoDrivers(newDrivers);
     };
 
-    // Відправка форми
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (days <= 0) return alert('Оберіть коректні дати (дата завершення має бути пізніше дати початку)');
 
-        const bookingData = {
-            carId: car.id,
-            startDate: dates.start,
-            endDate: dates.end,
-            paymentMethod,
-            coDrivers,
-            totalPrice: days * car.pricePerDay
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (days <= 0) return alert('Оберіть коректні дати');
+
+        // Отримуємо дані поточного юзера
+        const userStr = localStorage.getItem('user');
+        if (!userStr) {
+            alert("Будь ласка, увійдіть в систему");
+            return navigate('/login');
+        }
+        const currentUser = JSON.parse(userStr);
+
+        const bookingRequest = {
+            userId: currentUser.id,
+            carId: parseInt(car.id),
+            startDate: `${dates.start}T10:00:00`,
+            endDate: `${dates.end}T10:00:00`,
+            pricePerDay: car.pricePerDay
         };
 
         // Тут ми пізніше підключимо booking.service.js
         console.log('Дані на бекенд (/api/bookings):', bookingData);
 
         navigate('/catalog');
+        try {
+                    const result = await bookingService.createBooking(bookingRequest);
+                    console.log('Бронювання створено:', result);
+
+                    toast.success('Бронювання успішно створено! 🚗');
+
+                    navigate('/profile');
+                } catch (err) {
+                    console.error('Помилка бронювання:', err);
+
+                    // ЗАМІСТЬ: alert(err.response?.data?.message || 'Помилка...');
+                    toast.error(err.response?.data?.message || 'Помилка при створенні бронювання 😔');
+                }
     };
 
+    // Відображення під час очікування відповіді від сервера
     if (loading) return <div className={styles.pageContainer} style={{padding: '100px', textAlign: 'center'}}>Підготовка сторінки бронювання... ⏳</div>;
     if (error) return <div className={styles.pageContainer} style={{padding: '100px', textAlign: 'center', color: 'red'}}>{error}</div>;
     if (!car) return null;

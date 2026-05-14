@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './UserProfilePage.module.css';
 import { authService } from '../services/auth.service';
+import { bookingService } from '../services/booking.service';
 
 // --- SVG ІКОНКИ ДЛЯ МЕНЮ ---
 const Icons = {
@@ -51,6 +52,15 @@ const UserProfilePage = () => {
         }
     }, [navigate]);
 
+    const [bookings, setBookings] = useState([]);
+
+    const menuItems = [
+        { id: 'order', label: 'Замовити авто', icon: '🔑' },
+        { id: 'history', label: 'Історія замовлень', icon: '🕒' },
+        { id: 'docs', label: 'Документи', icon: '📄' },
+        { id: 'profile', label: 'Персональні дані', icon: '👤' },
+    ];
+
     const handleLogout = () => {
         authService.logout();
         navigate('/login');
@@ -80,6 +90,19 @@ const UserProfilePage = () => {
         { day: 'Пн', value: 70 }, { day: 'Вв', value: 75 }, { day: 'Ср', value: 60 },
         { day: 'Чт', value: 45 }, { day: 'Пт', value: 75 }, { day: 'Сб', value: 95 }, { day: 'Нд', value: 80 }
     ];
+    const handleProfileSubmit = (e) => {
+        e.preventDefault();
+        // Тут в майбутньому буде запит до бекенду на оновлення даних: axios.put(`/user/v1/${user.id}`, ...)
+        alert('Ця функція скоро запрацює! Ваші нові дані: ' + user.firstName + ' ' + user.lastName);
+    };
+    // 2. Завантаження бронювань при переході на вкладку history
+    useEffect(() => {
+        if (activeTab === 'history' && user.id) {
+            bookingService.getUserBookings(user.id)
+                .then(data => setBookings(data))
+                .catch(err => console.error("Помилка завантаження бронювань:", err));
+        }
+    }, [activeTab, user.id]);
 
     const renderTabContent = () => {
         // --- Вкладки ВЛАСНИКА (OWNER) ---
@@ -222,6 +245,53 @@ const UserProfilePage = () => {
                     <h2 className={styles.tabTitle}>Замовити авто</h2>
                     <p className={styles.greeting}>Привіт, {user.firstName || 'Гість'}!</p>
                     <p className={styles.infoText}>Спеціально для вас ми відображаємо статус доступності для всіх авто, щоб процес підбору став для вас ще швидше та зрозуміліше.</p>
+                        <button className={styles.primaryBtn} onClick={() => navigate('/catalog')}>
+                            ЗАБРОНЮВАТИ АВТО
+                        </button>
+                    </>
+                );
+
+
+            case 'history':
+                return (
+                    <>
+                        <h2 className={styles.tabTitle}>Історія замовлення</h2>
+                        <table className={styles.historyTable}>
+                            <thead>
+                            <tr>
+                                <th>ID Бронювання</th>
+                                <th>ID Авто</th>
+                                <th>Період</th>
+                                <th>Статус</th>
+                                <th>Сума</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {bookings.length > 0 ? (
+                                bookings.map(order => (
+                                    <tr key={order.id}>
+                                        <td>#{order.id}</td>
+                                        <td><strong>Авто ID: {order.carId}</strong></td>
+                                        <td>{order.startDate.split('T')[0]} — {order.endDate.split('T')[0]}</td>
+                                        <td>
+                                            <span className={styles.statusBadge} style={{
+                                                color: order.status === 'CREATED' ? '#28a745' : '#666'
+                                            }}>
+                                                {order.status}
+                                            </span>
+                                        </td>
+                                        <td><strong>{order.totalPrice}€</strong></td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="5" className={styles.emptyState}>У вас ще немає замовлень.</td>
+                                </tr>
+                            )}
+                            </tbody>
+                        </table>
+                    </>
+                );
 
                     <p className={styles.greeting}>Ваша персональна знижка на оренду авто становить <span className={styles.discount}>0%</span></p>
                     <p className={styles.infoText}>Для замовлення авто натисніть кнопку нижче.</p>
