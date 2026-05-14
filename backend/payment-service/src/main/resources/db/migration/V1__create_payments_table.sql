@@ -3,7 +3,11 @@
 -- Version: V1
 -- =====================================================
 
-CREATE TYPE payment_method_enum AS ENUM ('CARD', 'GOOGLE_PAY', 'APPLE_PAY');
+CREATE TYPE payment_method_enum AS ENUM (
+    'CARD',
+    'GOOGLE_PAY',
+    'APPLE_PAY'
+);
 
 CREATE TYPE payment_status_enum AS ENUM (
     'CREATED',
@@ -26,5 +30,7 @@ CREATE TABLE payments
     provider_payment_id VARCHAR(255),
     currency            VARCHAR(10)         NOT NULL,
     idempotency_key     VARCHAR(255) UNIQUE,
-    client_secret       VARCHAR(255)
+    client_secret       VARCHAR(255),
+    created_at          TIMESTAMP           NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP           NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

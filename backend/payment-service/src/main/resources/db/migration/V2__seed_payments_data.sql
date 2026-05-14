@@ -1,6 +1,6 @@
 -- =====================================================
 -- Payment Service - Seed payments data
--- Version: V2 (updated for V3 constraints)
+-- Version: V2 (final fixed for V1 schema)
 -- =====================================================
 
 INSERT INTO payments (
