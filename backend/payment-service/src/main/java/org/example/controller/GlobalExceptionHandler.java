@@ -17,7 +17,7 @@ public class GlobalExceptionHandler {
     // 400
     @ExceptionHandler({IllegalArgumentException.class, RuntimeException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleBadRequest(IllegalArgumentException ex, HttpServletRequest request) {
+    public ErrorResponse handleBadRequest(RuntimeException ex, HttpServletRequest request) {
 
         return new ErrorResponse(
                 LocalDateTime.now(),

@@ -1,5 +1,5 @@
 -- =====================================================
--- Payment Service - Foreign keys and indexes
+-- Payment Service - Indexes and triggers
 -- Version: V3
 -- =====================================================
 
@@ -7,45 +7,64 @@
 -- 1. INDEXES for performance
 -- =====================================================
 
--- Index for booking_id (частий пошук платежу по бронюванню)
-CREATE INDEX idx_payments_booking_id ON payments(booking_id);
+CREATE INDEX IF NOT EXISTS idx_payments_booking_id
+    ON payments(booking_id);
 
--- Composite index for status + payment_date (для звітів)
-CREATE INDEX idx_payments_status_date ON payments(status, payment_date);
+CREATE INDEX IF NOT EXISTS idx_payments_status_date
+    ON payments(status, payment_date);
 
--- Index for method + status (аналітика популярності методів оплати)
-CREATE INDEX idx_payments_method_status ON payments(method, status);
+CREATE INDEX IF NOT EXISTS idx_payments_method_status
+    ON payments(method, status);
 
--- Index for amount range queries
-CREATE INDEX idx_payments_amount ON payments(amount);
+CREATE INDEX IF NOT EXISTS idx_payments_amount
+    ON payments(amount);
 
--- Index for created_at (аудит)
-CREATE INDEX idx_payments_created_at ON payments(created_at);
+-- currency analytics (NEW FIELD IN DOMAIN)
+CREATE INDEX IF NOT EXISTS idx_payments_currency
+    ON payments(currency);
+
+-- idempotency lookup (CRITICAL FOR PAYMENTS)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_payments_idempotency_key
+    ON payments(idempotency_key);
+
+-- provider lookup (useful for reconciliation)
+CREATE INDEX IF NOT EXISTS idx_payments_provider_payment_id
+    ON payments(provider_payment_id);
 
 -- =====================================================
--- 3. Автоматичне оновлення updated_at
+-- 2. updated_at trigger (FIXED & SAFE)
 -- =====================================================
 
--- Додаємо колонку updated_at, якщо її ще немає
-ALTER TABLE payments ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+-- IMPORTANT: column must exist in V1 (so no ADD COLUMN here blindly)
+-- If you already have V1 with updated_at -> keep only trigger
 
--- Функція для оновлення
 CREATE OR REPLACE FUNCTION update_payment_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = CURRENT_TIMESTAMP;
-    RETURN NEW;
+RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
--- Тригер
 DROP TRIGGER IF EXISTS trigger_payment_updated_at ON payments;
+
 CREATE TRIGGER trigger_payment_updated_at
     BEFORE UPDATE ON payments
     FOR EACH ROW
     EXECUTE FUNCTION update_payment_updated_at();
 
 -- =====================================================
--- 4. Додаткове обмеження: сума платежу не може бути NULL
+-- 3. SAFETY CONSTRAINTS (DOMAIN ALIGNMENT)
 -- =====================================================
-ALTER TABLE payments ALTER COLUMN amount SET NOT NULL;
+
+-- ensure amount is always valid
+ALTER TABLE payments
+    ALTER COLUMN amount SET NOT NULL;
+
+ALTER TABLE payments
+    ADD CONSTRAINT chk_payment_amount_positive
+        CHECK (amount > 0);
+
+-- ensure currency exists (DOMAIN REQUIREMENT)
+ALTER TABLE payments
+    ALTER COLUMN currency SET NOT NULL;

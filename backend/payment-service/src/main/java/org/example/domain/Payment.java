@@ -6,6 +6,9 @@ import java.time.LocalDateTime;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -32,13 +35,13 @@ public class Payment {
     @Column(name = "amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal amount;
 
-    @NotBlank(message = "Payment method cannot be blank")
-    @Enumerated(EnumType.STRING)
+    @NotNull(message = "Payment method is required")
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "method", nullable = false)
     private PaymentMethod method;
 
     @NotNull(message = "Payment status cannot be null")
-    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "status", nullable = false)
     private PaymentStatus status;
 
@@ -46,8 +49,29 @@ public class Payment {
     @Column(name = "payment_date", nullable = false)
     private LocalDateTime paymentDate;
 
+    @Column(name = "provider_payment_id")
+    private String providerPaymentId;
+
+    @NotBlank
+    @Column(name = "currency")
+    private String currency;
+
+    @Column(name = "idempotency_key", unique = true)
+    private String idempotencyKey;
+
+    @Column(name = "client_secret")
+    private String clientSecret;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
     @PrePersist
     public void prePersist() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
         if (paymentDate == null) {
             paymentDate = LocalDateTime.now();
         }
@@ -57,6 +81,11 @@ public class Payment {
         }
 
         log.info("Creating payment: bookingId={}, amount={}, status={}", bookingId, amount, status);
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 
     public boolean canBeProcessed() {
@@ -77,6 +106,22 @@ public class Payment {
         this.status = PaymentStatus.FAILED;
 
         log.warn("Payment {} failed", id);
+    }
+
+    public void markAsPending() {
+        validateTransition(PaymentStatus.PENDING);
+
+        this.status = PaymentStatus.PENDING;
+
+        log.info("Payment {} moved to PENDING", id);
+    }
+
+    public void markAsProcessing() {
+        validateTransition(PaymentStatus.PROCESSING);
+
+        this.status = PaymentStatus.PROCESSING;
+
+        log.info("Payment {} moved to PROCESSING", id);
     }
 
     public void cancel() {
