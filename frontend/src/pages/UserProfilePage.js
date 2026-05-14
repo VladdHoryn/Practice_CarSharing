@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import styles from './UserProfilePage.module.css';
 import { authService } from '../services/auth.service';
 import { bookingService } from '../services/booking.service';
+import { carService } from '../services/car.service';
 
-// --- SVG ІКОНКИ ДЛЯ МЕНЮ ---
+
 const Icons = {
     order: <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>,
     history: <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>,
@@ -89,13 +90,33 @@ const UserProfilePage = () => {
     };
 
     // Завантаження бронювань при переході на вкладку history
-    useEffect(() => {
-        if (activeTab === 'history' && user.id) {
-            bookingService.getUserBookings(user.id)
-                .then(data => setBookings(data))
-                .catch(err => console.error("Помилка завантаження бронювань:", err));
-        }
-    }, [activeTab, user.id]);
+        useEffect(() => {
+            if (activeTab === 'history' && user.id) {
+                const loadBookingsWithCars = async () => {
+                    try {
+                        // Отримуємо історію бронювань
+                        const bookingsData = await bookingService.getUserBookings(user.id);
+
+                        // Для кожного бронювання паралельно шукаємо інформацію про авто
+                        const enrichedBookings = await Promise.all(bookingsData.map(async (booking) => {
+                            try {
+                                const carInfo = await carService.getCarById(booking.carId);
+                                // Додаємо нове поле carName до об'єкта бронювання
+                                return { ...booking, carName: `${carInfo.brand} ${carInfo.model}` };
+                            } catch (err) {
+                                // Якщо машину видалили з бази, показуємо хоча б ID
+                                return { ...booking, carName: `Авто (Видалено з БД)` };
+                            }
+                        }));
+
+                        setBookings(enrichedBookings);
+                    } catch (err) {
+                        console.error("Помилка завантаження бронювань:", err);
+                    }
+                };
+                loadBookingsWithCars();
+            }
+        }, [activeTab, user.id]);
 
     const renderTabContent = () => {
         if (activeTab === 'fleet') {
@@ -182,14 +203,14 @@ const UserProfilePage = () => {
                     <h2 className={styles.tabTitle}>Історія замовлень</h2>
                     <table className={styles.historyTable}>
                         <thead>
-                            <tr><th>ID Бронювання</th><th>ID Авто</th><th>Період</th><th>Статус</th><th>Сума</th></tr>
+                            <tr><th>ID Бронювання</th><th>Авто</th><th>Період</th><th>Статус</th><th>Сума</th></tr>
                         </thead>
                         <tbody>
                             {bookings.length > 0 ? (
                                 bookings.map(order => (
                                     <tr key={order.id}>
                                         <td>#{order.id}</td>
-                                        <td><strong>Авто ID: {order.carId}</strong></td>
+                                        <td><strong>{order.carName}</strong></td>
                                         <td>{order.startDate.split('T')[0]} — {order.endDate.split('T')[0]}</td>
                                         <td><span className={styles.statusBadge} style={{color: order.status === 'CREATED' ? '#28a745' : '#666'}}>{order.status}</span></td>
                                         <td><strong>{order.totalPrice}€</strong></td>
