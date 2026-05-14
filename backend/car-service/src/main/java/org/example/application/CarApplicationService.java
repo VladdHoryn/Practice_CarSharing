@@ -87,14 +87,14 @@ public class CarApplicationService {
     }
 
     public List<Car> getUnconfirmedCars() {
-      log.debug("Fetching unconfirmed cars");
-      return carRepository.findByStatus(CarStatus.UNCONFIRMED);
+        log.debug("Fetching unconfirmed cars");
+        return carRepository.findByStatus(CarStatus.UNCONFIRMED);
     }
 
-  public List<Car> getCarsByUserId(Long userId) {
-    log.debug("Fetching cars by userId: {}", userId);
-    return carRepository.findCarByUserId(userId);
-  }
+    public List<Car> getCarsByUserId(Long userId) {
+        log.debug("Fetching cars by userId: {}", userId);
+        return carRepository.findCarByUserId(userId);
+    }
 
     public List<Car> getCarsByClass(String carClass) {
         log.debug("Fetching cars by class: {}", carClass);
