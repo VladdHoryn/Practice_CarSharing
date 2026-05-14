@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './UserProfilePage.module.css';
 import { authService } from '../services/auth.service';
+import { bookingService } from '../services/booking.service';
 
 const UserProfilePage = () => {
     const navigate = useNavigate();
@@ -40,10 +41,7 @@ const UserProfilePage = () => {
         }
     }, [navigate]);
 
-    // Мокові дані для історії замовлень (поки не підключили booking-service)
-    const historyData = [
-        { id: 1, car: 'Dacia Logan', period: '12.05.2025 - 15.05.2025', city: 'Київ', price: '87€' }
-    ];
+    const [bookings, setBookings] = useState([]);
 
     const menuItems = [
         { id: 'order', label: 'Замовити авто', icon: '🔑' },
@@ -67,6 +65,14 @@ const UserProfilePage = () => {
         // Тут в майбутньому буде запит до бекенду на оновлення даних: axios.put(`/user/v1/${user.id}`, ...)
         alert('Ця функція скоро запрацює! Ваші нові дані: ' + user.firstName + ' ' + user.lastName);
     };
+    // 2. Завантаження бронювань при переході на вкладку history
+    useEffect(() => {
+        if (activeTab === 'history' && user.id) {
+            bookingService.getUserBookings(user.id)
+                .then(data => setBookings(data))
+                .catch(err => console.error("Помилка завантаження бронювань:", err));
+        }
+    }, [activeTab, user.id]);
 
     const renderTabContent = () => {
         switch (activeTab) {
@@ -89,6 +95,7 @@ const UserProfilePage = () => {
                     </>
                 );
 
+
             case 'history':
                 return (
                     <>
@@ -96,29 +103,33 @@ const UserProfilePage = () => {
                         <table className={styles.historyTable}>
                             <thead>
                             <tr>
-                                <th>Авто</th>
-                                <th>Період оренди</th>
-                                <th>Місто</th>
-                                <th>Ціна</th>
-                                <th>Ваш відгук</th>
-                                <th>Повтор оренди</th>
+                                <th>ID Бронювання</th>
+                                <th>ID Авто</th>
+                                <th>Період</th>
+                                <th>Статус</th>
+                                <th>Сума</th>
                             </tr>
                             </thead>
                             <tbody>
-                            {historyData.length > 0 ? (
-                                historyData.map(order => (
+                            {bookings.length > 0 ? (
+                                bookings.map(order => (
                                     <tr key={order.id}>
-                                        <td><strong>{order.car}</strong></td>
-                                        <td>{order.period}</td>
-                                        <td>{order.city}</td>
-                                        <td><strong>{order.price}</strong></td>
-                                        <td><span style={{color: '#3ba4f6', cursor: 'pointer'}}>Залишити</span></td>
-                                        <td><span style={{color: '#3ba4f6', cursor: 'pointer'}} onClick={() => navigate('/catalog')}>Повторити</span></td>
+                                        <td>#{order.id}</td>
+                                        <td><strong>Авто ID: {order.carId}</strong></td>
+                                        <td>{order.startDate.split('T')[0]} — {order.endDate.split('T')[0]}</td>
+                                        <td>
+                                            <span className={styles.statusBadge} style={{
+                                                color: order.status === 'CREATED' ? '#28a745' : '#666'
+                                            }}>
+                                                {order.status}
+                                            </span>
+                                        </td>
+                                        <td><strong>{order.totalPrice}€</strong></td>
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="6" className={styles.emptyState}>У вас ще немає замовлень.</td>
+                                    <td colSpan="5" className={styles.emptyState}>У вас ще немає замовлень.</td>
                                 </tr>
                             )}
                             </tbody>

@@ -4,7 +4,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 // Імпортуємо наші нові компоненти
 import Header from './components/Header';
 import Footer from './components/Footer';
-
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 // Імпортуємо сторінки
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -34,7 +35,7 @@ function App() {
                 </main>
 
                 <Footer /> {/* Наш новий підвал */}
-
+        <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
             </div>
         </Router>
     );

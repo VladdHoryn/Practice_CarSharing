@@ -9,30 +9,32 @@ const CarCatalogPage = () => {
     const [error, setError] = useState(null);
     const navigate = useNavigate();
 
-    const [filters, setFilters] = useState({
-        brand: 'all',
-        maxPrice: 200 // Максимальна ціна за замовчуванням
-    });
+        const [filters, setFilters] = useState(() => {
+             const saved = localStorage.getItem('carFilters');
+             return saved ? JSON.parse(saved) : { brand: 'all', maxPrice: 200 };
+        });
 
-    // Завантажуємо реальні дані з бекенду (Spring Boot)
-    useEffect(() => {
-        const fetchCars = async () => {
-            try {
-                setLoading(true);
-                // Звертаємось до нашого Java-бекенду
-                const data = await carService.getAvailableCars();
-                setCars(data);
-                setError(null);
-            } catch (err) {
-                console.error('Помилка завантаження авто:', err);
-                setError('Не вдалося зв\'язатися з сервером. Переконайтеся, що car-service запущено на порту 8085.');
-            } finally {
-                setLoading(false);
-            }
-        };
+        // Окремий useEffect для завантаження авто
+        useEffect(() => {
+            const fetchCars = async () => {
+                try {
+                    setLoading(true);
+                    const data = await carService.getAvailableCars();
+                    setCars(data);
+                    setError(null);
+                } catch (err) {
+                    console.error('Помилка завантаження авто:', err);
+                    setError('Не вдалося зв\'язатися з сервером. Переконайтеся, що car-service запущено на порту 8085.');
+                } finally {
+                    setLoading(false);
+                }
+            };
 
-        fetchCars();
-    }, []);
+            fetchCars();
+        }, []);
+        useEffect(() => {
+            localStorage.setItem('carFilters', JSON.stringify(filters));
+        }, [filters]);
 
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
