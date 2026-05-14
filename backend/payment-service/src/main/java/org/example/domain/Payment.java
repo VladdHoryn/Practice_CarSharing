@@ -10,6 +10,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "payments")
@@ -32,13 +34,13 @@ public class Payment {
   @Column(name = "amount", nullable = false, precision = 10, scale = 2)
   private BigDecimal amount;
 
-  @NotBlank(message = "Payment method cannot be blank")
-  @Enumerated(EnumType.STRING)
+  @NotNull(message = "Payment method is required")
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   @Column(name = "method", nullable = false)
   private PaymentMethod method;
 
   @NotNull(message = "Payment status cannot be null")
-  @Enumerated(EnumType.STRING)
+  @JdbcTypeCode(SqlTypes.NAMED_ENUM)
   @Column(name = "status", nullable = false)
   private PaymentStatus status;
 
