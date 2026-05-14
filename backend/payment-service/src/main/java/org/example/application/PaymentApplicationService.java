@@ -1,19 +1,19 @@
 package org.example.application;
 
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.UUID;
+
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 import org.example.domain.Payment;
 import org.example.domain.PaymentMethod;
 import org.example.repository.PaymentRepository;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
@@ -21,162 +21,153 @@ import java.util.UUID;
 @Transactional
 public class PaymentApplicationService {
 
-  private final PaymentRepository paymentRepository;
+    private final PaymentRepository paymentRepository;
 
-  public Payment createPayment(
-          Long bookingId,
-          BigDecimal amount,
-          PaymentMethod method,
-          String currency) {
+    public Payment createPayment(
+            Long bookingId, BigDecimal amount, PaymentMethod method, String currency) {
 
-    log.info(
-            "Creating payment for bookingId={}, amount={}, method={}, currency={}",
-            bookingId,
-            amount,
-            method,
-            currency);
+        log.info(
+                "Creating payment for bookingId={}, amount={}, method={}, currency={}",
+                bookingId,
+                amount,
+                method,
+                currency);
 
-    Payment payment = new Payment();
+        Payment payment = new Payment();
 
-    payment.setBookingId(bookingId);
-    payment.setAmount(amount);
-    payment.setMethod(method);
-    payment.setCurrency(currency);
+        payment.setBookingId(bookingId);
+        payment.setAmount(amount);
+        payment.setMethod(method);
+        payment.setCurrency(currency);
 
-    /*
-     * Domain will handle:
-     * - status = CREATED
-     * - paymentDate
-     * - createdAt
-     * - updatedAt
-     */
-    payment.setIdempotencyKey(UUID.randomUUID().toString());
+        /*
+         * Domain will handle:
+         * - status = CREATED
+         * - paymentDate
+         * - createdAt
+         * - updatedAt
+         */
+        payment.setIdempotencyKey(UUID.randomUUID().toString());
 
-    return paymentRepository.save(payment);
-  }
-
-  @Transactional(Transactional.TxType.SUPPORTS)
-  public Payment getById(Long id) {
-
-    log.debug("Fetching payment by id={}", id);
-
-    return paymentRepository.findById(id)
-            .orElseThrow(() ->
-                    new EntityNotFoundException("Payment not found with id=" + id));
-  }
-
-  @Transactional(Transactional.TxType.SUPPORTS)
-  public List<Payment> getAll() {
-
-    log.debug("Fetching all payments");
-
-    return paymentRepository.findAll();
-  }
-
-  public Payment updatePayment(
-          Long id,
-          BigDecimal amount,
-          PaymentMethod method,
-          String currency) {
-
-    log.info("Updating payment id={}", id);
-
-    Payment payment = getById(id);
-
-    if (amount != null) {
-      payment.setAmount(amount);
+        return paymentRepository.save(payment);
     }
 
-    if (method != null) {
-      payment.setMethod(method);
+    @Transactional(Transactional.TxType.SUPPORTS)
+    public Payment getById(Long id) {
+
+        log.debug("Fetching payment by id={}", id);
+
+        return paymentRepository
+                .findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Payment not found with id=" + id));
     }
 
-    if (currency != null && !currency.isBlank()) {
-      payment.setCurrency(currency);
+    @Transactional(Transactional.TxType.SUPPORTS)
+    public List<Payment> getAll() {
+
+        log.debug("Fetching all payments");
+
+        return paymentRepository.findAll();
     }
 
-    // updatedAt handled by @PreUpdate
-    return paymentRepository.save(payment);
-  }
+    public Payment updatePayment(
+            Long id, BigDecimal amount, PaymentMethod method, String currency) {
 
-  public void deletePayment(Long id) {
+        log.info("Updating payment id={}", id);
 
-    log.warn("Deleting payment id={}", id);
+        Payment payment = getById(id);
 
-    Payment payment = getById(id);
+        if (amount != null) {
+            payment.setAmount(amount);
+        }
 
-    paymentRepository.delete(payment);
-  }
+        if (method != null) {
+            payment.setMethod(method);
+        }
 
-  public Payment markAsPending(Long id) {
+        if (currency != null && !currency.isBlank()) {
+            payment.setCurrency(currency);
+        }
 
-    log.info("Marking payment {} as PENDING", id);
+        // updatedAt handled by @PreUpdate
+        return paymentRepository.save(payment);
+    }
 
-    Payment payment = getById(id);
+    public void deletePayment(Long id) {
 
-    payment.markAsPending();
+        log.warn("Deleting payment id={}", id);
 
-    return paymentRepository.save(payment);
-  }
+        Payment payment = getById(id);
 
-  public Payment markAsProcessing(
-          Long id,
-          String providerPaymentId,
-          String clientSecret) {
+        paymentRepository.delete(payment);
+    }
 
-    log.info("Marking payment {} as PROCESSING", id);
+    public Payment markAsPending(Long id) {
 
-    Payment payment = getById(id);
+        log.info("Marking payment {} as PENDING", id);
 
-    payment.setProviderPaymentId(providerPaymentId);
-    payment.setClientSecret(clientSecret);
+        Payment payment = getById(id);
 
-    payment.markAsProcessing();
+        payment.markAsPending();
 
-    return paymentRepository.save(payment);
-  }
+        return paymentRepository.save(payment);
+    }
 
-  public Payment markAsSuccess(Long id) {
+    public Payment markAsProcessing(Long id, String providerPaymentId, String clientSecret) {
 
-    log.info("Marking payment {} as SUCCESS", id);
+        log.info("Marking payment {} as PROCESSING", id);
 
-    Payment payment = getById(id);
+        Payment payment = getById(id);
 
-    payment.markAsSuccess();
+        payment.setProviderPaymentId(providerPaymentId);
+        payment.setClientSecret(clientSecret);
 
-    return paymentRepository.save(payment);
-  }
+        payment.markAsProcessing();
 
-  public Payment markAsFailed(Long id) {
+        return paymentRepository.save(payment);
+    }
 
-    log.info("Marking payment {} as FAILED", id);
+    public Payment markAsSuccess(Long id) {
 
-    Payment payment = getById(id);
+        log.info("Marking payment {} as SUCCESS", id);
 
-    payment.markAsFailed();
+        Payment payment = getById(id);
 
-    return paymentRepository.save(payment);
-  }
+        payment.markAsSuccess();
 
-  public Payment cancelPayment(Long id) {
+        return paymentRepository.save(payment);
+    }
 
-    log.info("Cancelling payment {}", id);
+    public Payment markAsFailed(Long id) {
 
-    Payment payment = getById(id);
+        log.info("Marking payment {} as FAILED", id);
 
-    payment.cancel();
+        Payment payment = getById(id);
 
-    return paymentRepository.save(payment);
-  }
+        payment.markAsFailed();
 
-  public Payment refundPayment(Long id) {
+        return paymentRepository.save(payment);
+    }
 
-    log.info("Refunding payment {}", id);
+    public Payment cancelPayment(Long id) {
 
-    Payment payment = getById(id);
+        log.info("Cancelling payment {}", id);
 
-    payment.refund();
+        Payment payment = getById(id);
 
-    return paymentRepository.save(payment);
-  }
+        payment.cancel();
+
+        return paymentRepository.save(payment);
+    }
+
+    public Payment refundPayment(Long id) {
+
+        log.info("Refunding payment {}", id);
+
+        Payment payment = getById(id);
+
+        payment.refund();
+
+        return paymentRepository.save(payment);
+    }
 }
