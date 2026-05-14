@@ -57,6 +57,10 @@ public class CarApplicationService {
             new IllegalArgumentException(
               "Car not found with id=" + carId));
 
+    if(existingCar.getStatus().equals(CarStatus.RENTED)){
+      throw new IllegalArgumentException("Car is Rented for now");
+    }
+
     if (updatedCar.getBrand() == null || updatedCar.getBrand().isBlank()) {
       throw new IllegalArgumentException("Brand is required");
     }
@@ -126,6 +130,10 @@ public class CarApplicationService {
     public List<Car> getAvailableCars() {
         log.debug("Fetching available cars");
         return carRepository.findByStatus(CarStatus.AVAILABLE);
+    }
+
+    public Boolean isAvailableById(Long id){
+      return carRepository.findById(id).get().isAvailableForRent();
     }
 
     public List<Car> getUnconfirmedCars() {

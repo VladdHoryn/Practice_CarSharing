@@ -103,6 +103,11 @@ public class CarController {
                 carService.getAvailableCars().stream().map(this::toResponse).toList());
     }
 
+    @GetMapping("available/{id}")
+    public Boolean isCarAvailable(@PathVariable Long id) {
+      return carService.isAvailableById(id);
+    }
+
     @PostMapping("/{carId}/rent")
     public ResponseEntity<CarResponse> rentCar(
             @PathVariable Long carId, @RequestBody @Valid RentCarRequest request) {
