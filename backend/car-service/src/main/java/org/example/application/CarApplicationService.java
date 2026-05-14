@@ -45,6 +45,48 @@ public class CarApplicationService {
         return carRepository.save(car);
     }
 
+  @Transactional
+  public Car updateCar(Long carId, Car updatedCar) {
+    log.info("Updating car id={}", carId);
+
+    Car existingCar =
+      carRepository
+        .findById(carId)
+        .orElseThrow(
+          () ->
+            new IllegalArgumentException(
+              "Car not found with id=" + carId));
+
+    if (updatedCar.getBrand() == null || updatedCar.getBrand().isBlank()) {
+      throw new IllegalArgumentException("Brand is required");
+    }
+
+    if (updatedCar.getModel() == null || updatedCar.getModel().isBlank()) {
+      throw new IllegalArgumentException("Model is required");
+    }
+
+    if (updatedCar.getPricePerDay() == null || updatedCar.getPricePerDay() <= 0) {
+      throw new IllegalArgumentException("Price per day must be positive");
+    }
+
+    existingCar.setBrand(updatedCar.getBrand());
+    existingCar.setModel(updatedCar.getModel());
+    existingCar.setYear(updatedCar.getYear());
+    existingCar.setCarClass(updatedCar.getCarClass());
+    existingCar.setPricePerDay(updatedCar.getPricePerDay());
+    existingCar.setImageUrl(updatedCar.getImageUrl());
+
+    existingCar.setStatus(CarStatus.UNCONFIRMED);
+
+    log.info(
+      "Car id={} updated successfully: brand={}, model={}",
+      existingCar.getId(),
+      existingCar.getBrand(),
+      existingCar.getModel());
+
+    return carRepository.save(existingCar);
+  }
+
     public Car getCarById(Long id) {
         log.debug("Fetching car by id: {}", id);
         return carRepository
