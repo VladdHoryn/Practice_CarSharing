@@ -46,6 +46,19 @@ public class Payment {
   @Column(name = "payment_date", nullable = false)
   private LocalDateTime paymentDate;
 
+  @Column(name = "provider_payment_id")
+  private String providerPaymentId;
+
+  @NotBlank
+  @Column(name = "currency")
+  private String currency;
+
+  @Column(name = "idempotency_key", unique = true)
+  private String idempotencyKey;
+
+  @Column(name = "client_secret")
+  private String clientSecret;
+
   @PrePersist
   public void prePersist() {
     if (paymentDate == null) {
