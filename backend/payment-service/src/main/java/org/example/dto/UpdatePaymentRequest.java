@@ -7,10 +7,12 @@ import java.math.BigDecimal;
 
 public record UpdatePaymentRequest(
 
-  @Positive(message = "Amount must be positive")
-  @Digits(integer = 10, fraction = 2)
-  BigDecimal amount,
+        @Positive(message = "Amount must be positive")
+        @Digits(integer = 10, fraction = 2)
+        BigDecimal amount,
 
-  PaymentMethod method
+        PaymentMethod method,
+
+        String currency
 ) {
 }

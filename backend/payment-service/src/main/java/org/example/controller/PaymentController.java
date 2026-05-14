@@ -1,12 +1,17 @@
 package org.example.controller;
 
 import jakarta.validation.Valid;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.example.application.PaymentApplicationService;
 import org.example.domain.Payment;
+
 import org.example.dto.CreatePaymentRequest;
+import org.example.dto.MarkAsProcessingRequest;
 import org.example.dto.UpdatePaymentRequest;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -32,10 +37,11 @@ public class PaymentController {
       paymentApplicationService.createPayment(
         request.bookingId(),
         request.amount(),
-        request.method());
+        request.method(),
+        request.currency());
 
     return ResponseEntity
-      .created(URI.create("/payments/" + payment.getId()))
+      .created(URI.create("/payment/v1/" + payment.getId()))
       .body(payment);
   }
 
@@ -68,7 +74,8 @@ public class PaymentController {
       paymentApplicationService.updatePayment(
         id,
         request.amount(),
-        request.method());
+        request.method(),
+        request.currency());
 
     return ResponseEntity.ok(updatedPayment);
   }
@@ -90,10 +97,15 @@ public class PaymentController {
   }
 
   @PatchMapping("/{id}/processing")
-  public ResponseEntity<Payment> markAsProcessing(@PathVariable Long id) {
+  public ResponseEntity<Payment> markAsProcessing(
+    @PathVariable Long id,
+    @RequestBody @Valid MarkAsProcessingRequest request) {
 
     return ResponseEntity.ok(
-      paymentApplicationService.markAsProcessing(id));
+      paymentApplicationService.markAsProcessing(
+        id,
+        request.providerPaymentId(),
+        request.clientSecret()));
   }
 
   @PatchMapping("/{id}/success")
