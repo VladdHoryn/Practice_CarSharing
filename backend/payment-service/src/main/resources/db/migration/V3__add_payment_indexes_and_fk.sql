@@ -23,13 +23,6 @@ CREATE INDEX idx_payments_amount ON payments(amount);
 CREATE INDEX idx_payments_created_at ON payments(created_at);
 
 -- =====================================================
--- 2. FOREIGN KEY to booking-service
--- =====================================================
--- В мікросервісній архітектурі фізичний FK неможливий,
--- але для цілісності в межах одного сервісу додаємо коментар:
-ALTER TABLE payments ADD CONSTRAINT fk_payments_booking_id FOREIGN KEY (booking_id) REFERENCES bookings(id);
-
--- =====================================================
 -- 3. Автоматичне оновлення updated_at
 -- =====================================================
 

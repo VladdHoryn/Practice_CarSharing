@@ -3,16 +3,6 @@
 -- Version: V3
 -- =====================================================
 
--- =====================================================
--- 1. FOREIGN KEYS (логічні, для мікросервісів)
--- =====================================================
-ALTER TABLE bookings ADD CONSTRAINT fk_bookings_user_id FOREIGN KEY (user_id) REFERENCES users(id);
-ALTER TABLE bookings ADD CONSTRAINT fk_bookings_car_id FOREIGN KEY (car_id) REFERENCES cars(id);
-
--- =====================================================
--- 2. Indexes for performance
--- =====================================================
-
 -- Composite index for user + status (частий запит: бронювання конкретного користувача за статусом)
 CREATE INDEX idx_bookings_user_status ON bookings(user_id, status);
 
@@ -47,7 +37,7 @@ BEGIN
     ) THEN
         RAISE EXCEPTION 'Car % is already booked for the requested period', NEW.car_id;
     END IF;
-    
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -78,12 +68,3 @@ CREATE TRIGGER trigger_booking_updated_at
     BEFORE UPDATE ON bookings
     FOR EACH ROW
     EXECUTE FUNCTION update_booking_updated_at();
-
--- =====================================================
--- 5. Додаткові обмеження
--- =====================================================
-
--- Забезпечити, що cancel_deadline завжди менше start_date (вже є в CHECK)
--- Додати перевірку, що start_date не в минулому для нових бронювань
-ALTER TABLE bookings ADD CONSTRAINT check_start_date_not_past 
-    CHECK (start_date > CURRENT_TIMESTAMP - INTERVAL '1 day');
