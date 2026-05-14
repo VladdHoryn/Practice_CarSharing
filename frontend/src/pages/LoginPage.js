@@ -41,7 +41,7 @@ const LoginPage = () => {
       const response = await authService.login(loginData);
 
       // Якщо все ок, об'єкт юзера вже зберігся в localStorage (через auth.service)
-      alert(response.message || "Вхід успішний!");
+      //alert(response.message || "Вхід успішний!");
 
       // Перенаправляємо в каталог
       navigate('/catalog');

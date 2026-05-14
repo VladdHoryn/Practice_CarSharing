@@ -55,7 +55,7 @@ const RegisterPage = () => {
       // Викликаємо бекенд
       const response = await authService.register(userData);
 
-      alert(response.message || "Реєстрація успішна!");
+      //alert(response.message || "Реєстрація успішна!");
       navigate('/login'); // Перекидаємо на логін
 
     } catch (err) {
