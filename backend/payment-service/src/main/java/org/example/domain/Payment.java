@@ -59,8 +59,16 @@ public class Payment {
   @Column(name = "client_secret")
   private String clientSecret;
 
+  @Column(name = "created_at", nullable = false, updatable = false)
+  private LocalDateTime createdAt;
+
+  @Column(name = "updated_at")
+  private LocalDateTime updatedAt;
+
   @PrePersist
   public void prePersist() {
+    this.createdAt = LocalDateTime.now();
+    this.updatedAt = LocalDateTime.now();
     if (paymentDate == null) {
       paymentDate = LocalDateTime.now();
     }
@@ -70,6 +78,11 @@ public class Payment {
     }
 
     log.info("Creating payment: bookingId={}, amount={}, status={}", bookingId, amount, status);
+  }
+
+  @PreUpdate
+  public void preUpdate() {
+    this.updatedAt = LocalDateTime.now();
   }
 
   public boolean canBeProcessed() {
