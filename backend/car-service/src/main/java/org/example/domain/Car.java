@@ -40,7 +40,7 @@ public class Car {
     private Integer year;
 
     @NotNull(message = "Car class is required")
-    @Enumerated(value = EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "car_class", nullable = false)
     private CarClass carClass;
 

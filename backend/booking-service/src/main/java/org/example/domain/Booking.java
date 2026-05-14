@@ -118,6 +118,16 @@ public class Booking {
             throw new IllegalStateException("Cannot cancel completed booking");
         }
 
+        if (status == BookingStatus.CANCELLED) {
+            throw new IllegalStateException("Booking is already cancelled");
+        }
+
+        if (LocalDateTime.now().isAfter(cancelDeadline)) {
+            throw new IllegalStateException(
+                    "Cancellation deadline has expired. Cancel was allowed until: "
+                            + cancelDeadline);
+        }
+
         this.status = BookingStatus.CANCELLED;
     }
 

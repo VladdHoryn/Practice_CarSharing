@@ -47,13 +47,31 @@ public class CarController {
         car.setPricePerDay(request.pricePerDay());
         car.setImageUrl(request.imageUrl());
 
-        // Твій важливий фікс!
         car.setUserId(request.userId());
 
         Car createdCar = carService.createCar(car);
 
         return ResponseEntity.created(URI.create("/car/v1/" + createdCar.getId()))
                 .body(toResponse(createdCar));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<CarResponse> updateCar(
+            @PathVariable Long id, @RequestBody @Valid CreateCarRequest request) {
+
+        Car car = new Car();
+        car.setBrand(request.brand());
+        car.setModel(request.model());
+        car.setYear(request.year());
+        car.setCarClass(CarClass.valueOf(request.carClass()));
+        car.setPricePerDay(request.pricePerDay());
+        car.setImageUrl(request.imageUrl());
+
+        car.setUserId(request.userId());
+
+        Car updatedCar = carService.updateCar(id, car);
+
+        return ResponseEntity.ok(toResponse(updatedCar));
     }
 
     @GetMapping("/{id}")
@@ -82,6 +100,11 @@ public class CarController {
     public ResponseEntity<List<CarResponse>> getAvailableCars() {
         return ResponseEntity.ok(
                 carService.getAvailableCars().stream().map(this::toResponse).toList());
+    }
+
+    @GetMapping("available/{id}")
+    public Boolean isCarAvailable(@PathVariable Long id) {
+        return carService.isAvailableById(id);
     }
 
     @PostMapping("/{carId}/rent")
