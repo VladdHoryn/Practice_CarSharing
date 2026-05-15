@@ -14,7 +14,6 @@ const CarCatalogPage = () => {
              return saved ? JSON.parse(saved) : { brand: 'all', maxPrice: 200 };
         });
 
-        // Окремий useEffect для завантаження авто
         useEffect(() => {
             const fetchCars = async () => {
                 try {

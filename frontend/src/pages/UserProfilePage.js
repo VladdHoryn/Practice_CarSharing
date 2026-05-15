@@ -29,6 +29,7 @@ const UserProfilePage = () => {
 
     const [activeTab, setActiveTab] = useState('');
     const [bookings, setBookings] = useState([]);
+    const [ownerCars, setOwnerCars] = useState([]);
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
@@ -54,6 +55,15 @@ const UserProfilePage = () => {
         }
     }, [navigate]);
 
+// Завантаження непідтверджених авто для вкладки fleet (кабінет Власника)
+    useEffect(() => {
+        if (activeTab === 'fleet' && user.role === 'OWNER') {
+            carService.getUnconfirmedCars()
+                .then(data => setOwnerCars(data))
+                .catch(err => console.error("Помилка завантаження авто власника:", err));
+        }
+    }, [activeTab, user.role]);
+
     const handleLogout = () => {
         authService.logout();
         navigate('/login');
@@ -74,10 +84,6 @@ const UserProfilePage = () => {
 
     const menuItems = user.role === 'OWNER' ? ownerMenu : renterMenu;
 
-    const mockFleet = [
-        { id: 1, photo: 'https://via.placeholder.com/60x40', model: 'Toyota Camry', vin: 'VXXXXXXXXX', year: 2022, mileage: 'Пробіг', status: '✔️', price: '1200 грн/добу' },
-        { id: 2, photo: 'https://via.placeholder.com/60x40', model: 'Toyota Camry', vin: 'VXXXXXXXXX', year: 2022, mileage: 'Пробіг', status: '✔️', price: '1200 грн/добу' }
-    ];
 
     const mockAnalyticsDays = [
         { day: 'Пн', value: 70 }, { day: 'Вв', value: 75 }, { day: 'Ср', value: 60 },
@@ -137,15 +143,36 @@ const UserProfilePage = () => {
                             <tr><th>Фото</th><th>Модель</th><th>VIN</th><th>Рік</th><th>Пробіг</th><th>Статус</th><th>Ціна</th><th>Дії</th></tr>
                         </thead>
                         <tbody>
-                            {mockFleet.map(car => (
-                                <tr key={car.id}>
-                                    <td><img src={car.photo} alt="car" className={styles.carThumb}/></td>
-                                    <td>{car.model}</td><td>{car.vin}</td><td>{car.year}</td><td>{car.mileage}</td>
-                                    <td>{car.status}</td><td>{car.price}</td>
-                                    <td><span style={{color: '#3ba4f6', cursor:'pointer'}}>Редаг.</span></td>
-                                </tr>
-                            ))}
-                        </tbody>
+                                                    {/* ТЕПЕР МИ ВИКОРИСТОВУЄМО ownerCars ЗАМІСТЬ mockFleet */}
+                                                    {ownerCars.length > 0 ? (
+                                                        ownerCars.map(car => (
+                                                            <tr key={car.id}>
+                                                                <td>
+                                                                    {car.imageUrl ? (
+                                                                        <img src={car.imageUrl} alt="car" className={styles.carThumb} style={{width: '60px', height: '40px', objectFit: 'cover', borderRadius: '4px'}}/>
+                                                                    ) : (
+                                                                        <div style={{width: '60px', height: '40px', backgroundColor: '#eee', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px'}}>Фото</div>
+                                                                    )}
+                                                                </td>
+                                                                <td><strong>{car.brand} {car.model}</strong></td>
+                                                                <td>{car.vin || 'Не вказано'}</td>
+                                                                <td>{car.year}</td>
+                                                                <td>{car.mileage || 0} км</td>
+                                                                <td>
+                                                                    <span style={{color: '#f39c12', fontWeight: 'bold'}}>
+                                                                        {car.status || 'UNCONFIRMED'}
+                                                                    </span>
+                                                                </td>
+                                                                <td>{car.pricePerDay}€</td>
+                                                                <td><span style={{color: '#3ba4f6', cursor:'pointer'}}>Редаг.</span></td>
+                                                            </tr>
+                                                        ))
+                                                    ) : (
+                                                        <tr>
+                                                            <td colSpan="8" className={styles.emptyState} style={{textAlign: 'center', padding: '20px'}}>У вас немає непідтверджених авто.</td>
+                                                        </tr>
+                                                    )}
+                                                </tbody>
                     </table>
                 </>
             );
