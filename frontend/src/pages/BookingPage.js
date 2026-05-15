@@ -1,26 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styles from './BookingPage.module.css';
-import { carService } from '../services/car.service'; // Підключаємо сервіс!
+import { carService } from '../services/car.service';
+import { bookingService } from '../services/booking.service';
+import { paymentService } from '../services/payment.service';
+import { toast } from 'react-toastify';
 
 const BookingPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
 
-    // Стейт для бронювання
     const [dates, setDates] = useState({ start: '', end: '' });
-    const [paymentMethod, setPaymentMethod] = useState('CARD'); // CARD або CASH
-    const [coDrivers, setCoDrivers] = useState([]); // Split Access
+    const [coDrivers, setCoDrivers] = useState([]);
+    const [days, setDays] = useState(0);
 
-    // Стейт для реального авто з бекенду
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [paymentMethod, setPaymentMethod] = useState('CARD');
+
     const [car, setCar] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isProcessing, setIsProcessing] = useState(false);
 
-    // Обчислення кількості днів
-    const [days, setDays] = useState(0);
+    // ІДЕАЛЬНИЙ ФОРМАТ ДАТИ: Завжди повертає YYYY-MM-DD для твого часового поясу
+    const todayStr = new Date().toLocaleDateString('en-CA');
 
-    // 1. Завантажуємо реальну машину з БД при відкритті сторінки
     useEffect(() => {
         const fetchCarForBooking = async () => {
             try {
@@ -29,17 +33,20 @@ const BookingPage = () => {
                 setCar(data);
                 setError(null);
             } catch (err) {
-                console.error('Помилка завантаження авто для бронювання:', err);
+                console.error('Помилка завантаження авто:', err);
                 setError('Не вдалося завантажити дані автомобіля.');
             } finally {
                 setLoading(false);
             }
         };
-
         fetchCarForBooking();
     }, [id]);
 
-    // 2. Рахуємо дні при зміні дат
+    useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        if (!storedUser) navigate('/login');
+    }, [navigate]);
+
     useEffect(() => {
         if (dates.start && dates.end) {
             const start = new Date(dates.start);
@@ -52,12 +59,11 @@ const BookingPage = () => {
         }
     }, [dates]);
 
-    // Функції для Split Access
     const addCoDriver = () => {
         if (coDrivers.length < 4) {
             setCoDrivers([...coDrivers, { email: '', licenseNumber: '' }]);
         } else {
-            alert('Досягнуто ліміт водіїв (максимум 5 на одне авто)');
+            toast.warning('Досягнуто ліміт водіїв');
         }
     };
 
@@ -72,189 +78,188 @@ const BookingPage = () => {
         setCoDrivers(newDrivers);
     };
 
-    // Відправка форми
-    const handleSubmit = (e) => {
+    const handleProceedToPayment = (e) => {
         e.preventDefault();
-        if (days <= 0) return alert('Оберіть коректні дати (дата завершення має бути пізніше дати початку)');
-
-        const bookingData = {
-            carId: car.id,
-            startDate: dates.start,
-            endDate: dates.end,
-            paymentMethod,
-            coDrivers,
-            totalPrice: days * car.pricePerDay
-        };
-
-        // Тут ми пізніше підключимо booking.service.js
-        console.log('Дані на бекенд (/api/bookings):', bookingData);
-        alert('Бронювання успішно створено! (Дані виведено в консоль)');
-        navigate('/catalog');
+        if (days <= 0) {
+            toast.error('Оберіть коректні дати оренди (мінімум 1 день)');
+            return;
+        }
+        setShowPaymentModal(true);
     };
 
-    // Відображення під час очікування відповіді від сервера
-    if (loading) return <div className={styles.pageContainer} style={{padding: '100px', textAlign: 'center'}}>Підготовка сторінки бронювання... ⏳</div>;
+    const executeBookingAndPayment = async () => {
+        const userStr = localStorage.getItem('user');
+        if (!userStr) return navigate('/login');
+
+        const currentUser = JSON.parse(userStr);
+        setIsProcessing(true);
+
+        try {
+            // ЕТАП 1: Створюємо бронювання (порт 8082)
+            let createdBookingId;
+            try {
+                const bookingRequest = {
+                    userId: currentUser.id,
+                    carId: parseInt(car.id),
+                    startDate: `${dates.start}T10:00:00`,
+                    endDate: `${dates.end}T10:00:00`,
+                    pricePerDay: car.pricePerDay
+                };
+                const bookingResult = await bookingService.createBooking(bookingRequest);
+                createdBookingId = bookingResult.id;
+            } catch (err) {
+                throw new Error("Помилка БД: Не вдалося створити бронювання.");
+            }
+
+            // ЕТАП 2: Створюємо оплату (порт 8084)
+                        try {
+                            const paymentRequest = {
+                                bookingId: createdBookingId,
+                                amount: days * car.pricePerDay,
+                                method: paymentMethod,
+                                currency: "USD" // Якщо бекенд очікує "USD", залишаємо так
+                            };
+                            console.log("Відправляємо дані на оплату:", paymentRequest);
+                            await paymentService.createPayment(paymentRequest);
+                        } catch (err) {
+                            console.error("Повна помилка оплати:", err);
+                            // Тепер ми витягуємо РЕАЛЬНЕ повідомлення від бекенду (наприклад, "Network Error" або помилку валідації)
+                            const realError = err.response?.data?.message || err.message;
+                            throw new Error(`Помилка оплати: ${realError}`);
+                        }
+
+            // Якщо обидва етапи успішні
+            toast.success('Бронювання та оплата успішні! 🚗💳');
+            setShowPaymentModal(false);
+            navigate('/profile');
+
+        } catch (err) {
+            console.error(err);
+            toast.error(err.message);
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    if (loading) return <div className={styles.pageContainer} style={{padding: '100px', textAlign: 'center'}}>Підготовка сторінки... ⏳</div>;
     if (error) return <div className={styles.pageContainer} style={{padding: '100px', textAlign: 'center', color: 'red'}}>{error}</div>;
     if (!car) return null;
+
+    const totalPrice = days * car.pricePerDay;
 
     return (
         <div className={styles.pageContainer}>
             <h1 className={styles.pageTitle}>Оформлення бронювання</h1>
 
-            <form onSubmit={handleSubmit} className={styles.contentGrid}>
-
-                {/* ЛІВА КОЛОНКА (Форми) */}
+            <form onSubmit={handleProceedToPayment} className={styles.contentGrid}>
                 <div className={styles.leftColumn}>
-
-                    {/* Блок 1: Дати */}
                     <div className={styles.formSection}>
                         <h2 className={styles.sectionTitle}>1. Дати оренди</h2>
                         <div className={styles.dateRow}>
                             <div className={styles.inputGroup}>
                                 <label>Початок оренди</label>
-                                <input
-                                    type="date"
-                                    required
-                                    value={dates.start}
-                                    onChange={(e) => setDates({...dates, start: e.target.value})}
-                                />
+                                {/* ЗАБЛОКОВАНО: не можна вибрати дату менше ніж сьогодні (min={todayStr}) */}
+                                <input type="date" required min={todayStr} value={dates.start} onChange={(e) => setDates({...dates, start: e.target.value})} />
                             </div>
                             <div className={styles.inputGroup}>
                                 <label>Завершення оренди</label>
-                                <input
-                                    type="date"
-                                    required
-                                    min={dates.start} // Не можна здати раніше, ніж взяти
-                                    value={dates.end}
-                                    onChange={(e) => setDates({...dates, end: e.target.value})}
-                                />
+                                {/* ЗАБЛОКОВАНО: не можна здати авто раніше, ніж взяв (min={dates.start || todayStr}) */}
+                                <input type="date" required min={dates.start || todayStr} value={dates.end} onChange={(e) => setDates({...dates, end: e.target.value})} />
                             </div>
                         </div>
                     </div>
 
-                    {/* Блок 2: Split Access (Кілер-фіча) */}
                     <div className={`${styles.formSection} ${styles.splitAccessBox}`}>
                         <div className={styles.splitAccessHeader}>
                             <div>
-                                <h2 className={styles.sectionTitle} style={{border: 'none', marginBottom: '5px'}}>
-                                    2. Split Access (Спільна оренда)
-                                </h2>
+                                <h2 className={styles.sectionTitle} style={{border: 'none', marginBottom: '5px'}}>2. Split Access (Спільна оренда)</h2>
                                 <p>Додайте друзів, щоб вони теж мали законне право керувати цим авто.</p>
                             </div>
-                            <button type="button" className={styles.addDriverBtn} onClick={addCoDriver}>
-                                + Додати водія
-                            </button>
+                            <button type="button" className={styles.addDriverBtn} onClick={addCoDriver}>+ Додати водія</button>
                         </div>
-
                         {coDrivers.map((driver, index) => (
                             <div key={index} className={styles.driverRow}>
                                 <div className={styles.inputGroup}>
                                     <label>Email водія #{index + 2}</label>
-                                    <input
-                                        type="email"
-                                        placeholder="friend@carlink.com"
-                                        required
-                                        value={driver.email}
-                                        onChange={(e) => handleCoDriverChange(index, 'email', e.target.value)}
-                                    />
+                                    <input type="email" required value={driver.email} onChange={(e) => handleCoDriverChange(index, 'email', e.target.value)} />
                                 </div>
                                 <div className={styles.inputGroup}>
                                     <label>Номер посвідчення</label>
-                                    <input
-                                        type="text"
-                                        placeholder="AAA123456"
-                                        required
-                                        value={driver.licenseNumber}
-                                        onChange={(e) => handleCoDriverChange(index, 'licenseNumber', e.target.value)}
-                                    />
+                                    <input type="text" required value={driver.licenseNumber} onChange={(e) => handleCoDriverChange(index, 'licenseNumber', e.target.value)} />
                                 </div>
-                                <button type="button" className={styles.removeBtn} onClick={() => removeCoDriver(index)}>
-                                    ✖
-                                </button>
+                                <button type="button" className={styles.removeBtn} onClick={() => removeCoDriver(index)}>✖</button>
                             </div>
                         ))}
-                        {coDrivers.length === 0 && (
-                            <div style={{fontSize: '13px', color: '#666', fontStyle: 'italic'}}>
-                                Ви будете єдиним водієм цього авто.
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Блок 3: Оплата */}
-                    <div className={styles.formSection}>
-                        <h2 className={styles.sectionTitle}>3. Спосіб оплати</h2>
-                        <div className={styles.paymentOptions}>
-                            <label className={`${styles.paymentOption} ${paymentMethod === 'CARD' ? styles.selected : ''}`}>
-                                <input
-                                    type="radio"
-                                    name="payment"
-                                    checked={paymentMethod === 'CARD'}
-                                    onChange={() => setPaymentMethod('CARD')}
-                                />
-                                💳 Оплата карткою онлайн
-                            </label>
-                            <label className={`${styles.paymentOption} ${paymentMethod === 'CASH' ? styles.selected : ''}`}>
-                                <input
-                                    type="radio"
-                                    name="payment"
-                                    checked={paymentMethod === 'CASH'}
-                                    onChange={() => setPaymentMethod('CASH')}
-                                />
-                                💵 Готівкою при отриманні
-                            </label>
-                        </div>
-                    </div>
-
-                </div>
-
-                {/* ПРАВА КОЛОНКА (Чек) */}
-                <div>
-                    <div className={styles.summaryCard}>
-                        <h2 className={styles.sectionTitle}>Ваше замовлення</h2>
-
-                        <div className={styles.summaryCar}>
-                            {/* Відображаємо реальне фото з бекенду */}
-                            <div className={styles.summaryCarImg}>
-                                {car.imageUrl ? (
-                                    <img src={car.imageUrl} alt={car.brand} style={{width: '100%', height: '100%', objectFit: 'cover', borderRadius: '4px'}}/>
-                                ) : (
-                                    <div style={{width: '100%', height: '100%', backgroundColor: '#eee', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>Фото</div>
-                                )}
-                            </div>
-                            <div>
-                                {/* Відображаємо реальну марку і модель */}
-                                <strong>{car.brand} {car.model}</strong>
-                                <div style={{fontSize: '13px', color: '#666'}}>{car.pricePerDay}€ / доба</div>
-                            </div>
-                        </div>
-
-                        <ul className={styles.summaryDetails}>
-                            <li>
-                                <span>Кількість днів:</span>
-                                <span>{days}</span>
-                            </li>
-                            <li>
-                                <span>Додаткові водії:</span>
-                                <span>{coDrivers.length}</span>
-                            </li>
-                            <li>
-                                <span>Страховка:</span>
-                                <span style={{color: '#28a745'}}>Включено</span>
-                            </li>
-                        </ul>
-
-                        <div className={styles.totalRow}>
-                            <span>До сплати:</span>
-                            <span>{days * car.pricePerDay}€</span>
-                        </div>
-
-                        <button type="submit" className={styles.confirmBtn}>
-                            ПІДТВЕРДИТИ
-                        </button>
+                        {coDrivers.length === 0 && <div style={{fontSize: '13px', color: '#666', fontStyle: 'italic'}}>Ви будете єдиним водієм цього авто.</div>}
                     </div>
                 </div>
 
+                <div className={styles.summaryCard}>
+                    <h2 className={styles.sectionTitle}>Ваше замовлення</h2>
+                    <div className={styles.summaryCar}>
+                        <div className={styles.summaryCarImg}>
+                            {car.imageUrl ? <img src={car.imageUrl} alt={car.brand} style={{width: '100%', height: '100%', objectFit: 'cover', borderRadius: '4px'}}/> : <div style={{width: '100%', height: '100%', backgroundColor: '#eee'}}>Фото</div>}
+                        </div>
+                        <div>
+                            <strong>{car.brand} {car.model}</strong>
+                            <div style={{fontSize: '13px', color: '#666'}}>{car.pricePerDay}€ / доба</div>
+                        </div>
+                    </div>
+                    <ul className={styles.summaryDetails}>
+                        <li><span>Кількість днів:</span><span>{days}</span></li>
+                        <li><span>Додаткові водії:</span><span>{coDrivers.length}</span></li>
+                        <li><span>Страховка:</span><span style={{color: '#28a745'}}>Включено</span></li>
+                    </ul>
+                    <div className={styles.totalRow}><span>До сплати:</span><span>{totalPrice}€</span></div>
+
+                    <button type="submit" className={styles.confirmBtn}>ПЕРЕЙТИ ДО ОПЛАТИ</button>
+                </div>
             </form>
+
+            {/* ВІКНО ОПЛАТИ */}
+            {showPaymentModal && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                    <div style={{ background: '#fff', padding: '30px', borderRadius: '12px', width: '450px', maxWidth: '90%', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
+                        <h2 style={{marginTop: 0, marginBottom: '20px', fontSize: '22px'}}>Оплата замовлення</h2>
+
+                        <div style={{ marginBottom: '20px' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', padding: '15px', border: paymentMethod === 'CARD' ? '2px solid #0056b3' : '1px solid #ddd', borderRadius: '8px', marginBottom: '10px', cursor: 'pointer', background: paymentMethod === 'CARD' ? '#f8fbff' : '#fff' }}>
+                                <input type="radio" name="payMethod" checked={paymentMethod === 'CARD'} onChange={() => setPaymentMethod('CARD')} style={{marginRight: '15px'}} />
+                                💳 Банківська картка
+                            </label>
+
+                            {paymentMethod === 'CARD' && (
+                                <div style={{ padding: '0 10px 15px 35px' }}>
+                                    <input type="text" placeholder="Номер картки 0000 0000 0000 0000" style={{ width: '100%', padding: '10px', marginBottom: '10px', border: '1px solid #ccc', borderRadius: '4px' }}/>
+                                    <div style={{ display: 'flex', gap: '10px' }}>
+                                        <input type="text" placeholder="MM/YY" style={{ width: '50%', padding: '10px', border: '1px solid #ccc', borderRadius: '4px' }}/>
+                                        <input type="text" placeholder="CVC" style={{ width: '50%', padding: '10px', border: '1px solid #ccc', borderRadius: '4px' }}/>
+                                    </div>
+                                </div>
+                            )}
+
+                            <label style={{ display: 'flex', alignItems: 'center', padding: '15px', border: paymentMethod === 'GOOGLE_PAY' ? '2px solid #0056b3' : '1px solid #ddd', borderRadius: '8px', marginBottom: '10px', cursor: 'pointer', background: paymentMethod === 'GOOGLE_PAY' ? '#f8fbff' : '#fff' }}>
+                                <input type="radio" name="payMethod" checked={paymentMethod === 'GOOGLE_PAY'} onChange={() => setPaymentMethod('GOOGLE_PAY')} style={{marginRight: '15px'}} />
+                                📱 Google Pay
+                            </label>
+
+                            <label style={{ display: 'flex', alignItems: 'center', padding: '15px', border: paymentMethod === 'APPLE_PAY' ? '2px solid #0056b3' : '1px solid #ddd', borderRadius: '8px', cursor: 'pointer', background: paymentMethod === 'APPLE_PAY' ? '#f8fbff' : '#fff' }}>
+                                <input type="radio" name="payMethod" checked={paymentMethod === 'APPLE_PAY'} onChange={() => setPaymentMethod('APPLE_PAY')} style={{marginRight: '15px'}} />
+                                🍎 Apple Pay
+                            </label>
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '30px' }}>
+                            <button onClick={() => setShowPaymentModal(false)} style={{ padding: '12px 20px', border: 'none', background: '#eee', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
+                                Скасувати
+                            </button>
+                            <button onClick={executeBookingAndPayment} disabled={isProcessing} style={{ padding: '12px 20px', border: 'none', background: '#0056b3', color: '#fff', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', width: '200px' }}>
+                                {isProcessing ? 'Обробка...' : `Оплатити ${totalPrice}€`}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

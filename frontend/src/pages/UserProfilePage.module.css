@@ -74,7 +74,7 @@
     border-bottom: 1px solid #eaeaea;
 }
 
-/* --- Вкладка 1: Замовити авто --- */
+/* --- СПІЛЬНІ ТА ОРЕНДАРСКІ КЛАСИ --- */
 .greeting {
     font-size: 16px;
     font-weight: 700;
@@ -110,7 +110,22 @@
     background-color: #288ee0;
 }
 
-/* --- Вкладка 2: Історія --- */
+/* Спеціальна кнопка для додавання авто */
+.addCarBtn {
+    background-color: #3ba4f6;
+    color: #fff;
+    border: none;
+    border-radius: 24px;
+    padding: 10px 24px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+    float: right;
+    margin-top: -65px; /* Піднімаємо кнопку на рівень заголовку */
+}
+
+/* --- ТАБЛИЦІ (Універсальні) --- */
 .historyTable {
     width: 100%;
     border-collapse: collapse;
@@ -122,6 +137,7 @@
     border-bottom: 2px solid #eaeaea;
     font-size: 14px;
     color: #333;
+    font-weight: 600;
 }
 
 .historyTable td {
@@ -129,6 +145,7 @@
     border-bottom: 1px solid #eaeaea;
     font-size: 14px;
     color: #555;
+    vertical-align: middle;
 }
 
 .emptyState {
@@ -138,7 +155,7 @@
     font-style: italic;
 }
 
-/* --- Вкладка 3: Документи --- */
+/* --- Вкладка: Документи --- */
 .docRow {
     display: flex;
     align-items: center;
@@ -156,7 +173,7 @@
     font-size: 14px;
 }
 
-/* --- Вкладка 4: Персональні дані --- */
+/* --- Форми та Персональні дані --- */
 .formGrid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -175,7 +192,7 @@
     margin-bottom: 8px;
 }
 
-.inputGroup input {
+.inputGroup input, .inputGroup select {
     padding: 12px;
     border: 1px solid #d1d5db;
     border-radius: 6px;
@@ -183,7 +200,7 @@
     outline: none;
 }
 
-.inputGroup input:focus {
+.inputGroup input:focus, .inputGroup select:focus {
     border-color: #3ba4f6;
 }
 
@@ -193,12 +210,128 @@
     margin: 30px 0 20px 0;
 }
 
+/* =========================================
+   НОВІ КЛАСИ ДЛЯ ОРЕНДОДАВЦЯ (OWNER)
+========================================== */
+
+/* Фільтри автопарку */
+.filtersRow {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.filtersRow .inputGroup {
+    flex: 1;
+}
+
+.carThumb {
+    width: 60px;
+    height: 40px;
+    background-color: #eee;
+    border-radius: 4px;
+    object-fit: cover;
+}
+
+/* Аналітика: 4 картки зверху */
+.statsContainer {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.statCard {
+    text-align: center;
+    padding: 15px;
+    border-bottom: 2px solid #eaeaea;
+}
+
+.statCardTitle {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.statCardValue {
+    font-size: 20px;
+    font-weight: 700;
+    color: #333;
+}
+
+/* Графіки CSS */
+.chartsGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-bottom: 40px;
+}
+
+.chartBox {
+    border: 1px solid #eaeaea;
+    border-radius: 8px;
+    padding: 20px;
+    background: #fafafa;
+}
+
+.chartTitle {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* Стовпчикова діаграма на CSS */
+.cssBarChart {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-around;
+    height: 150px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #ccc;
+    position: relative;
+}
+
+.barCol {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 30px;
+    height: 100%;
+    justify-content: flex-end;
+}
+
+.barFill {
+    width: 100%;
+    background-color: #3ba4f6;
+    border-radius: 4px 4px 0 0;
+    transition: height 0.5s ease;
+}
+
+.barLabel {
+    margin-top: 10px;
+    font-size: 11px;
+    color: #666;
+    position: absolute;
+    bottom: -20px;
+}
+
 /* Адаптивність */
 @media (max-width: 768px) {
     .dashboardLayout {
         grid-template-columns: 1fr;
     }
-    .formGrid {
+    .formGrid, .chartsGrid, .statsContainer {
         grid-template-columns: 1fr;
+    }
+    .filtersRow {
+        flex-direction: column;
+    }
+    .addCarBtn {
+        float: none;
+        margin-top: 0;
+        margin-bottom: 20px;
+        width: 100%;
     }
 }

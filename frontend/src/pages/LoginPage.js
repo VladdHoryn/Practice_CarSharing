@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styles from './LoginPage.module.css';
-import { authService } from '../services/auth.service'; // Підключаємо сервіс
+import { authService } from '../services/auth.service';
+import { toast } from 'react-toastify'; // Підключаємо сповіщення
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -24,86 +25,59 @@ const LoginPage = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
+      e.preventDefault();
+      setError(null);
 
-    try {
-      setIsLoading(true);
+      try {
+        setIsLoading(true);
+        const loginData = { email: credentials.email, password: credentials.password };
 
-      const loginData = {
-        email: credentials.email,
-        password: credentials.password
-      };
+        const response = await authService.login(loginData);
+        if (response && (response.status === 401 || response.error)) {
+            throw new Error(response.message || "Невірний email або пароль.");
+        }
 
-      console.log('Спроба входу з даними:', loginData);
 
-      // Виклик API
-      const response = await authService.login(loginData);
+        if (!localStorage.getItem('user')) {
+            throw new Error("Невірний email або пароль.");
+        }
 
-      // Якщо все ок, об'єкт юзера вже зберігся в localStorage (через auth.service)
-      alert(response.message || "Вхід успішний!");
+        toast.success('Вхід успішний! 👋');
+        navigate('/catalog');
 
-      // Перенаправляємо в каталог
-      navigate('/catalog');
-
-    } catch (err) {
-      console.error('Помилка входу:', err);
-      // Відображаємо помилку від бекенду ("Invalid email or password" або "Account is deactivated")
-      setError(err.response?.data?.message || "Невірний email або пароль.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      } catch (err) {
+        console.error('Помилка входу:', err);
+        // Тепер ми ловимо як помилки від бекенду (Axios), так і наші власні помилки (err.message)
+        const errorMsg = err.response?.data?.message || err.message || "Невірний email або пароль.";
+        setError(errorMsg);
+        toast.error(errorMsg); // Виводимо червоне повідомлення Toastify
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
   return (
     <div className={styles.pageContainer}>
       <div className={styles.authCard}>
         <h2 className={styles.title}>Вхід</h2>
 
-        {/* Вивід помилки червоним кольором */}
         {error && <div style={{color: 'red', marginBottom: '15px', textAlign: 'center'}}>{error}</div>}
 
         <form onSubmit={handleSubmit}>
             <div className={styles.formGroup}>
                 <label className={styles.label}>Email</label>
-                <input
-                    type="email"
-                    name="email"
-                    className={styles.input}
-                    value={credentials.email}
-                    onChange={handleChange}
-                    required
-                />
+                <input type="email" name="email" className={styles.input} value={credentials.email} onChange={handleChange} required />
             </div>
           <div className={styles.formGroup}>
             <label className={styles.label}>Пароль</label>
             <div className={styles.inputWrapper}>
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                className={styles.input}
-                value={credentials.password}
-                onChange={handleChange}
-                required
-              />
-              <span
-                className={styles.iconRight}
-                onClick={() => setShowPassword(!showPassword)}
-                style={{cursor: 'pointer'}}
-              >
-                👁️
-              </span>
+              <input type={showPassword ? "text" : "password"} name="password" className={styles.input} value={credentials.password} onChange={handleChange} required />
+              <span className={styles.iconRight} onClick={() => setShowPassword(!showPassword)} style={{cursor: 'pointer'}}>👁️</span>
             </div>
           </div>
 
           <div className={styles.checkboxGroup}>
-            <input
-              type="checkbox"
-              id="rememberMe"
-              name="rememberMe"
-              checked={credentials.rememberMe}
-              onChange={handleChange}
-            />
+            <input type="checkbox" id="rememberMe" name="rememberMe" checked={credentials.rememberMe} onChange={handleChange} />
             <label htmlFor="rememberMe" className={styles.checkboxLabel}>Remember me</label>
           </div>
 
@@ -114,16 +88,6 @@ const LoginPage = () => {
 
         <div className={styles.footerLinks}>
           Don't have an account? <Link to="/register">Sign up</Link>
-        </div>
-
-        <div className={styles.socialLogin}>
-          Or sign in with
-          <div className={styles.socialIcons}>
-            <div className={styles.socialIcon}>F</div>
-            <div className={styles.socialIcon}>G</div>
-            <div className={styles.socialIcon}>T</div>
-            <div className={styles.socialIcon}>in</div>
-          </div>
         </div>
       </div>
     </div>
