@@ -1,20 +1,19 @@
 package org.example.application;
 
-import java.util.List;
-
 import jakarta.transaction.Transactional;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.domain.Car;
 import org.example.domain.CarStatus;
 import org.example.dto.CarFilterDto;
+import org.example.dto.CarImageDto;
 import org.example.repository.CarRepository;
 import org.example.specification.CarSpecification;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -41,60 +40,13 @@ public class CarApplicationService {
             throw new IllegalArgumentException("Price per day must be positive");
         }
 
-        car.setStatus(CarStatus.UNCONFIRMED);
+        car.setStatus(CarStatus.AVAILABLE);
         return carRepository.save(car);
-    }
-
-    @Transactional
-    public Car updateCar(Long carId, Car updatedCar) {
-        log.info("Updating car id={}", carId);
-
-        Car existingCar =
-                carRepository
-                        .findById(carId)
-                        .orElseThrow(
-                                () ->
-                                        new IllegalArgumentException(
-                                                "Car not found with id=" + carId));
-
-        if (existingCar.getStatus().equals(CarStatus.RENTED)) {
-            throw new IllegalArgumentException("Car is Rented for now");
-        }
-
-        if (updatedCar.getBrand() == null || updatedCar.getBrand().isBlank()) {
-            throw new IllegalArgumentException("Brand is required");
-        }
-
-        if (updatedCar.getModel() == null || updatedCar.getModel().isBlank()) {
-            throw new IllegalArgumentException("Model is required");
-        }
-
-        if (updatedCar.getPricePerDay() == null || updatedCar.getPricePerDay() <= 0) {
-            throw new IllegalArgumentException("Price per day must be positive");
-        }
-
-        existingCar.setBrand(updatedCar.getBrand());
-        existingCar.setModel(updatedCar.getModel());
-        existingCar.setYear(updatedCar.getYear());
-        existingCar.setCarClass(updatedCar.getCarClass());
-        existingCar.setPricePerDay(updatedCar.getPricePerDay());
-        existingCar.setImageUrl(updatedCar.getImageUrl());
-
-        existingCar.setStatus(CarStatus.UNCONFIRMED);
-
-        log.info(
-                "Car id={} updated successfully: brand={}, model={}",
-                existingCar.getId(),
-                existingCar.getBrand(),
-                existingCar.getModel());
-
-        return carRepository.save(existingCar);
     }
 
     public Car getCarById(Long id) {
         log.debug("Fetching car by id: {}", id);
-        return carRepository
-                .findById(id)
+        return carRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Car not found with id: " + id));
     }
 
@@ -111,7 +63,53 @@ public class CarApplicationService {
     }
 
     // =====================================================
-    // Filtering Operations (from old CarService)
+    // Image Operations
+    // =====================================================
+
+    @Transactional
+    public Car addImageToCar(Long carId, String imageUrl) {
+        log.info("Adding image to car id={}", carId);
+        
+        if (imageUrl == null || imageUrl.isBlank()) {
+            throw new IllegalArgumentException("Image URL cannot be empty");
+        }
+        
+        Car car = getCarById(carId);
+        car.addImage(imageUrl);
+        return carRepository.save(car);
+    }
+
+    @Transactional
+    public Car removeImageFromCar(Long carId, int index) {
+        log.info("Removing image at index {} from car id={}", index, carId);
+        
+        Car car = getCarById(carId);
+        car.removeImage(index);
+        return carRepository.save(car);
+    }
+
+    @Transactional
+    public Car setPrimaryImage(Long carId, String imageUrl) {
+        log.info("Setting primary image for car id={}", carId);
+        
+        Car car = getCarById(carId);
+        car.setPrimaryImage(imageUrl);
+        return carRepository.save(car);
+    }
+
+    public CarImageDto getCarImages(Long carId) {
+        log.info("Getting images for car id={}", carId);
+        
+        Car car = getCarById(carId);
+        CarImageDto dto = new CarImageDto();
+        dto.setCarId(car.getId());
+        dto.setImages(car.getImages());
+        dto.setPrimaryImage(car.getPrimaryImage());
+        return dto;
+    }
+
+    // =====================================================
+    // Filtering Operations
     // =====================================================
 
     public Page<Car> getFilteredCars(CarFilterDto filter, Pageable pageable) {
@@ -124,7 +122,8 @@ public class CarApplicationService {
         if (brand == null || brand.isBlank()) {
             throw new IllegalArgumentException("Brand cannot be empty");
         }
-        return carRepository.findAll((root, query, cb) -> cb.equal(root.get("brand"), brand));
+        return carRepository.findAll((root, query, cb) -> 
+            cb.equal(root.get("brand"), brand));
     }
 
     public List<Car> getAvailableCars() {
@@ -132,26 +131,13 @@ public class CarApplicationService {
         return carRepository.findByStatus(CarStatus.AVAILABLE);
     }
 
-    public Boolean isAvailableById(Long id) {
-        return carRepository.findById(id).get().isAvailableForRent();
-    }
-
-    public List<Car> getUnconfirmedCars() {
-        log.debug("Fetching unconfirmed cars");
-        return carRepository.findByStatus(CarStatus.UNCONFIRMED);
-    }
-
-    public List<Car> getCarsByUserId(Long userId) {
-        log.debug("Fetching cars by userId: {}", userId);
-        return carRepository.findCarByUserId(userId);
-    }
-
     public List<Car> getCarsByClass(String carClass) {
         log.debug("Fetching cars by class: {}", carClass);
         if (carClass == null || carClass.isBlank()) {
             throw new IllegalArgumentException("Car class cannot be empty");
         }
-        return carRepository.findAll((root, query, cb) -> cb.equal(root.get("carClass"), carClass));
+        return carRepository.findAll((root, query, cb) -> 
+            cb.equal(root.get("carClass"), carClass));
     }
 
     // =====================================================
