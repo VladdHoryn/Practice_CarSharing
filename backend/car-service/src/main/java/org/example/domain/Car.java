@@ -1,17 +1,15 @@
 package org.example.domain;
 
-import java.time.Year;
-
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
-
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+
+import java.time.Year;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "cars")
@@ -40,7 +38,7 @@ public class Car {
     private Integer year;
 
     @NotNull(message = "Car class is required")
-    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Enumerated(value = EnumType.STRING)
     @Column(name = "car_class", nullable = false)
     private CarClass carClass;
 
@@ -54,33 +52,86 @@ public class Car {
     private Long userId;
 
     @NotNull(message = "Car status is required")
-    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Enumerated(value = EnumType.STRING)
     @Column(name = "status", nullable = false)
     private CarStatus status;
 
-    @Pattern(regexp = "^(https?://.*)?$", message = "Image URL must be valid URL")
-    @Column(name = "image_url")
-    private String imageUrl;
+    @Column(name = "location_city")
+    private String locationCity;
+
+    // НОВІ ПОЛЯ ДЛЯ ФОТО
+    @Column(name = "images")
+    private List<String> images = new ArrayList<>();
+
+    @Column(name = "primary_image")
+    private String primaryImage;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private java.time.LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private java.time.LocalDateTime updatedAt;
 
     @PrePersist
+    protected void onCreate() {
+        createdAt = java.time.LocalDateTime.now();
+        updatedAt = java.time.LocalDateTime.now();
+    }
+
     @PreUpdate
-    private void validateYear() {
-        int currentYear = Year.now().getValue();
+    protected void onUpdate() {
+        updatedAt = java.time.LocalDateTime.now();
+    }
 
-        if (year != null && year > currentYear) {
-            throw new IllegalArgumentException("Car year cannot be in the future");
+    // =====================================================
+    // Додаткові методи для роботи з фото
+    // =====================================================
+
+    /**
+     * Додати фото до масиву
+     */
+    public void addImage(String imageUrl) {
+        if (this.images == null) {
+            this.images = new ArrayList<>();
+        }
+        this.images.add(imageUrl);
+        
+        // Якщо це перше фото і primary_image ще не встановлено
+        if (this.primaryImage == null && this.images.size() == 1) {
+            this.primaryImage = imageUrl;
         }
     }
 
-    public void markAsAvailable() {
-        log.info("Car id={} -> AVAILABLE", id);
-
-        if (status == CarStatus.RENTED) {
-            throw new IllegalStateException("Cannot make rented car directly available");
+    /**
+     * Видалити фото за індексом
+     */
+    public void removeImage(int index) {
+        if (this.images != null && index >= 0 && index < this.images.size()) {
+            String removedImage = this.images.remove(index);
+            
+            // Якщо видаляємо primary_image, встановлюємо нове перше фото
+            if (removedImage.equals(this.primaryImage) && !this.images.isEmpty()) {
+                this.primaryImage = this.images.get(0);
+            } else if (this.images.isEmpty()) {
+                this.primaryImage = null;
+            }
         }
-
-        this.status = CarStatus.AVAILABLE;
     }
+
+    /**
+     * Встановити головне фото
+     */
+    public void setPrimaryImage(String imageUrl) {
+        if (this.images != null && this.images.contains(imageUrl)) {
+            this.primaryImage = imageUrl;
+        } else {
+            throw new IllegalArgumentException("Image not found in car images list");
+        }
+    }
+
+    // =====================================================
+    // Бізнес-методи (вже існуючі)
+    // =====================================================
 
     public void rent(Long renterId) {
         log.info("Car id={} rented by userId={}", id, renterId);
