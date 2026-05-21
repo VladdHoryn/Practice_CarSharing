@@ -22,6 +22,7 @@
     <module>backend/booking-service</module>
     <module>backend/user-service</module>
     <module>backend/payment-service</module>
+    <module>backend/api-gateway</module>
   </modules>
 
   <properties>
