@@ -10,6 +10,21 @@ services:
     networks:
       - car-sharing-network
 
+
+  api-gateway:
+    build:
+      context: ./backend/api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    restart: always
+#    depends_on:
+#      - eureka-server:
+#          condition: service_started
+    ports:
+      - "8100:8100"
+    networks:
+      - car-sharing-network
+
   #  eureka-server:
   #    build:
   #      context: ./eureka-server
