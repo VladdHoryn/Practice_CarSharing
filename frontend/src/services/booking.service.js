@@ -14,5 +14,11 @@ export const bookingService = {
   getUserBookings: async (userId) => {
     const response = await axios.get(`${BOOKING_API_URL}/user/${userId}`);
     return response.data;
-  }
+  },
+
+  // Скасування бронювання
+  cancelBooking: async (id) => {
+    const response = await axios.post(`${BOOKING_API_URL}/${id}/cancel`);
+    return response.data;
+  },
 };
