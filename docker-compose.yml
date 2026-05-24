@@ -108,7 +108,7 @@ services:
       DB_USERNAME: postgres
       DB_PASSWORD: postgres123
     ports:
-      - "8085:8085"
+      - "8083:8083"
     networks:
       - car-sharing-network
 
