@@ -234,6 +234,19 @@ services:
       - car-db
 #      - booking-db
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.6.1
+    container_name: keycloak
+    restart: unless-stopped
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    ports:
+      - "8090:8080"
+    command:
+      - start-dev
+
+
 # =====================================================
 # Volumes
 # =====================================================
