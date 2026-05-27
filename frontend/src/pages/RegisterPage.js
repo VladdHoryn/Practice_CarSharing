@@ -88,10 +88,6 @@ const RegisterPage = () => {
             <input type="email" name="email" className={styles.input} value={formData.email} onChange={handleChange} required />
           </div>
 
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Phone</label>
-            <input type="tel" name="phone" className={styles.input} value={formData.phone} onChange={handleChange} required />
-          </div>
 
           <div className={styles.formGroup}>
             <label className={styles.label}>Пароль</label>

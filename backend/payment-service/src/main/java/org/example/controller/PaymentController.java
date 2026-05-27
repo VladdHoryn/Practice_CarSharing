@@ -19,7 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("payment/v1")
-@CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
 @Slf4j
 public class PaymentController {
