@@ -64,6 +64,12 @@ public class Car {
     @Column(name = "image_url")
     private String imageUrl;
 
+    @Column(name = "images")
+    private List<String> images = new ArrayList<>();
+    
+    @Column(name = "primary_image")
+    private String primaryImage;
+  
     @PrePersist
     @PreUpdate
     private void validateYear() {
