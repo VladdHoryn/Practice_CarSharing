@@ -14,6 +14,16 @@ export const authService = {
 
         return response.data;
     },
+    isAdmin: () => {
+            const userStr = localStorage.getItem('user');
+            if (!userStr) return false;
+            try {
+                const user = JSON.parse(userStr);
+                return user.role === 'ADMINISTRATOR';
+            } catch {
+                return false;
+            }
+        },
 
     // Реєстрація через Gateway
     register: async (userData) => {
