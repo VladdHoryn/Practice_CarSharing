@@ -220,9 +220,11 @@ const UserProfilePage = () => {
                                         <td>{car.carClass}</td>
                                         <td><span style={{color: '#f39c12', fontWeight: 'bold'}}>{car.status || 'UNCONFIRMED'}</span></td>
                                         <td>{car.pricePerDay}€</td>
-                                        <td style={{display: 'flex', gap: '10px', alignItems: 'center', padding: '15px'}}>
-                                            <span style={{color: '#3ba4f6', cursor:'pointer'}} onClick={() => openEditCarModal(car)}>Редаг.</span>
-                                            <span style={{color: '#dc3545', cursor:'pointer'}} onClick={() => deleteCar(car.id)}>Видалити</span>
+                                        <td style={{ verticalAlign: 'middle' }}>
+                                            <div className={styles.actionsWrapper}>
+                                                <span style={{color: '#3ba4f6', cursor:'pointer'}} onClick={() => openEditCarModal(car)}>Редаг.</span>
+                                                <span style={{color: '#dc3545', cursor:'pointer'}} onClick={() => deleteCar(car.id)}>Видалити</span>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))

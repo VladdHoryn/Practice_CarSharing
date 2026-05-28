@@ -16,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/booking/v1")
-@CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
 public class BookingController {
     private final BookingApplicationService bookingService;

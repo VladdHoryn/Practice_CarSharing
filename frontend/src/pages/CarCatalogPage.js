@@ -22,9 +22,9 @@ const CarCatalogPage = () => {
                     setCars(data);
                     setError(null);
                 } catch (err) {
-                    console.error('Помилка завантаження авто:', err);
-                    setError('Не вдалося зв\'язатися з сервером. Переконайтеся, що car-service запущено на порту 8085.');
-                } finally {
+                            console.error('Помилка завантаження авто:', err);
+                            setError('Не вдалося зв\'язатися з сервером. Переконайтеся, що API Gateway запущено на порту 8100.');
+                     } finally {
                     setLoading(false);
                 }
             };
