@@ -1,0 +1,23 @@
+spring:
+  main:
+    web-application-type: servlet   # ← додати цей рядок, якщо використовуєш spring-boot-starter-web
+  datasource:
+    url: jdbc:postgresql://localhost:5432/booking_service_db
+    username: postgres
+    password: postgres123
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    validate-on-migrate: false
+
+server:
+  port: 8082
+
+logging:
+  level:
+    org.example: DEBUG
