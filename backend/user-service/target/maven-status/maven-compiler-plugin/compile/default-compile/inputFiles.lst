@@ -1,0 +1,14 @@
+C:\Users\Dim4ik\VS Code Projects\Practice_CarSharing-feature-images-sql\backend\user-service\src\main\java\org\example\application\UserApplicationService.java
+C:\Users\Dim4ik\VS Code Projects\Practice_CarSharing-feature-images-sql\backend\user-service\src\main\java\org\example\config\SecurityConfig.java
+C:\Users\Dim4ik\VS Code Projects\Practice_CarSharing-feature-images-sql\backend\user-service\src\main\java\org\example\controller\GlobalExceptionHandler.java
+C:\Users\Dim4ik\VS Code Projects\Practice_CarSharing-feature-images-sql\backend\user-service\src\main\java\org\example\controller\UserController.java
+C:\Users\Dim4ik\VS Code Projects\Practice_CarSharing-feature-images-sql\backend\user-service\src\main\java\org\example\domain\User.java
+C:\Users\Dim4ik\VS Code Projects\Practice_CarSharing-feature-images-sql\backend\user-service\src\main\java\org\example\domain\UserRole.java
+C:\Users\Dim4ik\VS Code Projects\Practice_CarSharing-feature-images-sql\backend\user-service\src\main\java\org\example\dto\AuthResponse.java
+C:\Users\Dim4ik\VS Code Projects\Practice_CarSharing-feature-images-sql\backend\user-service\src\main\java\org\example\dto\ErrorResponse.java
+C:\Users\Dim4ik\VS Code Projects\Practice_CarSharing-feature-images-sql\backend\user-service\src\main\java\org\example\dto\LoginRequest.java
+C:\Users\Dim4ik\VS Code Projects\Practice_CarSharing-feature-images-sql\backend\user-service\src\main\java\org\example\dto\UserRequest.java
+C:\Users\Dim4ik\VS Code Projects\Practice_CarSharing-feature-images-sql\backend\user-service\src\main\java\org\example\dto\UserResponse.java
+C:\Users\Dim4ik\VS Code Projects\Practice_CarSharing-feature-images-sql\backend\user-service\src\main\java\org\example\exception\InvalidCredentialsException.java
+C:\Users\Dim4ik\VS Code Projects\Practice_CarSharing-feature-images-sql\backend\user-service\src\main\java\org\example\repository\UserRepository.java
+C:\Users\Dim4ik\VS Code Projects\Practice_CarSharing-feature-images-sql\backend\user-service\src\main\java\org\example\UserServiceApplication.java
