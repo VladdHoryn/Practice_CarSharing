@@ -1,0 +1,107 @@
+.adminContainer {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: #f8fafc; /* Світлий приємний фон сайту */
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+.adminHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #2c3e50; /* Темно-синій відтінок, як нижній блок на скріншоті */
+    color: #fff;
+    padding: 0 40px;
+    height: 70px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.logo {
+    font-size: 22px;
+    font-weight: 800;
+    cursor: pointer;
+    color: #fff;
+    letter-spacing: -0.5px;
+}
+
+.logo span {
+    color: #3ba4f6;
+}
+
+.badge {
+    font-size: 10px;
+    background: #3ba4f6; /* Замість червоного — приємний блакитний бренд-колір */
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 6px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.navMenu {
+    display: flex;
+    gap: 5px;
+    height: 100%;
+}
+
+.navLink {
+    display: flex;
+    align-items: center;
+    color: #94a3b8; /* Спокійний сірий */
+    text-decoration: none;
+    padding: 0 16px;
+    font-size: 14px;
+    font-weight: 600;
+    height: 70px;
+    transition: all 0.2s ease;
+}
+
+.navLink:hover {
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.navLink.active {
+    color: #fff;
+    background-color: #3ba4f6; /* Активна вкладка виділяється фірмовим синім */
+}
+
+.adminProfile {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.adminProfile span {
+    font-size: 14px;
+    font-weight: 500;
+    color: #e2e8f0;
+}
+
+.logoutBtn {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.logoutBtn:hover {
+    background: #ef4444;
+    border-color: #ef4444;
+}
+
+.adminMain {
+    flex: 1;
+    padding: 40px;
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
