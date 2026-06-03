@@ -19,19 +19,17 @@ const Header = () => {
                 <Link to="/" className={styles.navLink}>Головна</Link>
                 <Link to="/catalog" className={styles.navLink}>Автопарк</Link>
 
-                {/* ⚙️ Акуратне посилання для адміністратора всередині меню */}
+                {/* ⚙️ Посилання для адміністратора всередині меню */}
                 {isAdmin && (
                     <Link to="/admin/dashboard" className={`${styles.navLink} ${styles.adminLink}`}>
                         Панель адміна
                     </Link>
                 )}
 
-                <Link to="/" className={styles.navLink}>Ціни</Link>
-                <Link to="/" className={styles.navLink}>Про нас</Link>
-                <Link to="/" className={styles.navLink}>Відгуки клієнтів</Link>
-                <Link to="/" className={styles.navLink}>Умови оренди</Link>
-                <Link to="/" className={styles.navLink}>Наш блог</Link>
-                <Link to="/" className={styles.navLink}>Контакти</Link>
+                {/* Чисті посилання без лишніх роутів всередині */}
+                <Link to="/terms" className={styles.navLink}>Умови та Ціни</Link>
+                <Link to="/about" className={styles.navLink}>Про нас & Блог</Link>
+                <Link to="/contacts" className={styles.navLink}>Контакти</Link>
             </nav>
 
             {/* Права секція (Мова + Профіль) */}
