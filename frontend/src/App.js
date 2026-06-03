@@ -21,7 +21,10 @@ import CarCatalogPage from './pages/CarCatalogPage';
 import CarDetailsPage from './pages/CarDetailsPage';
 import BookingPage from './pages/BookingPage';
 import UserProfilePage from './pages/UserProfilePage';
-
+import HomePage from './pages/HomePage';
+import RentalTermsPage from './pages/RentalTermsPage';
+import AboutAndBlogPage from './pages/AboutAndBlogPage';
+import ContactsPage from './pages/ContactsPage';
 // Сторінки адміністратора (Вкладки)
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UserManagement from './pages/admin/UserManagement';
@@ -46,19 +49,21 @@ function App() {
     return (
         <Router>
             <Routes>
-                {/* =====================================================
-                    1. МАРШРУТИ ЗВИЧАЙНИХ КОРИСТУВАЧІВ (З Header та Footer)
-                   ===================================================== */}
+                {}
                 <Route element={<UserLayout />}>
-                    <Route path="/" element={<Navigate to="/catalog" replace />} />
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/register" element={<RegisterPage />} />
+                    <Route path="/" element={<HomePage />} />
                     <Route path="/catalog" element={<CarCatalogPage />} />
                     <Route path="/catalog/:id" element={<CarDetailsPage />} />
                     <Route path="/book/:id" element={<BookingPage />} />
                     <Route path="/profile" element={<UserProfilePage />} />
-                </Route>
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/register" element={<RegisterPage />} />
 
+                    {/* Зв'язуємо решту пунктів меню із нашими новими компонентами */}
+                    <Route path="/terms" element={<RentalTermsPage />} />
+                    <Route path="/about" element={<AboutAndBlogPage />} />
+                    <Route path="/contacts" element={<ContactsPage />} />
+                </Route>
                 {/* =====================================================
                     2. 🔐 ЗАХИЩЕНІ МАРШРУТИ АДМІНА (Без старого Header/Footer)
                    ===================================================== */}
