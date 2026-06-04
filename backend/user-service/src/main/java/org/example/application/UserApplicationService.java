@@ -36,7 +36,7 @@ public class UserApplicationService {
 
         user.setFullName(request.getFullName());
         user.setEmail(request.getEmail());
-        user.setPasswordHash(encodePassword(request.getPassword()));
+//        user.setPasswordHash(encodePassword(request.getPassword()));
 
         user.setRole(request.getRole() != null ? request.getRole() : UserRole.RENTER);
 
@@ -60,12 +60,12 @@ public class UserApplicationService {
             throw new RuntimeException("Account is deactivated");
         }
 
-        boolean passwordMatches =
-                passwordEncoder.matches(request.getPassword(), user.getPasswordHash());
+//        boolean passwordMatches =
+//                passwordEncoder.matches(request.getPassword(), user.getPasswordHash());
 
-        if (!passwordMatches) {
-            throw new InvalidCredentialsException("Invalid email or password");
-        }
+//        if (!passwordMatches) {
+//            throw new InvalidCredentialsException("Invalid email or password");
+//        }
 
         return AuthResponse.builder().message("Login successful").user(mapToResponse(user)).build();
     }
@@ -80,7 +80,7 @@ public class UserApplicationService {
         User user = new User();
         user.setFullName(request.getFullName());
         user.setEmail(request.getEmail());
-        user.setPasswordHash(encodePassword(request.getPassword()));
+//        user.setPasswordHash(encodePassword(request.getPassword()));
         user.setRole(request.getRole() != null ? request.getRole() : UserRole.RENTER);
 
         User savedUser = userRepository.save(user);
@@ -116,7 +116,7 @@ public class UserApplicationService {
 
         // оновлюємо пароль тільки якщо переданий
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
-            user.setPasswordHash(encodePassword(request.getPassword()));
+//            user.setPasswordHash(encodePassword(request.getPassword()));
         }
 
         if (request.getRole() != null) {
