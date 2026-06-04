@@ -27,7 +27,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8090/realms/carsharing-realm}
+          issuer-uri: http://localhost:8090/realms/carsharing-realm
+          jwk-set-uri: http://keycloak:8080/realms/carsharing-realm/protocol/openid-connect/certs
 
 server:
   port: ${SERVER_PORT:8081}
@@ -36,6 +37,7 @@ logging:
   level:
     org.example: DEBUG
     org.springframework.web: INFO
-    org.springframework.security: DEBUG
+    org.springframework.security: TRACE
+    org.springframework.security.oauth2: TRACE
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
