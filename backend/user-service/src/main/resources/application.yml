@@ -23,6 +23,12 @@ spring:
     locations: classpath:db/migration
     encoding: UTF-8
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8090/realms/carsharing-realm}
+
 server:
   port: ${SERVER_PORT:8081}
 
@@ -30,5 +36,6 @@ logging:
   level:
     org.example: DEBUG
     org.springframework.web: INFO
+    org.springframework.security: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
