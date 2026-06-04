@@ -20,21 +20,21 @@ import lombok.RequiredArgsConstructor;
 public class UserController {
     private final UserApplicationService userService;
 
-    @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody UserRequest request) {
-
-        AuthResponse response = userService.register(request);
-
-        return ResponseEntity.ok(response);
-    }
-
-    @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-
-        AuthResponse response = userService.login(request);
-
-        return ResponseEntity.ok(response);
-    }
+//    @PostMapping("/register")
+//    public ResponseEntity<AuthResponse> register(@Valid @RequestBody UserRequest request) {
+//
+//        AuthResponse response = userService.register(request);
+//
+//        return ResponseEntity.ok(response);
+//    }
+//
+//    @PostMapping("/login")
+//    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+//
+//        AuthResponse response = userService.login(request);
+//
+//        return ResponseEntity.ok(response);
+//    }
 
     @PostMapping
     public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserRequest request) {
@@ -51,6 +51,11 @@ public class UserController {
     public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
         return ResponseEntity.ok(userService.getUserById(id));
     }
+
+  @GetMapping("/keycloak/{keycloakId}")
+  public ResponseEntity<UserResponse> getUserByKeycloakId(@PathVariable String keycloakId) {
+    return ResponseEntity.ok(userService.getUserByKeycloakId(keycloakId));
+  }
 
     @PutMapping("/{id}")
     public ResponseEntity<UserResponse> updateUser(
