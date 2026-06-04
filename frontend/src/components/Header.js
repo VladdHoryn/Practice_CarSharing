@@ -3,6 +3,10 @@ import { Link } from 'react-router-dom';
 import styles from './Header.module.css';
 
 const Header = () => {
+    const userStr = localStorage.getItem('user');
+    const user = userStr ? JSON.parse(userStr) : null;
+    const isAdmin = user && user.role === 'ADMINISTRATOR';
+
     return (
         <header className={styles.header}>
             {/* Логотип */}
@@ -14,12 +18,18 @@ const Header = () => {
             <nav className={styles.nav}>
                 <Link to="/" className={styles.navLink}>Головна</Link>
                 <Link to="/catalog" className={styles.navLink}>Автопарк</Link>
-                <Link to="/" className={styles.navLink}>Ціни</Link>
-                <Link to="/" className={styles.navLink}>Про нас</Link>
-                <Link to="/" className={styles.navLink}>Відгуки клієнтів</Link>
-                <Link to="/" className={styles.navLink}>Умови оренди</Link>
-                <Link to="/" className={styles.navLink}>Наш блог</Link>
-                <Link to="/" className={styles.navLink}>Контакти</Link>
+
+                {/* ⚙️ Посилання для адміністратора всередині меню */}
+                {isAdmin && (
+                    <Link to="/admin/dashboard" className={`${styles.navLink} ${styles.adminLink}`}>
+                        Панель адміна
+                    </Link>
+                )}
+
+                {/* Чисті посилання без лишніх роутів всередині */}
+                <Link to="/terms" className={styles.navLink}>Умови та Ціни</Link>
+                <Link to="/about" className={styles.navLink}>Про нас & Блог</Link>
+                <Link to="/contacts" className={styles.navLink}>Контакти</Link>
             </nav>
 
             {/* Права секція (Мова + Профіль) */}
@@ -29,8 +39,7 @@ const Header = () => {
                     <span className={`${styles.langOption} ${styles.activeLang}`}>ENG</span>
                     <span className={styles.langOption}>UKR</span>
                 </div>
-                <Link to="/profile" className={styles.userIcon}>
-                    {/* Проста іконка користувача (можна замінити на SVG) */}
+                <Link to="/profile" className={styles.userIcon} title={user ? user.fullName : "Профіль"}>
                     👤
                 </Link>
             </div>

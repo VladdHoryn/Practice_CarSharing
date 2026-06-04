@@ -74,3 +74,19 @@
     cursor: pointer;
     text-decoration: none;
 }
+/* Додай це в кінець твого файлу Header.module.css замість старого .adminPanelBtn */
+.adminLink {
+    color: #1d4ed8 !important; /* Фірмовий глибокий синій колір */
+    font-weight: 700 !important;
+    position: relative;
+}
+
+.adminLink::before {
+    content: "⚙️ ";
+    font-size: 12px;
+}
+
+.adminLink:hover {
+    color: #2563eb !important;
+    background-color: rgba(29, 78, 216, 0.05) !important;
+}
