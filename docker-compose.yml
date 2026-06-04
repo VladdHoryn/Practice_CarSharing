@@ -237,6 +237,19 @@ services:
     depends_on:
       - car-db
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.6.1
+    container_name: keycloak
+    restart: unless-stopped
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "8090:8080"
+    command:
+      - start-dev
+
+
 # =====================================================
 # Глобальні томи (Volumes)
 # =====================================================

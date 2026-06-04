@@ -5,7 +5,7 @@
 -- =====================================================
 
 -- Create ENUM type for user roles (matches UserRole.java)
-CREATE TYPE user_role_enum AS ENUM ('GUEST', 'RENTER', 'OWNER', 'MODERATOR', 'ADMINISTRATOR');
+CREATE TYPE user_role_enum AS ENUM ('RENTER', 'OWNER', 'ADMINISTRATOR');
 
 -- Create users table
 CREATE TABLE users (
@@ -45,7 +45,7 @@ COMMENT ON COLUMN users.id IS 'Auto-increment primary key (BIGSERIAL)';
 COMMENT ON COLUMN users.full_name IS 'User full name (2-100 characters)';
 COMMENT ON COLUMN users.password IS 'Hashed password (BCrypt recommended)';
 COMMENT ON COLUMN users.email IS 'Unique email address for login';
-COMMENT ON COLUMN users.role IS 'User role: GUEST, RENTER, OWNER, MODERATOR, ADMINISTRATOR';
+COMMENT ON COLUMN users.role IS 'User role: RENTER, OWNER, ADMINISTRATOR';
 COMMENT ON COLUMN users.created_at IS 'Account creation date';
 COMMENT ON COLUMN users.is_active IS 'Soft delete flag - false means account is deactivated';
 COMMENT ON COLUMN users.updated_at IS 'Last update timestamp (auto-updated)';
