@@ -94,48 +94,54 @@ const BookingPage = () => {
         const currentUser = JSON.parse(userStr);
         setIsProcessing(true);
 
+        let createdBookingId = null; // Фіксуємо ID глобально для блоку try
+
         try {
-            // ЕТАП 1: Створюємо бронювання (порт 8082)
-            let createdBookingId;
+
+            // ЕТАП 1: Створюємо бронювання
+            const bookingRequest = {
+                userId: Number(currentUser.id),                 // Суворо число (Long)
+                carId: Number(car.id),                          // Суворо число (Long)
+                startDate: `${dates.start}T12:00:00`,           // Повертаємо ISO формат для LocalDateTime
+                endDate: `${dates.end}T12:00:00`,               // Повертаємо ISO формат для LocalDateTime
+                pricePerDay: Number(car.pricePerDay).toFixed(2) // Перетворюємо на рядок виду "25.00", який Java ідеально змапить у BigDecimal
+            };
+
+            console.log("Відправляємо дані на бронювання:", bookingRequest); // Для самоперевірки в консолі
+            const bookingResult = await bookingService.createBooking(bookingRequest);
+            createdBookingId = bookingResult.id;
+
+
+            // ЕТАП 2: Створюємо оплату
             try {
-                const bookingRequest = {
-                    userId: currentUser.id,
-                    carId: parseInt(car.id),
-                    startDate: `${dates.start}T10:00:00`,
-                    endDate: `${dates.end}T10:00:00`,
-                    pricePerDay: car.pricePerDay
+                const paymentRequest = {
+                    bookingId: createdBookingId,
+                    amount: days * car.pricePerDay,
+                    method: paymentMethod,
+                    currency: "USD"
                 };
-                const bookingResult = await bookingService.createBooking(bookingRequest);
-                createdBookingId = bookingResult.id;
-            } catch (err) {
-                throw new Error("Помилка БД: Не вдалося створити бронювання.");
+                console.log("Відправляємо дані на оплату:", paymentRequest);
+                await paymentService.createPayment(paymentRequest);
+            } catch (paymentErr) {
+                console.error("Помилка на етапі оплати. Запускаємо відкат бронювання...");
+
+                // АВТОМАТИЧНИЙ ВІДКАТ: якщо оплата впала, видаляємо/скасовуємо бронювання
+                if (createdBookingId) {
+                    await bookingService.cancelBooking(createdBookingId);
+                }
+
+                const realError = paymentErr.response?.data?.message || paymentErr.message;
+                throw new Error(`Оплату не виконано: ${realError}. Бронювання скасовано.`);
             }
 
-            // ЕТАП 2: Створюємо оплату (порт 8084)
-                        try {
-                            const paymentRequest = {
-                                bookingId: createdBookingId,
-                                amount: days * car.pricePerDay,
-                                method: paymentMethod,
-                                currency: "USD" // Якщо бекенд очікує "USD", залишаємо так
-                            };
-                            console.log("Відправляємо дані на оплату:", paymentRequest);
-                            await paymentService.createPayment(paymentRequest);
-                        } catch (err) {
-                            console.error("Повна помилка оплати:", err);
-                            // Тепер ми витягуємо РЕАЛЬНЕ повідомлення від бекенду (наприклад, "Network Error" або помилку валідації)
-                            const realError = err.response?.data?.message || err.message;
-                            throw new Error(`Помилка оплати: ${realError}`);
-                        }
-
-            // Якщо обидва етапи успішні
+            // Якщо все пройшло успішно
             toast.success('Бронювання та оплата успішні! 🚗💳');
             setShowPaymentModal(false);
             navigate('/profile');
 
         } catch (err) {
             console.error(err);
-            toast.error(err.message);
+            toast.error(err.message || "Сталася непередбачувана помилка.");
         } finally {
             setIsProcessing(false);
         }

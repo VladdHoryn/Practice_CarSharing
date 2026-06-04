@@ -1,28 +1,20 @@
-# frontend/Dockerfile
-# Multi-stage build for React/Vue application
+# Використовуємо офіційний легкий образ Node.js
+FROM node:18-alpine
 
-# Stage 1: Build
-FROM node:20-alpine AS builder
-
+# Встановлюємо робочу директорію всередині контейнера
 WORKDIR /app
 
-# Copy package files and install dependencies
+# Копіюємо файли залежностей
 COPY package*.json ./
-RUN npm ci --only=production
 
-# Copy source code and build
+# Встановлюємо всі залежності
+RUN npm install
+
+# Копіюємо весь код фронтенду в контейнер
 COPY . .
-RUN npm run build
 
-# Stage 2: Serve with nginx
-FROM nginx:alpine
+# Відкриваємо порт 3000, на якому працює React
+EXPOSE 3000
 
-# Copy built files to nginx
-COPY --from=builder /app/dist /usr/share/nginx/html
-
-# Copy custom nginx config (if needed)
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]
+# Запускаємо розробницький сервер React
+CMD ["npm", "start"]

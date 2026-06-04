@@ -16,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/user/v1")
-@CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
 public class UserController {
     private final UserApplicationService userService;

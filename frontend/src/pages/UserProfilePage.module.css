@@ -154,7 +154,33 @@
     color: #888;
     font-style: italic;
 }
+.actionsWrapper {
+    display: inline-flex;       /* Робимо гнучкий контейнер під розмір кнопок */
+    flex-direction: row;        /* Кнопки суворо в один рядок */
+    align-items: center;        /* Центруємо кнопки по вертикалі всередині обгортки */
+    gap: 15px;                  /* Фіксований відступ між кнопками */
+    white-space: nowrap;        /* Забороняємо перенесення на новий рядок */
+    line-height: 1;             /* Скидаємо висоту рядка, щоб текст не стрибав */
+}
 
+/* Додатковий фікс для самих кнопок-спанів, щоб вони мали однакову базову лінію */
+.actionsWrapper span {
+    display: inline-flex;
+    align-items: center;
+    font-weight: 600;
+    user-select: none;
+}
+
+/* Робимо посилання акуратнішими та клікабельнішими */
+.actionsCell span {
+    display: inline-block;
+    font-weight: 600;
+    transition: opacity 0.2s;
+}
+
+.actionsCell span:hover {
+    opacity: 0.8;
+}
 /* --- Вкладка: Документи --- */
 .docRow {
     display: flex;
