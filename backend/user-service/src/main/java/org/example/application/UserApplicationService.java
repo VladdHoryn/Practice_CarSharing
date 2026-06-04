@@ -81,7 +81,7 @@ public class UserApplicationService {
         user.setFullName(request.getFullName());
         user.setEmail(request.getEmail());
         user.setPasswordHash(encodePassword(request.getPassword()));
-        user.setRole(request.getRole() != null ? request.getRole() : UserRole.GUEST);
+        user.setRole(request.getRole() != null ? request.getRole() : UserRole.RENTER);
 
         User savedUser = userRepository.save(user);
         return mapToResponse(savedUser);
