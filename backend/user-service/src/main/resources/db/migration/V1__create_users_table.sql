@@ -10,14 +10,19 @@ CREATE TYPE user_role_enum AS ENUM ('RENTER', 'OWNER', 'ADMINISTRATOR');
 -- Create users table
 CREATE TABLE users (
     id BIGSERIAL PRIMARY KEY,
+    keycloak_id VARCHAR(36) NOT NULL,
     full_name VARCHAR(100) NOT NULL,
-    password VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     role user_role_enum NOT NULL,
     created_at DATE NOT NULL DEFAULT CURRENT_DATE,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+ALTER TABLE users
+  ADD CONSTRAINT uk_users_keycloak_id UNIQUE (keycloak_id);
+
+CREATE INDEX idx_users_keycloak_id ON users (keycloak_id);
 
 -- Create indexes for performance
 CREATE INDEX idx_users_email ON users(email);
@@ -43,7 +48,6 @@ CREATE TRIGGER update_users_updated_at
 COMMENT ON TABLE users IS 'System users with authentication and role-based access';
 COMMENT ON COLUMN users.id IS 'Auto-increment primary key (BIGSERIAL)';
 COMMENT ON COLUMN users.full_name IS 'User full name (2-100 characters)';
-COMMENT ON COLUMN users.password IS 'Hashed password (BCrypt recommended)';
 COMMENT ON COLUMN users.email IS 'Unique email address for login';
 COMMENT ON COLUMN users.role IS 'User role: RENTER, OWNER, ADMINISTRATOR';
 COMMENT ON COLUMN users.created_at IS 'Account creation date';
