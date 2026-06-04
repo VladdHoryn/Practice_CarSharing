@@ -242,8 +242,8 @@ services:
     container_name: keycloak
     restart: unless-stopped
     environment:
-      KC_BOOTSTRAP_ADMIN_USERNAME: admin
-      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
     ports:
       - "8090:8080"
     command:
