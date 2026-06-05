@@ -6,12 +6,11 @@ import styles from './BookingManagement.module.css';
 const BookingManagement = () => {
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [selectedBooking, setSelectedBooking] = useState(null); // Для бічного Drawer
+    const [selectedBooking, setSelectedBooking] = useState(null);
 
     const fetchAllBookings = async () => {
         try {
             setLoading(true);
-            // Припускаємо наявність загального адмін-методу в майбутньому
             if (bookingService.getAllBookings) {
                 const data = await bookingService.getAllBookings();
                 setBookings(data);
@@ -20,7 +19,6 @@ const BookingManagement = () => {
             }
         } catch (err) {
             console.error('Помилка завантаження бронювань:', err);
-            // Реалістичні мокові дані на основі останніх тестів у системі
             setBookings([
                 {
                     id: 11,
@@ -33,7 +31,7 @@ const BookingManagement = () => {
                     totalPrice: 25,
                     status: 'CREATED',
                     cancelDeadline: '2026-05-26T12:00:00',
-                    coDrivers: [] // Поки пусто, під фічу Split Access
+                    coDrivers: []
                 },
                 {
                     id: 10,
@@ -62,7 +60,6 @@ const BookingManagement = () => {
 
     const handleForceStatusChange = async (bookingId, newStatus) => {
         try {
-            // Примусова зміна статусу адміністратором через API
             if (bookingService.updateBookingStatus) {
                 await bookingService.updateBookingStatus(bookingId, newStatus);
             }
@@ -130,7 +127,6 @@ const BookingManagement = () => {
                 </div>
             )}
 
-            {/* 🔥 БІЧНА ПАНЕЛЬ (DRAWER) ДЕТАЛЕЙ БРОНЮВАННЯ */}
             {selectedBooking && (
                 <div className={styles.drawerOverlay} onClick={() => setSelectedBooking(null)}>
                     <div className={styles.drawer} onClick={(e) => e.stopPropagation()}>
@@ -156,14 +152,12 @@ const BookingManagement = () => {
                                 <p>По: {selectedBooking.endDate.replace('T', ' ')}</p>
                             </div>
 
-                            {/* 🛠 PLACEHOLDER: ДЕДЛАЙН СКАСУВАННЯ */}
                             <div className={`${styles.infoGroup} ${styles.placeholderGroup}`}>
                                 <label>⏳ Граничний термін скасування (Cancel Deadline)</label>
                                 <p>{selectedBooking.cancelDeadline ? selectedBooking.cancelDeadline.replace('T', ' ') : 'Не встановлено'}</p>
                                 <small>Дозволяє системі автоматично блокувати чи дозволяти метод /cancel</small>
                             </div>
 
-                            {/* 🛠 PLACEHOLDER: SPLIT ACCESS (ДОДАТКОВІ ВОДІЇ) */}
                             <div className={`${styles.infoGroup} ${styles.placeholderGroup}`}>
                                 <label>👥 Спільний доступ (Split Access Co-Drivers)</label>
                                 {selectedBooking.coDrivers && selectedBooking.coDrivers.length > 0 ? (

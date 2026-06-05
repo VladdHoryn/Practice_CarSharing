@@ -13,7 +13,6 @@
 .bannerItem h4 { font-size: 18px; color: #3ba4f6; margin-top: 0; margin-bottom: 10px; }
 .bannerItem p { margin: 0; font-size: 14px; color: #cbd5e1; line-height: 1.6; }
 
-/* Акордеон FAQ з плавним CSS-висуванням тексту */
 .subTitle { font-size: 26px; text-align: center; margin-bottom: 30px; }
 .faqList { display: flex; flex-direction: column; gap: 12px; }
 .faqItem { background: white; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; overflow: hidden; transition: all 0.2s ease; }

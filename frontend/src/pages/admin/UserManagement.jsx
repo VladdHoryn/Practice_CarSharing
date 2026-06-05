@@ -17,7 +17,6 @@ const UserManagement = () => {
     const [selectedUser, setSelectedUser] = useState(null);
     const [newRole, setNewRole] = useState('RENTER');
 
-    // Функція завантаження користувачів із сервера
     const fetchUsers = async () => {
         try {
             setLoading(true);
@@ -28,7 +27,7 @@ const UserManagement = () => {
             };
             const data = await userService.getAllUsers(params);
 
-            // Якщо бекенд повертає Page<User>, витягуємо вміст
+
             setUsers(data.content || data);
             setTotalPages(data.totalPages || 1);
         } catch (err) {
@@ -53,7 +52,6 @@ const UserManagement = () => {
         setCurrentPage(0);
     };
 
-    // Логіка зміни ролі
     const openEditModal = (user) => {
         setSelectedUser(user);
         setNewRole(user.role);
@@ -142,7 +140,6 @@ const UserManagement = () => {
                         </tbody>
                     </table>
 
-                    {/* Пагінація */}
                     {totalPages > 1 && (
                         <div className={styles.pagination}>
                             <button disabled={currentPage === 0} onClick={() => setCurrentPage(prev => prev - 1)}>« Назад</button>
@@ -153,7 +150,6 @@ const UserManagement = () => {
                 </div>
             )}
 
-            {/* ✏️ МОДАЛЬНЕ ВІКНО: РЕДАКУВАННЯ РОЛІ */}
             {isEditModalOpen && (
                 <div className={styles.modalOverlay}>
                     <div className={styles.modal}>
@@ -172,7 +168,6 @@ const UserManagement = () => {
                 </div>
             )}
 
-            {/* 🔒 МОДАЛЬНЕ ВІКНО: ПІДТВЕРДЖЕННЯ БЛОКУВАННЯ */}
             {isDeleteModalOpen && (
                 <div className={styles.modalOverlay}>
                     <div className={styles.modal}>

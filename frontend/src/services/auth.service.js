@@ -1,7 +1,6 @@
 import apiClient from '../api/apiClient';
 
 export const authService = {
-    // Авторизація (Логін) через Gateway
     login: async (credentials) => {
         const response = await apiClient.post('/user/v1/login', credentials);
 
@@ -25,13 +24,11 @@ export const authService = {
             }
         },
 
-    // Реєстрація через Gateway
     register: async (userData) => {
         const response = await apiClient.post('/user/v1/register', userData);
         return response.data;
     },
 
-    // Вихід
     logout: () => {
         localStorage.removeItem('user');
         localStorage.removeItem('token');

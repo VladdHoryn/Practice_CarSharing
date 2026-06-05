@@ -1,6 +1,5 @@
 .wrapper { background-color: #f8fafc; overflow: hidden; }
 
-/* Hero section з плавним напливом */
 .hero {
     height: 75vh;
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
@@ -40,13 +39,11 @@
     box-shadow: 0 6px 24px rgba(59, 164, 246, 0.45);
 }
 
-/* Секції */
 .sectionTitle { text-align: center; font-size: 32px; font-weight: 700; color: #1e293b; margin-bottom: 50px; }
 .sectionTitle span { color: #3ba4f6; }
 
 .features, .categoriesSection { padding: 90px 40px; max-width: 1200px; margin: 0 auto; }
 
-/* Картки переваг з мікро-анімацією підйому */
 .featuresGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
 .featureCard {
     background: white;
@@ -66,7 +63,6 @@
 .featureCard h3 { font-size: 20px; margin: 0 0 12px 0; color: #0f172a; }
 .featureCard p { margin: 0; color: #64748b; font-size: 14px; line-height: 1.6; }
 
-/* Сітка категорій */
 .categoriesGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
 .catCard {
     background: white;

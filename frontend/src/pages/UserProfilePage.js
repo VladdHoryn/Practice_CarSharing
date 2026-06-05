@@ -24,7 +24,6 @@ const UserProfilePage = () => {
     const [bookings, setBookings] = useState([]);
     const [ownerCars, setOwnerCars] = useState([]);
 
-    // Стейт для модалки авто
     const [showCarModal, setShowCarModal] = useState(false);
     const [editingCar, setEditingCar] = useState(null);
     const [carForm, setCarForm] = useState({ brand: '', model: '', year: 2024, carClass: 'ECONOMY', pricePerDay: '', imageUrl: '' });
@@ -53,7 +52,6 @@ const UserProfilePage = () => {
         }
     }, [navigate]);
 
-    // Завантаження непідтверджених авто для Власника (з фільтрацією по ID)
     useEffect(() => {
         if (activeTab === 'fleet' && user.role === 'OWNER') {
             carService.getUnconfirmedCars()
@@ -65,7 +63,6 @@ const UserProfilePage = () => {
         }
     }, [activeTab, user.role, user.id]);
 
-    // Завантаження історії бронювань
     useEffect(() => {
         if (activeTab === 'history' && user.id) {
             const loadBookingsWithCars = async () => {
@@ -93,7 +90,6 @@ const UserProfilePage = () => {
         navigate('/login');
     };
 
-    // --- ФУНКЦІЇ CRUD ДЛЯ АВТО ---
     const openCreateCarModal = () => {
         setEditingCar(null);
         setCarForm({ brand: '', model: '', year: 2024, carClass: 'ECONOMY', pricePerDay: '', imageUrl: '' });
@@ -384,7 +380,6 @@ const UserProfilePage = () => {
                 </main>
             </div>
 
-            {/* --- МОДАЛЬНЕ ВІКНО ДОДАВАННЯ/РЕДАГУВАННЯ АВТО --- */}
             {showCarModal && (
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
                     <div style={{ background: '#fff', padding: '30px', borderRadius: '12px', width: '500px', maxWidth: '90%' }}>

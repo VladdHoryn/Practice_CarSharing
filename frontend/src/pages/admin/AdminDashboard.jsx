@@ -26,7 +26,6 @@ const AdminDashboard = () => {
         <div className={styles.dashboardContainer}>
             <h1 className={styles.title}>Системна аналітика системи платформи</h1>
 
-            {/* Картки віджетів */}
             <div className={styles.statsGrid}>
                 {statsCards.map((card, idx) => (
                     <div key={idx} className={styles.card} style={{ borderLeft: `5px solid ${card.color}` }}>
@@ -38,8 +37,6 @@ const AdminDashboard = () => {
                     </div>
                 ))}
             </div>
-
-            {/* Графіки */}
             <div className={styles.chartsGrid}>
                 <div className={styles.chartBox}>
                     <h3>Динаміка доходів (€)</h3>

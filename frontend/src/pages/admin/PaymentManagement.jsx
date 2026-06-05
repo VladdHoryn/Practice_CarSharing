@@ -7,19 +7,16 @@ const PaymentManagement = () => {
     const [payments, setPayments] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // Стейт для фільтрації
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [dateFilter, setDateFilter] = useState('');
 
     const fetchPayments = async () => {
         try {
             setLoading(true);
-            // Викликаємо твій реальний метод getAll з платіжного сервісу
             const data = await paymentService.getAll();
             setPayments(data || []);
         } catch (err) {
             console.error('Помилка завантаження платежів:', err);
-            // Мокові дані на основі твоїх DTO та полів для тестів фронту
             setPayments([
                 { id: 1, bookingId: 11, amount: 25.00, method: 'GOOGLE_PAY', currency: 'USD', status: 'PENDING', paymentDate: '2026-05-28' },
                 { id: 2, bookingId: 9, amount: 120.00, method: 'CARD', currency: 'USD', status: 'PAID', paymentDate: '2026-05-25' },
@@ -34,13 +31,11 @@ const PaymentManagement = () => {
         fetchPayments();
     }, []);
 
-    // Ручне маркування платежу як успішного (Кейс: адмін підтвердив гроші)
     const handleMarkAsPaid = async (paymentId) => {
         const confirmAction = window.confirm(`Ви впевнені, що хочете вручну відзначити платіж #${paymentId} як ОПЛАЧЕНИЙ?`);
         if (!confirmAction) return;
 
         try {
-            // Викликаємо твій реальний PatchMapping метод /{id}/success із контролера
             if (paymentService.markAsSuccess) {
                 await paymentService.markAsSuccess(paymentId);
             }
@@ -50,8 +45,6 @@ const PaymentManagement = () => {
             toast.error('Не вдалося змінити статус платежу.');
         }
     };
-
-    // Логіка фільтрації на фронтенді (поки бекенд не підтримує динамічні Query-специфікації)
     const filteredPayments = payments.filter(p => {
         const matchesStatus = statusFilter === 'ALL' || p.status === statusFilter;
         const matchesDate = !dateFilter || p.paymentDate.includes(dateFilter);
@@ -61,8 +54,6 @@ const PaymentManagement = () => {
     return (
         <div className={styles.container}>
             <h1 className={styles.title}>💳 Фінансовий моніторинг транзакцій</h1>
-
-            {/* Панель фільтрів */}
             <div className={styles.filterBar}>
                 <div className={styles.filterGroup}>
                     <label>Статус оплати:</label>
