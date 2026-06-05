@@ -54,11 +54,11 @@ function App() {
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
 
+                 
                     <Route path="/terms" element={<RentalTermsPage />} />
                     <Route path="/about" element={<AboutAndBlogPage />} />
                     <Route path="/contacts" element={<ContactsPage />} />
-                </Route>
-
+                </Route>             
                 <Route element={<AdminRoute />}>
                     <Route element={<AdminLayout />}>
                         <Route path="/admin/dashboard" element={<AdminDashboard />} />
