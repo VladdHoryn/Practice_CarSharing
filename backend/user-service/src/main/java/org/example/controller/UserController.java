@@ -20,22 +20,6 @@ import lombok.RequiredArgsConstructor;
 public class UserController {
     private final UserApplicationService userService;
 
-//    @PostMapping("/register")
-//    public ResponseEntity<AuthResponse> register(@Valid @RequestBody UserRequest request) {
-//
-//        AuthResponse response = userService.register(request);
-//
-//        return ResponseEntity.ok(response);
-//    }
-//
-//    @PostMapping("/login")
-//    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-//
-//        AuthResponse response = userService.login(request);
-//
-//        return ResponseEntity.ok(response);
-//    }
-
     @PostMapping
     public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserRequest request) {
         UserResponse response = userService.createUser(request);
