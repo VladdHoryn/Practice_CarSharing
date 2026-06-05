@@ -10,7 +10,6 @@ const AboutAndBlogPage = () => {
 
     return (
         <div className={styles.container}>
-            {/* Про нас */}
             <section className={styles.aboutHeader}>
                 <h1>Про компанію CarLink</h1>
                 <p>Ми ламаємо стереотипи про складний та дорогий прокат машин. Наша мета — надати свободу пересування кожному водію в один клік.</p>
@@ -21,7 +20,6 @@ const AboutAndBlogPage = () => {
                 </div>
             </section>
 
-            {/* Блог */}
             <section className={styles.blogSection}>
                 <h2 className={styles.blogTitle}>Наш авто-блог</h2>
                 <div className={styles.blogGrid}>

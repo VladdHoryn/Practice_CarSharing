@@ -1,5 +1,5 @@
 .header {
-    background-color: #e9ecef; /* Світло-сірий фон з макету */
+    background-color: #e9ecef;
     height: 80px;
     display: flex;
     justify-content: space-between;
@@ -22,7 +22,7 @@
 }
 
 .logo span {
-    color: #3ba4f6; /* Блакитний елемент логотипу */
+    color: #3ba4f6;
 }
 
 .nav {
@@ -74,9 +74,9 @@
     cursor: pointer;
     text-decoration: none;
 }
-/* Додай це в кінець твого файлу Header.module.css замість старого .adminPanelBtn */
+
 .adminLink {
-    color: #1d4ed8 !important; /* Фірмовий глибокий синій колір */
+    color: #1d4ed8 !important;
     font-weight: 700 !important;
     position: relative;
 }

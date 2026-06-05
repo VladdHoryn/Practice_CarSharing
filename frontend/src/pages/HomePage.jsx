@@ -14,7 +14,6 @@ const HomePage = () => {
 
     return (
         <div className={styles.wrapper}>
-            {/* Hero Section */}
             <section className={styles.hero}>
                 <div className={styles.heroOverlay}>
                     <h1 className={styles.heroTitle}>Швидка оренда авто в Чернівцях</h1>
@@ -25,7 +24,6 @@ const HomePage = () => {
                 </div>
             </section>
 
-            {/* Переваги */}
             <section className={styles.features}>
                 <h2 className={styles.sectionTitle}>Чому обирають CarLink<span>°</span></h2>
                 <div className={styles.featuresGrid}>
@@ -47,7 +45,6 @@ const HomePage = () => {
                 </div>
             </section>
 
-            {/* Категорії авто */}
             <section className={styles.categoriesSection}>
                 <h2 className={styles.sectionTitle}>Наш автопарк</h2>
                 <div className={styles.categoriesGrid}>

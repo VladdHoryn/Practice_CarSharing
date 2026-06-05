@@ -14,7 +14,6 @@ const ContactsPage = () => {
             <h1 className={styles.title}>Контакти та зворотній зв'язок</h1>
             <div className={styles.layout}>
 
-                {/* Інформаційний блок */}
                 <div className={styles.infoBlock}>
                     <h2>Наш центральний офіс</h2>
                     <p className={styles.desc}>Чекаємо на вас для оформлення договору та передачі ключів.</p>
@@ -33,7 +32,6 @@ const ContactsPage = () => {
                     </div>
                 </div>
 
-                {/* Форма зворотного зв'язку */}
                 <div className={styles.formBlock}>
                     <h3>Залишилися запитання?</h3>
                     <form onSubmit={handleSendMessage} className={styles.form}>

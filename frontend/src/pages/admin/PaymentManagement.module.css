@@ -2,7 +2,6 @@
 .title { font-size: 24px; font-weight: 700; color: #1e293b; margin: 0; }
 .loader { padding: 50px; text-align: center; color: #64748b; }
 
-/* Фільтри */
 .filterBar { display: flex; align-items: flex-end; gap: 20px; background: white; padding: 20px; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.01); }
 .filterGroup { display: flex; flex-direction: column; gap: 6px; }
 .filterGroup label { font-size: 13px; font-weight: 600; color: #475569; }
@@ -11,7 +10,6 @@
 .clearBtn { padding: 9px 16px; background: #f1f5f9; border: none; border-radius: 6px; color: #475569; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; }
 .clearBtn:hover { background: #e2e8f0; color: #1e293b; }
 
-/* Таблиця */
 .tableWrapper { background: white; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.02); overflow: hidden; }
 .table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
 .table th { background-color: #f8fafc; padding: 16px; color: #64748b; font-weight: 600; border-bottom: 1px solid #e2e8f0; }
@@ -21,12 +19,10 @@
 .amountText { color: #0f172a; font-size: 15px; }
 .methodIcon { font-size: 16px; margin-right: 4px; }
 
-/* Статуси фінансів */
 .statusBadge { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; display: inline-block; text-transform: uppercase; }
 .paid { background: #e6f4ea; color: #137333; border: 1px solid #86efac; }
 .pending { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; }
 .failed { background: #fce8e6; color: #c5221f; border: 1px solid #fca5a5; }
 
-/* Ручні дії адміна */
 .actionBtn { background: #3ba4f6; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
 .actionBtn:hover { background: #258cdb; }

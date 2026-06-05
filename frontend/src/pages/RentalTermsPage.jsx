@@ -14,7 +14,6 @@ const RentalTermsPage = () => {
         <div className={styles.container}>
             <h1 className={styles.mainTitle}>Умови оренди автомобілів</h1>
 
-            {/* Кроки вимог */}
             <div className={styles.grid}>
                 <div className={styles.card}>
                     <h3>🪪 Вимоги до водія</h3>
@@ -35,7 +34,6 @@ const RentalTermsPage = () => {
                 </div>
             </div>
 
-            {/* Ліміти та Страховка */}
             <div className={styles.highlightBanner}>
                 <div className={styles.bannerItem}>
                     <h4>🛡️ Страхування</h4>
@@ -47,7 +45,6 @@ const RentalTermsPage = () => {
                 </div>
             </div>
 
-            {/* FAQ замість відгуків */}
             <section className={styles.faqSection}>
                 <h2 className={styles.subTitle}>Часті запитання (FAQ)</h2>
                 <div className={styles.faqList}>

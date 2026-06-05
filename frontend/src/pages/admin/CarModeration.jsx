@@ -7,12 +7,10 @@ const CarModeration = () => {
     const [queue, setQueue] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // Стейты для Lightbox (Перегляд фото авто та техпаспортів)
     const [activeImage, setActiveImage] = useState(null);
     const [zoom, setZoom] = useState(1);
     const [rotation, setRotation] = useState(0);
 
-    // Стейты для Модалки відхилення заявки
     const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
     const [selectedCar, setSelectedCar] = useState(null);
     const [rejectComment, setRejectComment] = useState('');
@@ -20,11 +18,8 @@ const CarModeration = () => {
     const fetchModerationQueue = async () => {
         try {
             setLoading(true);
-            // На майбутнє: const data = await carService.getUnconfirmedCars();
-            // setQueue(data);
             throw new Error("API method for moderation queue not ready");
         } catch (err) {
-            // Мокові дані для автономного тестування інтерфейсу модерації авто
             setQueue([
                 {
                     id: 45,
@@ -54,7 +49,6 @@ const CarModeration = () => {
 
     const handleApproveCar = async (carId) => {
         try {
-            // На майбутнє: await carService.approveCar(carId);
             toast.success('Автомобіль успішно прийнято в автопарк! Тепер він доступний в загальному каталозі. 🚗✨');
             setQueue(prev => prev.filter(car => car.id !== carId));
         } catch (err) {
@@ -76,7 +70,6 @@ const CarModeration = () => {
         }
 
         try {
-            // На майбутнє: await carService.rejectCar(selectedCar.id, rejectComment);
             toast.info(`Заявку на додавання авто ${selectedCar.brand} відхилено. Менеджеру надіслано коментар.`);
             setIsRejectModalOpen(false);
             setQueue(prev => prev.filter(car => car.id !== selectedCar.id));
@@ -85,7 +78,6 @@ const CarModeration = () => {
         }
     };
 
-    // Керування Lightbox
     const openLightbox = (url) => {
         setActiveImage(url);
         setZoom(1);
@@ -105,7 +97,6 @@ const CarModeration = () => {
                     {queue.map((car) => (
                         <div key={car.id} className={styles.moderationCard}>
 
-                            {/* Лівий блок: Текстові характеристики та фото */}
                             <div className={styles.detailsBlock}>
                                 <div className={styles.carMainInfo}>
                                     <h2>{car.brand} {car.model} ({car.year})</h2>
@@ -124,8 +115,6 @@ const CarModeration = () => {
                                     </div>
                                 </div>
                             </div>
-
-                            {/* Правий блок: Перевірка офіційних документів */}
                             <div className={styles.docsBlock}>
                                 <h4>📄 Реєстраційні документи:</h4>
                                 <div className={styles.docsContainer}>
@@ -157,7 +146,6 @@ const CarModeration = () => {
                 </div>
             )}
 
-            {/* 🖼 INTERACTIVE LIGHTBOX */}
             {activeImage && (
                 <div className={styles.lightboxOverlay} onClick={() => setActiveImage(null)}>
                     <div className={styles.lightboxContainer} onClick={(e) => e.stopPropagation()}>
@@ -177,8 +165,6 @@ const CarModeration = () => {
                     </div>
                 </div>
             )}
-
-            {/* 📝 МОДАЛКА ВІДХИЛЕННЯ ЗАЯВКИ */}
             {isRejectModalOpen && (
                 <div className={styles.modalOverlay}>
                     <div className={styles.modal}>

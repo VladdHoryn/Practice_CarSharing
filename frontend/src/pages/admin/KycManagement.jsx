@@ -7,12 +7,10 @@ const KycManagement = () => {
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // Стейты для Lightbox (Перегляд документів)
     const [activeImage, setActiveImage] = useState(null);
     const [zoom, setZoom] = useState(1);
     const [rotation, setRotation] = useState(0);
 
-    // Стейты для Модалки відхилення (Reject)
     const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
     const [rejectReason, setRejectReason] = useState('');
@@ -20,11 +18,8 @@ const KycManagement = () => {
     const fetchKycQueue = async () => {
         try {
             setLoading(true);
-            // На майбутнє: const data = await userService.getPendingKyc();
-            // setRequests(data);
             throw new Error("API not ready");
         } catch (err) {
-            // Мокові дані для повноцінного тестування черги KYC та Lightbox
             setRequests([
                 {
                     id: 105,
@@ -32,7 +27,7 @@ const KycManagement = () => {
                     email: 'maks.zh@gmail.com',
                     status: 'PENDING_VERIFICATION',
                     documentType: 'Посвідчення водія (Категорія B)',
-                    docFrontUrl: 'https://images.unsplash.com/photo-1554415707-6e8cfc93fe23?q=80&w=600', // Тимчасові фото-заглушки документів
+                    docFrontUrl: 'https://images.unsplash.com/photo-1554415707-6e8cfc93fe23?q=80&w=600',
                     docBackUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=600'
                 },
                 {
@@ -56,7 +51,6 @@ const KycManagement = () => {
 
     const handleApprove = async (userId) => {
         try {
-            // На майбутнє: await userService.approveKyc(userId);
             toast.success('Користувача успішно верифіковано! Доступ до оренди відкрито. 🎉');
             setRequests(prev => prev.filter(r => r.id !== userId));
         } catch (err) {
@@ -78,7 +72,6 @@ const KycManagement = () => {
         }
 
         try {
-            // На майбутнє: await userService.rejectKyc(selectedUser.id, rejectReason);
             toast.info(`Заявку користувача ${selectedUser.fullName} відхилено. Причина: ${rejectReason}`);
             setIsRejectModalOpen(false);
             setRequests(prev => prev.filter(r => r.id !== selectedUser.id));
@@ -87,7 +80,6 @@ const KycManagement = () => {
         }
     };
 
-    // Керування Lightbox
     const openLightbox = (url) => {
         setActiveImage(url);
         setZoom(1);
@@ -145,12 +137,10 @@ const KycManagement = () => {
                 </div>
             )}
 
-            {/* 🖼 LIGHTBOX (МОДАЛКА ПЕРЕГЛЯДУ З ЗУМОМ ТА ПОВОРОТОМ) */}
             {activeImage && (
                 <div className={styles.lightboxOverlay} onClick={closeLightbox}>
                     <div className={styles.lightboxContainer} onClick={(e) => e.stopPropagation()}>
 
-                        {/* Панель інструментів модератора */}
                         <div className={styles.toolbar}>
                             <button onClick={() => setZoom(prev => Math.min(prev + 0.3, 3))} title="Збільшить">➕ Наблизити</button>
                             <button onClick={() => setZoom(prev => Math.max(prev - 0.3, 0.6))} title="Зменшити">➖ Віддалити</button>
@@ -158,7 +148,6 @@ const KycManagement = () => {
                             <button onClick={closeLightbox} className={styles.closeToolbarBtn}>Закрити ✖</button>
                         </div>
 
-                        {/* Область перегляду зображення */}
                         <div className={styles.imageWrapper}>
                             <img
                                 src={activeImage}
@@ -173,7 +162,6 @@ const KycManagement = () => {
                 </div>
             )}
 
-            {/* 📝 ОБО'В'ЯЗКОВА МОДАЛКА ВІДХИЛЕННЯ З ВАЛІДАЦІЄЮ ПРИЧИНИ */}
             {isRejectModalOpen && (
                 <div className={styles.modalOverlay}>
                     <div className={styles.modal}>

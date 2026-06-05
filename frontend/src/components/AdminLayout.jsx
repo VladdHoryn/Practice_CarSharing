@@ -24,7 +24,6 @@ const AdminLayout = () => {
 
     return (
         <div className={styles.adminContainer}>
-            {/* 1) Спеціальний Header для Адміністратора */}
             <header className={styles.adminHeader}>
                 <div className={styles.logo} onClick={() => navigate('/')}>
                     CarLink <span className={styles.badge}>ADMIN</span>
@@ -46,12 +45,11 @@ const AdminLayout = () => {
                 </div>
             </header>
 
-            {/* Контентна область (Сюди рендериться активна вкладка) */}
+
             <main className={styles.adminMain}>
                 <Outlet />
             </main>
 
-            {/* 2) Footer відсутній за твоєю вимогою */}
         </div>
     );
 };
