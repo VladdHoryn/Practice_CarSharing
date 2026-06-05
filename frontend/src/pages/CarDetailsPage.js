@@ -7,10 +7,13 @@ const CarDetailsPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
 
-    // Додаємо стани для завантаження та помилок
     const [car, setCar] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    
+    const userStr = localStorage.getItem('user');
+    const user = userStr ? JSON.parse(userStr) : null;
+    const isOwner = user && user.role === 'OWNER';
 
     useEffect(() => {
         const fetchCarDetails = async () => {
@@ -30,18 +33,16 @@ const CarDetailsPage = () => {
         fetchCarDetails();
     }, [id]);
 
-
     if (loading) return <div className={styles.pageContainer} style={{padding: '100px', textAlign: 'center'}}>Завантаження інформації про авто... ⏳</div>;
     if (error) return <div className={styles.pageContainer} style={{padding: '100px', textAlign: 'center', color: 'red'}}>{error}</div>;
     if (!car) return null;
 
-
     const basePrice = car.pricePerDay;
     const pricing = [
         { period: '1-3 доби', price: `${basePrice}€` },
-        { period: '4-7 діб', price: `${Math.round(basePrice * 0.9)}€` }, // 10% знижка
-        { period: '8-15 діб', price: `${Math.round(basePrice * 0.8)}€` }, // 20% знижка
-        { period: '16+ діб', price: `${Math.round(basePrice * 0.7)}€` }, // 30% знижка
+        { period: '4-7 діб', price: `${Math.round(basePrice * 0.9)}€` },
+        { period: '8-15 діб', price: `${Math.round(basePrice * 0.8)}€` },
+        { period: '16+ діб', price: `${Math.round(basePrice * 0.7)}€` },
         { period: 'Депозит', price: '200€' }
     ];
 
@@ -81,32 +82,34 @@ const CarDetailsPage = () => {
                         ))}
                     </ul>
 
-                    <button
-                        className={styles.bookBtn}
-                        onClick={() => navigate(`/book/${car.id}`)}
-                    >
-                        <span style={{fontSize: '18px'}}>⏱</span> ЗАБРОНЮВАТИ АВТО
-                    </button>
+                    {isOwner ? (
+                        <div className={styles.ownerWarning}>
+                            ⚠️ Партнерам із роллю OWNER заборонено бронювати автомобілі.
+                        </div>
+                    ) : (
+                        <button
+                            className={styles.bookBtn}
+                            onClick={() => navigate(`/book/${car.id}`)}
+                        >
+                            <span style={{fontSize: '18px'}}>⏱</span> ЗАБРОНЮВАТИ АВТО
+                        </button>
+                    )}
 
                     <div className={styles.ageNotice}>
                         <span>ⓘ</span>
                         <span className={styles.ageText}>Мінімальний вік водія - 23 роки</span>
                     </div>
                 </div>
-
             </div>
 
             <div className={styles.bottomSection}>
-
                 <div>
                     <h2 className={styles.sectionTitle}>Про цей автомобіль:</h2>
                     <p className={styles.descText}>
                         {car.brand} {car.model} ({car.year}) - це чудовий вибір у класі {car.carClass}.
                         Надійний, практичний та сучасний автомобіль для щоденних поїздок.
-                        Відмінно підійде як для їзди по місту, так і для тривалих подорожей з сім'єю чи друзями.
                     </p>
                 </div>
-
 
                 <div>
                     <h2 className={styles.sectionTitle}>Характеристики автомобіля:</h2>
@@ -118,9 +121,7 @@ const CarDetailsPage = () => {
                         <li><strong>Клас авто:</strong> {car.carClass}</li>
                     </ul>
                 </div>
-
             </div>
-
         </div>
     );
 };

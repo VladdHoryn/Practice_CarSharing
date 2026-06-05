@@ -43,7 +43,18 @@ const BookingPage = () => {
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
-        if (!storedUser) navigate('/login');
+        if (!storedUser) {
+            navigate('/login');
+            return;
+        }
+
+        const currentUser = JSON.parse(storedUser);
+        if (currentUser.role === 'OWNER') {
+            toast.error('Доступ заборонено: власники транспортних засобів не мають права створювати бронювання.', {
+                toastId: 'owner-booking-block'
+            });
+            navigate('/catalog');
+        }
     }, [navigate]);
 
     useEffect(() => {

@@ -152,7 +152,19 @@
     font-size: 14px;
     color: #333;
 }
-
+.ownerWarning {
+    background-color: #fff7ed;
+    color: #c2410c;
+    border: 1px solid #ffedd5;
+    padding: 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.4;
+    margin-top: 20px;
+    box-shadow: 0 2px 4px rgba(194, 65, 12, 0.04);
+}
 @media (max-width: 768px) {
     .topSection, .bottomSection {
         grid-template-columns: 1fr;
