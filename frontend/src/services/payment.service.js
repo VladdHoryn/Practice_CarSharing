@@ -1,10 +1,8 @@
-import axios from 'axios';
-
-const PAYMENT_API_URL = 'http://localhost:8084/payment/v1';
+import apiClient from '../api/apiClient';
 
 export const paymentService = {
     createPayment: async (paymentData) => {
-        const response = await axios.post(PAYMENT_API_URL, paymentData);
+        const response = await apiClient.post('/payment/v1', paymentData);
         return response.data;
     }
 };

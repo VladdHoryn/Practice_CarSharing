@@ -1,0 +1,34 @@
+.container { max-width: 1000px; margin: 0 auto; padding: 60px 20px; }
+.title { text-align: center; font-size: 32px; font-weight: 800; margin-bottom: 50px; color: #1e293b; }
+
+.layout { display: flex; gap: 50px; background: white; border-radius: 16px; border: 1px solid #e2e8f0; padding: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.01); }
+.infoBlock { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+.infoBlock h2 { margin: 0; font-size: 24px; color: #0f172a; }
+.desc { color: #64748b; font-size: 14px; margin: 0 0 10px 0; }
+
+.contactItem { display: flex; gap: 15px; align-items: flex-start; }
+.icon { font-size: 20px; background: #f1f5f9; padding: 10px; border-radius: 50%; }
+.contactItem strong { display: block; font-size: 14px; color: #475569; }
+.contactItem p { margin: 4px 0 0 0; font-size: 15px; color: #1e293b; font-weight: 500; }
+
+.formBlock { flex: 1; background: #f8fafc; padding: 30px; border-radius: 12px; border: 1px solid #f1f5f9; }
+.formBlock h3 { margin-top: 0; margin-bottom: 20px; font-size: 18px; color: #1e293b; }
+.form { display: flex; flex-direction: column; gap: 14px; }
+.input, .textarea { padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 14px; outline: none; background: white; transition: all 0.2s; }
+
+.input:focus, .textarea:focus {
+    border-color: #3ba4f6;
+    box-shadow: 0 0 0 3px rgba(59, 164, 246, 0.15);
+}
+
+.submitBtn {
+    background: #3ba4f6;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.submitBtn:hover { background: #258cdb; }

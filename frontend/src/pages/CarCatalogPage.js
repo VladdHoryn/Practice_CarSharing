@@ -22,9 +22,9 @@ const CarCatalogPage = () => {
                     setCars(data);
                     setError(null);
                 } catch (err) {
-                    console.error('Помилка завантаження авто:', err);
-                    setError('Не вдалося зв\'язатися з сервером. Переконайтеся, що car-service запущено на порту 8085.');
-                } finally {
+                            console.error('Помилка завантаження авто:', err);
+                            setError('Не вдалося зв\'язатися з сервером. Переконайтеся, що API Gateway запущено на порту 8100.');
+                     } finally {
                     setLoading(false);
                 }
             };
@@ -44,10 +44,10 @@ const CarCatalogPage = () => {
         setFilters({ brand: 'all', maxPrice: 100 });
     };
 
-    // Фільтруємо реальні дані
+
     const filteredCars = cars.filter(car => {
         const matchBrand = filters.brand === 'all' || car.brand.toLowerCase().includes(filters.brand.toLowerCase());
-        const matchPrice = car.pricePerDay <= filters.maxPrice; // Використовуємо pricePerDay з твого DTO
+        const matchPrice = car.pricePerDay <= filters.maxPrice;
         return matchBrand && matchPrice;
     });
 
@@ -66,7 +66,6 @@ const CarCatalogPage = () => {
 
                 <div className={styles.catalogLayout}>
 
-                    {/* Спрощені фільтри (бо в БД поки немає типу коробки) */}
                     <aside className={styles.filterSidebar}>
                         <div className={styles.filterHeader}>
                             Фільтри
@@ -93,7 +92,6 @@ const CarCatalogPage = () => {
                                 <div key={car.id} className={styles.carCard}>
                                     <div className={styles.cardHeader}>
                                         <div>
-                                            {/* Використовуємо поля з твого CarResponse */}
                                             <h3 className={styles.carBrand}>{car.brand} {car.model}</h3>
                                             <div className={styles.carSubtitle}>{car.year} рік</div>
                                         </div>
@@ -105,7 +103,6 @@ const CarCatalogPage = () => {
 
                                     <div className={styles.imageGallery}>
                                         <div className={styles.mainImagePlaceholder}>
-                                            {/* Якщо бекенд повертає URL, показуємо картинку */}
                                             {car.imageUrl ? <img src={car.imageUrl} alt={car.brand} style={{width: '100%', height: '100%', objectFit: 'cover', borderRadius: '6px'}} /> : `[Фото ${car.brand}]`}
                                         </div>
                                     </div>
@@ -113,8 +110,7 @@ const CarCatalogPage = () => {
                                     <ul className={styles.specsList}>
                                         <li><span className={styles.specLabel}>Клас:</span> {car.carClass}</li>
                                         <li><span className={styles.specLabel}>Статус:</span> {car.status}</li>
-                                        {/* Тимчасові заглушки для полів, яких ще немає в БД */}
-                                        <li><span className={styles.specLabel}>Коробка:</span> Автомат (демо)</li>
+                                        <li><span className={styles.specLabel}>Коробка:</span> Автомат </li>
                                     </ul>
 
                                     <div className={styles.cardActions}>

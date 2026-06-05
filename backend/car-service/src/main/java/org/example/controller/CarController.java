@@ -18,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/car/v1")
-@CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
 public class CarController {
 

@@ -47,10 +47,9 @@ const LoginPage = () => {
 
       } catch (err) {
         console.error('Помилка входу:', err);
-        // Тепер ми ловимо як помилки від бекенду (Axios), так і наші власні помилки (err.message)
         const errorMsg = err.response?.data?.message || err.message || "Невірний email або пароль.";
         setError(errorMsg);
-        toast.error(errorMsg); // Виводимо червоне повідомлення Toastify
+        toast.error(errorMsg);
       } finally {
         setIsLoading(false);
       }

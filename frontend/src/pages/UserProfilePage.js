@@ -4,7 +4,7 @@ import styles from './UserProfilePage.module.css';
 import { authService } from '../services/auth.service';
 import { bookingService } from '../services/booking.service';
 import { carService } from '../services/car.service';
-
+import { toast } from 'react-toastify';
 
 const Icons = {
     order: <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>,
@@ -19,17 +19,14 @@ const Icons = {
 const UserProfilePage = () => {
     const navigate = useNavigate();
 
-    const [user, setUser] = useState({
-        id: '',
-        firstName: '',
-        lastName: '',
-        email: '',
-        role: ''
-    });
-
+    const [user, setUser] = useState({ id: '', firstName: '', lastName: '', email: '', role: '' });
     const [activeTab, setActiveTab] = useState('');
     const [bookings, setBookings] = useState([]);
     const [ownerCars, setOwnerCars] = useState([]);
+
+    const [showCarModal, setShowCarModal] = useState(false);
+    const [editingCar, setEditingCar] = useState(null);
+    const [carForm, setCarForm] = useState({ brand: '', model: '', year: 2024, carClass: 'ECONOMY', pricePerDay: '', imageUrl: '' });
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
@@ -55,18 +52,109 @@ const UserProfilePage = () => {
         }
     }, [navigate]);
 
-// Завантаження непідтверджених авто для вкладки fleet (кабінет Власника)
     useEffect(() => {
         if (activeTab === 'fleet' && user.role === 'OWNER') {
             carService.getUnconfirmedCars()
-                .then(data => setOwnerCars(data))
+                .then(data => {
+                    const myCars = data.filter(car => car.userId === user.id);
+                    setOwnerCars(myCars);
+                })
                 .catch(err => console.error("Помилка завантаження авто власника:", err));
         }
-    }, [activeTab, user.role]);
+    }, [activeTab, user.role, user.id]);
+
+    useEffect(() => {
+        if (activeTab === 'history' && user.id) {
+            const loadBookingsWithCars = async () => {
+                try {
+                    const bookingsData = await bookingService.getUserBookings(user.id);
+                    const enrichedBookings = await Promise.all(bookingsData.map(async (booking) => {
+                        try {
+                            const carInfo = await carService.getCarById(booking.carId);
+                            return { ...booking, carName: `${carInfo.brand} ${carInfo.model}` };
+                        } catch (err) {
+                            return { ...booking, carName: `Авто (Видалено з БД)` };
+                        }
+                    }));
+                    setBookings(enrichedBookings.sort((a,b) => b.id - a.id));
+                } catch (err) {
+                    console.error("Помилка завантаження бронювань:", err);
+                }
+            };
+            loadBookingsWithCars();
+        }
+    }, [activeTab, user.id]);
 
     const handleLogout = () => {
         authService.logout();
         navigate('/login');
+    };
+
+    const openCreateCarModal = () => {
+        setEditingCar(null);
+        setCarForm({ brand: '', model: '', year: 2024, carClass: 'ECONOMY', pricePerDay: '', imageUrl: '' });
+        setShowCarModal(true);
+    };
+
+    const openEditCarModal = (car) => {
+        setEditingCar(car);
+        setCarForm({ brand: car.brand, model: car.model, year: car.year, carClass: car.carClass, pricePerDay: car.pricePerDay, imageUrl: car.imageUrl || '' });
+        setShowCarModal(true);
+    };
+
+    const handleCarFormChange = (e) => {
+        const { name, value } = e.target;
+        setCarForm(prev => ({ ...prev, [name]: value }));
+    };
+
+    const submitCarForm = async (e) => {
+        e.preventDefault();
+        try {
+            const payload = {
+                ...carForm,
+                year: parseInt(carForm.year),
+                pricePerDay: parseFloat(carForm.pricePerDay),
+                userId: user.id
+            };
+
+            if (editingCar) {
+                const updatedCar = await carService.updateCar(editingCar.id, payload);
+                setOwnerCars(ownerCars.map(c => c.id === editingCar.id ? updatedCar : c));
+                toast.success('Авто успішно оновлено!');
+            } else {
+                const newCar = await carService.createCar(payload);
+                setOwnerCars([...ownerCars, newCar]);
+                toast.success('Нове авто додано!');
+            }
+            setShowCarModal(false);
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Помилка при збереженні авто.');
+        }
+    };
+
+    const deleteCar = async (id) => {
+        if (window.confirm('Ви впевнені, що хочете видалити це авто?')) {
+            try {
+                await carService.deleteCar(id);
+                setOwnerCars(ownerCars.filter(c => c.id !== id));
+                toast.success('Авто видалено!');
+            } catch (err) {
+                toast.error('Помилка видалення авто.');
+            }
+        }
+    };
+
+    // --- ФУНКЦІЯ СКАСУВАННЯ БРОНЮВАННЯ ---
+    const cancelBooking = async (id) => {
+        if (window.confirm('Скасувати це бронювання?')) {
+            try {
+                await bookingService.cancelBooking(id);
+                setBookings(bookings.map(b => b.id === id ? { ...b, status: 'CANCELLED' } : b));
+                toast.success('Бронювання успішно скасовано.');
+            } catch (err) {
+                toast.error(err.response?.data?.message || 'Не вдалося скасувати бронювання.');
+            }
+        }
     };
 
     const renterMenu = [
@@ -84,7 +172,6 @@ const UserProfilePage = () => {
 
     const menuItems = user.role === 'OWNER' ? ownerMenu : renterMenu;
 
-
     const mockAnalyticsDays = [
         { day: 'Пн', value: 70 }, { day: 'Вв', value: 75 }, { day: 'Ср', value: 60 },
         { day: 'Чт', value: 45 }, { day: 'Пт', value: 75 }, { day: 'Сб', value: 95 }, { day: 'Нд', value: 80 }
@@ -95,41 +182,12 @@ const UserProfilePage = () => {
         alert('Ця функція скоро запрацює! Ваші нові дані: ' + user.firstName + ' ' + user.lastName);
     };
 
-    // Завантаження бронювань при переході на вкладку history
-        useEffect(() => {
-            if (activeTab === 'history' && user.id) {
-                const loadBookingsWithCars = async () => {
-                    try {
-                        // Отримуємо історію бронювань
-                        const bookingsData = await bookingService.getUserBookings(user.id);
-
-                        // Для кожного бронювання паралельно шукаємо інформацію про авто
-                        const enrichedBookings = await Promise.all(bookingsData.map(async (booking) => {
-                            try {
-                                const carInfo = await carService.getCarById(booking.carId);
-                                // Додаємо нове поле carName до об'єкта бронювання
-                                return { ...booking, carName: `${carInfo.brand} ${carInfo.model}` };
-                            } catch (err) {
-                                // Якщо машину видалили з бази, показуємо хоча б ID
-                                return { ...booking, carName: `Авто (Видалено з БД)` };
-                            }
-                        }));
-
-                        setBookings(enrichedBookings);
-                    } catch (err) {
-                        console.error("Помилка завантаження бронювань:", err);
-                    }
-                };
-                loadBookingsWithCars();
-            }
-        }, [activeTab, user.id]);
-
     const renderTabContent = () => {
         if (activeTab === 'fleet') {
             return (
                 <>
                     <h2 className={styles.tabTitle}>Керування автопарком (Список)</h2>
-                    <button className={styles.addCarBtn}>+ ДОДАТИ АВТО</button>
+                    <button className={styles.addCarBtn} onClick={openCreateCarModal}>+ ДОДАТИ АВТО</button>
 
                     <div className={styles.filtersRow}>
                         <div className={styles.inputGroup}><label>Марка</label><select><option>all</option></select></div>
@@ -140,39 +198,38 @@ const UserProfilePage = () => {
 
                     <table className={styles.historyTable}>
                         <thead>
-                            <tr><th>Фото</th><th>Модель</th><th>VIN</th><th>Рік</th><th>Пробіг</th><th>Статус</th><th>Ціна</th><th>Дії</th></tr>
+                            <tr><th>Фото</th><th>Модель</th><th>Рік</th><th>Клас</th><th>Статус</th><th>Ціна</th><th>Дії</th></tr>
                         </thead>
                         <tbody>
-                                                    {/* ТЕПЕР МИ ВИКОРИСТОВУЄМО ownerCars ЗАМІСТЬ mockFleet */}
-                                                    {ownerCars.length > 0 ? (
-                                                        ownerCars.map(car => (
-                                                            <tr key={car.id}>
-                                                                <td>
-                                                                    {car.imageUrl ? (
-                                                                        <img src={car.imageUrl} alt="car" className={styles.carThumb} style={{width: '60px', height: '40px', objectFit: 'cover', borderRadius: '4px'}}/>
-                                                                    ) : (
-                                                                        <div style={{width: '60px', height: '40px', backgroundColor: '#eee', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px'}}>Фото</div>
-                                                                    )}
-                                                                </td>
-                                                                <td><strong>{car.brand} {car.model}</strong></td>
-                                                                <td>{car.vin || 'Не вказано'}</td>
-                                                                <td>{car.year}</td>
-                                                                <td>{car.mileage || 0} км</td>
-                                                                <td>
-                                                                    <span style={{color: '#f39c12', fontWeight: 'bold'}}>
-                                                                        {car.status || 'UNCONFIRMED'}
-                                                                    </span>
-                                                                </td>
-                                                                <td>{car.pricePerDay}€</td>
-                                                                <td><span style={{color: '#3ba4f6', cursor:'pointer'}}>Редаг.</span></td>
-                                                            </tr>
-                                                        ))
-                                                    ) : (
-                                                        <tr>
-                                                            <td colSpan="8" className={styles.emptyState} style={{textAlign: 'center', padding: '20px'}}>У вас немає непідтверджених авто.</td>
-                                                        </tr>
-                                                    )}
-                                                </tbody>
+                            {ownerCars.length > 0 ? (
+                                ownerCars.map(car => (
+                                    <tr key={car.id}>
+                                        <td>
+                                            {car.imageUrl ? (
+                                                <img src={car.imageUrl} alt="car" className={styles.carThumb} style={{width: '60px', height: '40px', objectFit: 'cover', borderRadius: '4px'}}/>
+                                            ) : (
+                                                <div style={{width: '60px', height: '40px', backgroundColor: '#eee', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px'}}>Фото</div>
+                                            )}
+                                        </td>
+                                        <td><strong>{car.brand} {car.model}</strong></td>
+                                        <td>{car.year}</td>
+                                        <td>{car.carClass}</td>
+                                        <td><span style={{color: '#f39c12', fontWeight: 'bold'}}>{car.status || 'UNCONFIRMED'}</span></td>
+                                        <td>{car.pricePerDay}€</td>
+                                        <td style={{ verticalAlign: 'middle' }}>
+                                            <div className={styles.actionsWrapper}>
+                                                <span style={{color: '#3ba4f6', cursor:'pointer'}} onClick={() => openEditCarModal(car)}>Редаг.</span>
+                                                <span style={{color: '#dc3545', cursor:'pointer'}} onClick={() => deleteCar(car.id)}>Видалити</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="7" className={styles.emptyState} style={{textAlign: 'center', padding: '20px'}}>У вас немає непідтверджених авто.</td>
+                                </tr>
+                            )}
+                        </tbody>
                     </table>
                 </>
             );
@@ -230,7 +287,7 @@ const UserProfilePage = () => {
                     <h2 className={styles.tabTitle}>Історія замовлень</h2>
                     <table className={styles.historyTable}>
                         <thead>
-                            <tr><th>ID Бронювання</th><th>Авто</th><th>Період</th><th>Статус</th><th>Сума</th></tr>
+                            <tr><th>ID Бронювання</th><th>Авто</th><th>Період</th><th>Сума</th><th>Статус</th><th>Дії</th></tr>
                         </thead>
                         <tbody>
                             {bookings.length > 0 ? (
@@ -239,12 +296,23 @@ const UserProfilePage = () => {
                                         <td>#{order.id}</td>
                                         <td><strong>{order.carName}</strong></td>
                                         <td>{order.startDate.split('T')[0]} — {order.endDate.split('T')[0]}</td>
-                                        <td><span className={styles.statusBadge} style={{color: order.status === 'CREATED' ? '#28a745' : '#666'}}>{order.status}</span></td>
                                         <td><strong>{order.totalPrice}€</strong></td>
+                                        <td>
+                                            <span className={styles.statusBadge} style={{color: order.status === 'CREATED' ? '#28a745' : (order.status === 'CANCELLED' ? '#dc3545' : '#666')}}>
+                                                {order.status}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {(order.status === 'CREATED' || order.status === 'PENDING') && (
+                                                <span style={{color: '#dc3545', cursor:'pointer', fontWeight: 'bold'}} onClick={() => cancelBooking(order.id)}>
+                                                    Скасувати
+                                                </span>
+                                            )}
+                                        </td>
                                     </tr>
                                 ))
                             ) : (
-                                <tr><td colSpan="5" className={styles.emptyState}>У вас ще немає замовлень.</td></tr>
+                                <tr><td colSpan="6" className={styles.emptyState}>У вас ще немає замовлень.</td></tr>
                             )}
                         </tbody>
                     </table>
@@ -311,6 +379,41 @@ const UserProfilePage = () => {
                     {renderTabContent()}
                 </main>
             </div>
+
+            {showCarModal && (
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                    <div style={{ background: '#fff', padding: '30px', borderRadius: '12px', width: '500px', maxWidth: '90%' }}>
+                        <h2 style={{marginTop: 0}}>{editingCar ? 'Редагувати авто' : 'Додати нове авто'}</h2>
+                        <form onSubmit={submitCarForm}>
+                            <div style={{display: 'flex', gap: '10px', marginBottom: '10px'}}>
+                                <div style={{flex: 1}}><label>Марка</label><input required type="text" name="brand" value={carForm.brand} onChange={handleCarFormChange} style={{width:'100%', padding:'8px'}}/></div>
+                                <div style={{flex: 1}}><label>Модель</label><input required type="text" name="model" value={carForm.model} onChange={handleCarFormChange} style={{width:'100%', padding:'8px'}}/></div>
+                            </div>
+                            <div style={{display: 'flex', gap: '10px', marginBottom: '10px'}}>
+                                <div style={{flex: 1}}><label>Рік випуску</label><input required type="number" name="year" value={carForm.year} onChange={handleCarFormChange} style={{width:'100%', padding:'8px'}}/></div>
+                                <div style={{flex: 1}}><label>Ціна (€/доба)</label><input required type="number" step="0.1" name="pricePerDay" value={carForm.pricePerDay} onChange={handleCarFormChange} style={{width:'100%', padding:'8px'}}/></div>
+                            </div>
+                            <div style={{marginBottom: '10px'}}>
+                                                            <label>Клас авто</label>
+                                                            <select name="carClass" value={carForm.carClass} onChange={handleCarFormChange} style={{width:'100%', padding:'8px'}}>
+                                                                <option value="ECONOMY">Economy</option>
+                                                                <option value="COMFORT">Comfort</option>
+                                                                <option value="BUSINESS">Business</option>
+                                                                <option value="LUXURY">Luxury</option>
+                                                            </select>
+                                                        </div>
+                            <div style={{marginBottom: '20px'}}>
+                                <label>URL фотографії</label>
+                                <input type="url" name="imageUrl" value={carForm.imageUrl} onChange={handleCarFormChange} placeholder="https://..." style={{width:'100%', padding:'8px'}}/>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <button type="button" onClick={() => setShowCarModal(false)} style={{ padding: '10px 20px', background: '#ccc', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Скасувати</button>
+                                <button type="submit" style={{ padding: '10px 20px', background: '#0056b3', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Зберегти</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

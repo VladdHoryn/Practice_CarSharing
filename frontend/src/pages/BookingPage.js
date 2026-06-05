@@ -22,7 +22,6 @@ const BookingPage = () => {
     const [error, setError] = useState(null);
     const [isProcessing, setIsProcessing] = useState(false);
 
-    // ІДЕАЛЬНИЙ ФОРМАТ ДАТИ: Завжди повертає YYYY-MM-DD для твого часового поясу
     const todayStr = new Date().toLocaleDateString('en-CA');
 
     useEffect(() => {
@@ -94,48 +93,53 @@ const BookingPage = () => {
         const currentUser = JSON.parse(userStr);
         setIsProcessing(true);
 
+        let createdBookingId = null;
+
         try {
-            // ЕТАП 1: Створюємо бронювання (порт 8082)
-            let createdBookingId;
+
+            // ЕТАП 1: Створюємо бронювання
+            const bookingRequest = {
+                userId: Number(currentUser.id),
+                carId: Number(car.id),
+                startDate: `${dates.start}T12:00:00`,
+                endDate: `${dates.end}T12:00:00`,
+                pricePerDay: Number(car.pricePerDay).toFixed(2)
+            };
+
+            console.log("Відправляємо дані на бронювання:", bookingRequest);
+            const bookingResult = await bookingService.createBooking(bookingRequest);
+            createdBookingId = bookingResult.id;
+
+
             try {
-                const bookingRequest = {
-                    userId: currentUser.id,
-                    carId: parseInt(car.id),
-                    startDate: `${dates.start}T10:00:00`,
-                    endDate: `${dates.end}T10:00:00`,
-                    pricePerDay: car.pricePerDay
+                const paymentRequest = {
+                    bookingId: createdBookingId,
+                    amount: days * car.pricePerDay,
+                    method: paymentMethod,
+                    currency: "USD"
                 };
-                const bookingResult = await bookingService.createBooking(bookingRequest);
-                createdBookingId = bookingResult.id;
-            } catch (err) {
-                throw new Error("Помилка БД: Не вдалося створити бронювання.");
+                console.log("Відправляємо дані на оплату:", paymentRequest);
+                await paymentService.createPayment(paymentRequest);
+            } catch (paymentErr) {
+                console.error("Помилка на етапі оплати. Запускаємо відкат бронювання...");
+
+
+                if (createdBookingId) {
+                    await bookingService.cancelBooking(createdBookingId);
+                }
+
+                const realError = paymentErr.response?.data?.message || paymentErr.message;
+                throw new Error(`Оплату не виконано: ${realError}. Бронювання скасовано.`);
             }
 
-            // ЕТАП 2: Створюємо оплату (порт 8084)
-                        try {
-                            const paymentRequest = {
-                                bookingId: createdBookingId,
-                                amount: days * car.pricePerDay,
-                                method: paymentMethod,
-                                currency: "USD" // Якщо бекенд очікує "USD", залишаємо так
-                            };
-                            console.log("Відправляємо дані на оплату:", paymentRequest);
-                            await paymentService.createPayment(paymentRequest);
-                        } catch (err) {
-                            console.error("Повна помилка оплати:", err);
-                            // Тепер ми витягуємо РЕАЛЬНЕ повідомлення від бекенду (наприклад, "Network Error" або помилку валідації)
-                            const realError = err.response?.data?.message || err.message;
-                            throw new Error(`Помилка оплати: ${realError}`);
-                        }
 
-            // Якщо обидва етапи успішні
             toast.success('Бронювання та оплата успішні! 🚗💳');
             setShowPaymentModal(false);
             navigate('/profile');
 
         } catch (err) {
             console.error(err);
-            toast.error(err.message);
+            toast.error(err.message || "Сталася непередбачувана помилка.");
         } finally {
             setIsProcessing(false);
         }
@@ -158,12 +162,10 @@ const BookingPage = () => {
                         <div className={styles.dateRow}>
                             <div className={styles.inputGroup}>
                                 <label>Початок оренди</label>
-                                {/* ЗАБЛОКОВАНО: не можна вибрати дату менше ніж сьогодні (min={todayStr}) */}
                                 <input type="date" required min={todayStr} value={dates.start} onChange={(e) => setDates({...dates, start: e.target.value})} />
                             </div>
                             <div className={styles.inputGroup}>
                                 <label>Завершення оренди</label>
-                                {/* ЗАБЛОКОВАНО: не можна здати авто раніше, ніж взяв (min={dates.start || todayStr}) */}
                                 <input type="date" required min={dates.start || todayStr} value={dates.end} onChange={(e) => setDates({...dates, end: e.target.value})} />
                             </div>
                         </div>
@@ -216,7 +218,6 @@ const BookingPage = () => {
                 </div>
             </form>
 
-            {/* ВІКНО ОПЛАТИ */}
             {showPaymentModal && (
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
                     <div style={{ background: '#fff', padding: '30px', borderRadius: '12px', width: '450px', maxWidth: '90%', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>

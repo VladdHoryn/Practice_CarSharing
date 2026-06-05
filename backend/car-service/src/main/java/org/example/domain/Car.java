@@ -40,6 +40,7 @@ public class Car {
     private Integer year;
 
     @NotNull(message = "Car class is required")
+    @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "car_class", nullable = false)
     private CarClass carClass;
@@ -54,6 +55,7 @@ public class Car {
     private Long userId;
 
     @NotNull(message = "Car status is required")
+    @Enumerated(EnumType.STRING) // <-- ДОДАЙ ЦЕ
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "status", nullable = false)
     private CarStatus status;

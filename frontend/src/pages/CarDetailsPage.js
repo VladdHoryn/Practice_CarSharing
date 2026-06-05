@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styles from './CarDetailsPage.module.css';
-import { carService } from '../services/car.service'; // Підключаємо наш реальний сервіс
+import { carService } from '../services/car.service';
 
 const CarDetailsPage = () => {
     const { id } = useParams();
@@ -16,7 +16,6 @@ const CarDetailsPage = () => {
         const fetchCarDetails = async () => {
             try {
                 setLoading(true);
-                // Робимо запит до бекенду: GET /car/v1/{id}
                 const data = await carService.getCarById(id);
                 setCar(data);
                 setError(null);
@@ -31,12 +30,12 @@ const CarDetailsPage = () => {
         fetchCarDetails();
     }, [id]);
 
-    // Відображення під час очікування відповіді від сервера
+
     if (loading) return <div className={styles.pageContainer} style={{padding: '100px', textAlign: 'center'}}>Завантаження інформації про авто... ⏳</div>;
     if (error) return <div className={styles.pageContainer} style={{padding: '100px', textAlign: 'center', color: 'red'}}>{error}</div>;
     if (!car) return null;
 
-    // Розраховуємо ціни зі знижками на основі базової ціни з БД
+
     const basePrice = car.pricePerDay;
     const pricing = [
         { period: '1-3 доби', price: `${basePrice}€` },
@@ -48,20 +47,14 @@ const CarDetailsPage = () => {
 
     return (
         <div className={styles.pageContainer}>
-
-            {/* ВЕРХНЯ СЕКЦІЯ */}
             <div className={styles.topSection}>
-
-                {/* Ліва колонка: Назва та Фото */}
                 <div>
                     <div className={styles.carHeader}>
-                        {/* Підтягуємо реальні марку та модель */}
                         <h1 className={styles.carTitle}>{car.brand} {car.model}</h1>
                         <p className={styles.carSubtitle}>{car.year} рік, клас: {car.carClass}</p>
                     </div>
 
                     <div className={styles.mainImagePlaceholder}>
-                        {/* Якщо в базі є лінк на фото - показуємо його, інакше заглушку */}
                         {car.imageUrl ? (
                             <img src={car.imageUrl} alt={`${car.brand} ${car.model}`} style={{width: '100%', height: '100%', objectFit: 'cover', borderRadius: '4px'}}/>
                         ) : (
@@ -75,7 +68,6 @@ const CarDetailsPage = () => {
                     </div>
                 </div>
 
-                {/* Права колонка: Таблиця цін */}
                 <div className={styles.pricingBlock}>
                     <h2 className={styles.sectionTitle}>Ціна оренди</h2>
                     <p className={styles.sectionSubtitle}>Вартість залежить від терміну оренди</p>
@@ -104,10 +96,8 @@ const CarDetailsPage = () => {
 
             </div>
 
-            {/* НИЖНЯ СЕКЦІЯ */}
             <div className={styles.bottomSection}>
 
-                {/* Ліва колонка: Опис */}
                 <div>
                     <h2 className={styles.sectionTitle}>Про цей автомобіль:</h2>
                     <p className={styles.descText}>
@@ -117,11 +107,10 @@ const CarDetailsPage = () => {
                     </p>
                 </div>
 
-                {/* Права колонка: Характеристики */}
+
                 <div>
                     <h2 className={styles.sectionTitle}>Характеристики автомобіля:</h2>
                     <ul className={styles.specsList}>
-                        {/* Ці поля поки захардкоджені, бо їх ще немає в DTO/Entity */}
                         <li><strong>Двигун:</strong> 2.0 л., бензин (демо)</li>
                         <li><strong>Витрата пального:</strong> 7л/100км (демо)</li>
                         <li><strong>Коробка:</strong> Автомат (демо)</li>

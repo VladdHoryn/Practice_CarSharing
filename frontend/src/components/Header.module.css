@@ -1,5 +1,5 @@
 .header {
-    background-color: #e9ecef; /* Світло-сірий фон з макету */
+    background-color: #e9ecef;
     height: 80px;
     display: flex;
     justify-content: space-between;
@@ -22,7 +22,7 @@
 }
 
 .logo span {
-    color: #3ba4f6; /* Блакитний елемент логотипу */
+    color: #3ba4f6;
 }
 
 .nav {
@@ -73,4 +73,20 @@
     font-size: 20px;
     cursor: pointer;
     text-decoration: none;
+}
+
+.adminLink {
+    color: #1d4ed8 !important;
+    font-weight: 700 !important;
+    position: relative;
+}
+
+.adminLink::before {
+    content: "⚙️ ";
+    font-size: 12px;
+}
+
+.adminLink:hover {
+    color: #2563eb !important;
+    background-color: rgba(29, 78, 216, 0.05) !important;
 }

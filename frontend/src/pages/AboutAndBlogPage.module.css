@@ -1,0 +1,32 @@
+.container { max-width: 1100px; margin: 0 auto; padding: 60px 20px; }
+
+.aboutHeader { text-align: center; max-width: 800px; margin: 0 auto 80px auto; }
+.aboutHeader h1 { font-size: 36px; font-weight: 800; color: #1e293b; margin-bottom: 15px; }
+.aboutHeader p { font-size: 16px; color: #64748b; line-height: 1.6; margin-bottom: 40px; }
+
+.statsRow { display: flex; justify-content: space-around; background: white; padding: 30px; border-radius: 12px; border: 1px solid #e2e8f0; }
+.statBox span { font-size: 32px; font-weight: 800; color: #3ba4f6; display: block; margin-bottom: 4px; }
+.statBox p { margin: 0; font-size: 14px; color: #475569; font-weight: 500; }
+
+
+.blogTitle { font-size: 26px; text-align: center; margin-bottom: 40px; }
+.blogGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; }
+.blogCard {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.blogCard:hover {
+    transform: translateY(-4px);
+    border-color: #3ba4f6;
+    box-shadow: 0 12px 20px rgba(59, 164, 246, 0.06);
+}
+
+.tag { display: inline-block; background: #f1f5f9; color: #64748b; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 15px; }
+.postTitle { font-size: 16px; margin: 0 0 15px 0; color: #0f172a; line-height: 1.4; }
+.postMeta { display: flex; gap: 10px; font-size: 12px; color: #94a3b8; }

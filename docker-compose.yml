@@ -1,6 +1,12 @@
+version: '3.8'
+
 services:
+  # =====================================================
+  # MESSAGE BROKER (RabbitMQ)
+  # =====================================================
   rabbitmq:
     image: rabbitmq:3-management
+    container_name: car_sharing_rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -10,15 +16,19 @@ services:
     networks:
       - car-sharing-network
 
-  #  eureka-server:
-  #    build:
-  #      context: ./eureka-server
-  #      dockerfile: Dockerfile
-  #    container_name: eureka-server
-  #    ports:
-  #      - "8761:8761"
-  #    networks:
-  #      - car-sharing-network
+  # =====================================================
+  # API GATEWAY (Шлюз додатку)
+  # =====================================================
+  api-gateway:
+    build:
+      context: ./backend/api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    restart: always
+    ports:
+      - "8100:8100"
+    networks:
+      - car-sharing-network
 
   # =====================================================
   # USER SERVICE with PostgreSQL
@@ -35,7 +45,6 @@ services:
       - "5432:5432"
     volumes:
       - user_postgres_data:/var/lib/postgresql/data
-    #      - ./docker/user-db-init:/docker-entrypoint-initdb.d
     networks:
       - car-sharing-network
     healthcheck:
@@ -53,8 +62,6 @@ services:
     depends_on:
       user-db:
         condition: service_healthy
-    #      eureka-server:
-    #        condition: service_started
     environment:
       DB_HOST: user-db
       DB_PORT: 5432
@@ -81,7 +88,6 @@ services:
       - "5433:5432"
     volumes:
       - car_postgres_data:/var/lib/postgresql/data
-    #      - ./docker/car-db-init:/docker-entrypoint-initdb.d
     networks:
       - car-sharing-network
     healthcheck:
@@ -99,8 +105,6 @@ services:
     depends_on:
       car-db:
         condition: service_healthy
-    #      eureka-server:
-    #        condition: service_started
     environment:
       DB_HOST: car-db
       DB_PORT: 5432
@@ -108,7 +112,7 @@ services:
       DB_USERNAME: postgres
       DB_PASSWORD: postgres123
     ports:
-      - "8085:8085"
+      - "8083:8083"
     networks:
       - car-sharing-network
 
@@ -144,8 +148,6 @@ services:
     depends_on:
       booking-db:
         condition: service_healthy
-#      eureka-server:
-#        condition: service_started
     environment:
       DB_HOST: booking-db
       DB_PORT: 5432
@@ -157,6 +159,9 @@ services:
     networks:
       - car-sharing-network
 
+  # =====================================================
+  # PAYMENT SERVICE with PostgreSQL
+  # =====================================================
   payment-db:
     image: postgres:15-alpine
     container_name: payment-db
@@ -169,7 +174,6 @@ services:
       - "5435:5432"
     volumes:
       - payment_postgres_data:/var/lib/postgresql/data
-    #      - ./docker/car-db-init:/docker-entrypoint-initdb.d
     networks:
       - car-sharing-network
     healthcheck:
@@ -187,8 +191,6 @@ services:
     depends_on:
       payment-db:
         condition: service_healthy
-    #      eureka-server:
-    #        condition: service_started
     environment:
       DB_HOST: payment-db
       DB_PORT: 5432
@@ -201,7 +203,25 @@ services:
       - car-sharing-network
 
   # =====================================================
-  # pgAdmin for database management (optional)
+  # FRONTEND (React Application)
+  # =====================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: car-sharing-frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    networks:
+      - car-sharing-network
+    depends_on:
+      - api-gateway
+    environment:
+      - NODE_ENV=development
+
+  # =====================================================
+  # DATABASE MANAGEMENT (pgAdmin)
   # =====================================================
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -215,12 +235,23 @@ services:
     networks:
       - car-sharing-network
     depends_on:
-      #      - user-db
       - car-db
-#      - booking-db
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.6.1
+    container_name: keycloak
+    restart: unless-stopped
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "8090:8080"
+    command:
+      - start-dev
+
 
 # =====================================================
-# Volumes
+# Глобальні томи (Volumes)
 # =====================================================
 volumes:
   user_postgres_data:
@@ -229,7 +260,7 @@ volumes:
   payment_postgres_data:
 
 # =====================================================
-# Network
+# Глобальна мережа (Network)
 # =====================================================
 networks:
   car-sharing-network:
