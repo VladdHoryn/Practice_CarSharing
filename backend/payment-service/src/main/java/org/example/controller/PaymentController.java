@@ -12,6 +12,7 @@ import org.example.dto.MarkAsProcessingRequest;
 import org.example.dto.UpdatePaymentRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ public class PaymentController {
 
     private final PaymentApplicationService paymentApplicationService;
 
+    @PreAuthorize("hasAnyRole('RENTER', 'ADMINISTRATOR')")
     @PostMapping
     public ResponseEntity<Payment> createPayment(@RequestBody @Valid CreatePaymentRequest request) {
 
@@ -48,6 +50,7 @@ public class PaymentController {
         return ResponseEntity.ok(paymentApplicationService.getById(id));
     }
 
+  @PreAuthorize("hasRole('ADMINISTRATOR')")
     @GetMapping
     public ResponseEntity<List<Payment>> getAll() {
 
@@ -56,6 +59,7 @@ public class PaymentController {
         return ResponseEntity.ok(paymentApplicationService.getAll());
     }
 
+  @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PutMapping("/{id}")
     public ResponseEntity<Payment> updatePayment(
             @PathVariable Long id, @RequestBody @Valid UpdatePaymentRequest request) {
@@ -69,6 +73,7 @@ public class PaymentController {
         return ResponseEntity.ok(updatedPayment);
     }
 
+  @PreAuthorize("hasRole('ADMINISTRATOR')")
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deletePayment(@PathVariable Long id) {
@@ -78,12 +83,14 @@ public class PaymentController {
         paymentApplicationService.deletePayment(id);
     }
 
+  @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PatchMapping("/{id}/pending")
     public ResponseEntity<Payment> markAsPending(@PathVariable Long id) {
 
         return ResponseEntity.ok(paymentApplicationService.markAsPending(id));
     }
 
+  @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PatchMapping("/{id}/processing")
     public ResponseEntity<Payment> markAsProcessing(
             @PathVariable Long id, @RequestBody @Valid MarkAsProcessingRequest request) {
@@ -93,24 +100,28 @@ public class PaymentController {
                         id, request.providerPaymentId(), request.clientSecret()));
     }
 
+  @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PatchMapping("/{id}/success")
     public ResponseEntity<Payment> markAsSuccess(@PathVariable Long id) {
 
         return ResponseEntity.ok(paymentApplicationService.markAsSuccess(id));
     }
 
+  @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PatchMapping("/{id}/failed")
     public ResponseEntity<Payment> markAsFailed(@PathVariable Long id) {
 
         return ResponseEntity.ok(paymentApplicationService.markAsFailed(id));
     }
 
+  @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PatchMapping("/{id}/cancel")
     public ResponseEntity<Payment> cancelPayment(@PathVariable Long id) {
 
         return ResponseEntity.ok(paymentApplicationService.cancelPayment(id));
     }
 
+  @PreAuthorize("hasAnyRole('RENTER', 'ADMINISTRATOR')")
     @PatchMapping("/{id}/refund")
     public ResponseEntity<Payment> refundPayment(@PathVariable Long id) {
 
