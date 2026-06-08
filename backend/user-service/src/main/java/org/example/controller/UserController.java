@@ -40,27 +40,27 @@ public class UserController {
   }
 
     @PreAuthorize("#keycloakId == authentication.name or hasRole('ADMINISTRATOR')")
-    @PutMapping("/{keycloakId}")
+    @PutMapping("keycloak/{keycloakId}")
     public ResponseEntity<UserResponse> updateUser(
             @PathVariable String keycloakId, @RequestBody UserRequest request) {
         return ResponseEntity.ok(userService.updateUser(keycloakId, request));
     }
 
     @PreAuthorize("hasRole('ADMINISTRATOR')")
-    @DeleteMapping("/{keycloakId}")
+    @DeleteMapping("keycloak/{keycloakId}")
     public ResponseEntity<Void> deleteUser(@PathVariable String keycloakId) {
         userService.deleteUser(keycloakId);
         return ResponseEntity.noContent().build();
     }
 
   @PreAuthorize("hasRole('ADMINISTRATOR')")
-    @PatchMapping("/{keycloakId}/activate")
+    @PatchMapping("keycloak/{keycloakId}/activate")
     public ResponseEntity<UserResponse> activateUser(@PathVariable String keycloakId) {
         return ResponseEntity.ok(userService.activateUser(keycloakId));
     }
 
   @PreAuthorize("hasRole('ADMINISTRATOR')")
-    @PatchMapping("/{keycloakId}/deactivate")
+    @PatchMapping("keycloak/{keycloakId}/deactivate")
     public ResponseEntity<UserResponse> deactivateUser(@PathVariable String keycloakId) {
         return ResponseEntity.ok(userService.deactivateUser(keycloakId));
     }
