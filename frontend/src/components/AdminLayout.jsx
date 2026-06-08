@@ -25,31 +25,35 @@ const AdminLayout = () => {
     return (
         <div className={styles.adminContainer}>
             <header className={styles.adminHeader}>
-                <div className={styles.logo} onClick={() => navigate('/')}>
-                    CarLink <span className={styles.badge}>ADMIN</span>
+                <div className={styles.logoStatic}>
+                    CarLink<span>°</span> <span className={styles.badge}>ADMIN PANEL</span>
                 </div>
-                <nav className={styles.navMenu}>
-                    {menuItems.map((item) => (
-                        <NavLink
-                            key={item.path}
-                            to={item.path}
-                            className={({ isActive }) => isActive ? `${styles.navLink} ${styles.active}` : styles.navLink}
-                        >
-                            {item.label}
-                        </NavLink>
-                    ))}
-                </nav>
+
                 <div className={styles.adminProfile}>
-                    <span>{user.fullName || 'Адміністратор'}</span>
+                    <span className={styles.adminName}>👤 {user.fullName || 'Адміністратор'}</span>
                     <button onClick={handleLogout} className={styles.logoutBtn}>Вихід</button>
                 </div>
             </header>
 
+            <div className={styles.adminWorkspace}>
+                <aside className={styles.sidebar}>
+                    <nav className={styles.sidebarNav}>
+                        {menuItems.map((item) => (
+                            <NavLink
+                                key={item.path}
+                                to={item.path}
+                                className={({ isActive }) => isActive ? `${styles.sidebarLink} ${styles.activeLink}` : styles.sidebarLink}
+                            >
+                                {item.label}
+                            </NavLink>
+                        ))}
+                    </nav>
+                </aside>
 
-            <main className={styles.adminMain}>
-                <Outlet />
-            </main>
-
+                <main className={styles.adminMain}>
+                    <Outlet />
+                </main>
+            </div>
         </div>
     );
 };
