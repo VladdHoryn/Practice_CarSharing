@@ -22,9 +22,20 @@ spring:
       ddl-auto: validate
     show-sql: true
 
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
-      - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8090/realms/carsharing-realm
+          jwk-set-uri: http://keycloak:8080/realms/carsharing-realm/protocol/openid-connect/certs
 server:
   port: 8083
+
+logging:
+  level:
+    org.example: DEBUG
+    org.springframework.web: INFO
+    org.springframework.security: TRACE
+    org.springframework.security.oauth2: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
