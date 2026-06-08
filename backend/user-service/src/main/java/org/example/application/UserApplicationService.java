@@ -106,10 +106,10 @@ public class UserApplicationService {
   }
 
   // UPDATE
-  public UserResponse updateUser(Long id, UserRequest request) {
+  public UserResponse updateUser(String keycloakId, UserRequest request) {
     User user =
       userRepository
-        .findById(id)
+        .findByKeycloakId(keycloakId)
         .orElseThrow(() -> new RuntimeException("User not found"));
 
     user.setFullName(request.getFullName());
@@ -123,15 +123,15 @@ public class UserApplicationService {
   }
 
   // DELETE (soft delete через deactivate)
-  public void deleteUser(Long id) {
-    userRepository.deleteById(id);
+  public void deleteUser(String keycloakId) {
+    userRepository.deleteByKeycloakId(keycloakId);
   }
 
   // ACTIVATE USER
-  public UserResponse activateUser(Long id) {
+  public UserResponse activateUser(String keycloakId) {
     User user =
       userRepository
-        .findById(id)
+        .findByKeycloakId(keycloakId)
         .orElseThrow(() -> new RuntimeException("User not found"));
 
     user.activate();
@@ -139,10 +139,10 @@ public class UserApplicationService {
   }
 
   // DEACTIVATE USER
-  public UserResponse deactivateUser(Long id) {
+  public UserResponse deactivateUser(String keycloakId) {
     User user =
       userRepository
-        .findById(id)
+        .findByKeycloakId(keycloakId)
         .orElseThrow(() -> new RuntimeException("User not found"));
 
     user.deactivate();
