@@ -99,7 +99,7 @@ public class BookingController {
         return ResponseEntity.ok(toResponse(bookingService.completeBooking(id)));
     }
 
-  @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBooking(@PathVariable Long id) {
         bookingService.deleteBooking(id);

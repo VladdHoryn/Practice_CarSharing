@@ -5,8 +5,6 @@ import java.util.List;
 import jakarta.validation.Valid;
 
 import org.example.application.UserApplicationService;
-import org.example.dto.AuthResponse;
-import org.example.dto.LoginRequest;
 import org.example.dto.UserRequest;
 import org.example.dto.UserResponse;
 import org.springframework.http.ResponseEntity;
@@ -33,11 +31,11 @@ public class UserController {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
-  @PreAuthorize("#keycloakId == authentication.name or hasRole('ADMINISTRATOR')")
-  @GetMapping("keycloak/{keycloakId}")
-  public ResponseEntity<UserResponse> getUserByKeycloakId(@PathVariable String keycloakId) {
-    return ResponseEntity.ok(userService.getUserByKeycloakId(keycloakId));
-  }
+    @PreAuthorize("#keycloakId == authentication.name or hasRole('ADMINISTRATOR')")
+    @GetMapping("keycloak/{keycloakId}")
+    public ResponseEntity<UserResponse> getUserByKeycloakId(@PathVariable String keycloakId) {
+        return ResponseEntity.ok(userService.getUserByKeycloakId(keycloakId));
+    }
 
     @PreAuthorize("#keycloakId == authentication.name or hasRole('ADMINISTRATOR')")
     @PutMapping("keycloak/{keycloakId}")
@@ -53,13 +51,13 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-  @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PatchMapping("keycloak/{keycloakId}/activate")
     public ResponseEntity<UserResponse> activateUser(@PathVariable String keycloakId) {
         return ResponseEntity.ok(userService.activateUser(keycloakId));
     }
 
-  @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PatchMapping("keycloak/{keycloakId}/deactivate")
     public ResponseEntity<UserResponse> deactivateUser(@PathVariable String keycloakId) {
         return ResponseEntity.ok(userService.deactivateUser(keycloakId));

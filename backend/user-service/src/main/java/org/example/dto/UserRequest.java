@@ -1,6 +1,5 @@
 package org.example.dto;
 
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;
 
 import org.example.domain.UserRole;

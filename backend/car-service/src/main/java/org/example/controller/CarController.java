@@ -86,20 +86,19 @@ public class CarController {
         return ResponseEntity.ok(carService.getAllCars().stream().map(this::toResponse).toList());
     }
 
-  @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
     @GetMapping("/unconfirmed")
     public ResponseEntity<List<CarResponse>> getAllUnconfirmedCars() {
         return ResponseEntity.ok(
                 carService.getUnconfirmedCars().stream().map(this::toResponse).toList());
     }
 
-  @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
     @GetMapping("/owner/{id}")
     public ResponseEntity<List<CarResponse>> getCarsByUserId(@PathVariable Long id) {
         return ResponseEntity.ok(
                 carService.getCarsByUserId(id).stream().map(this::toResponse).toList());
     }
-
 
     @GetMapping("/available")
     public ResponseEntity<List<CarResponse>> getAvailableCars() {
@@ -112,7 +111,6 @@ public class CarController {
         return carService.isAvailableById(id);
     }
 
-
     @PreAuthorize("hasAnyRole('RENTER', 'ADMINISTRATOR')")
     @PostMapping("/{carId}/rent")
     public ResponseEntity<CarResponse> rentCar(
@@ -120,25 +118,25 @@ public class CarController {
         return ResponseEntity.ok(toResponse(carService.rentCar(carId, request.userId())));
     }
 
-  @PreAuthorize("hasAnyRole('RENTER', 'ADMINISTRATOR')")
+    @PreAuthorize("hasAnyRole('RENTER', 'ADMINISTRATOR')")
     @PostMapping("/{carId}/return")
     public ResponseEntity<CarResponse> returnCar(@PathVariable Long carId) {
         return ResponseEntity.ok(toResponse(carService.returnCar(carId)));
     }
 
-  @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
     @PostMapping("/{carId}/maintenance")
     public ResponseEntity<CarResponse> sendToMaintenance(@PathVariable Long carId) {
         return ResponseEntity.ok(toResponse(carService.sendToMaintenance(carId)));
     }
 
-  @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
     @PostMapping("/{carId}/maintenance/complete")
     public ResponseEntity<CarResponse> completeMaintenance(@PathVariable Long carId) {
         return ResponseEntity.ok(toResponse(carService.completeMaintenance(carId)));
     }
 
-  @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCar(@PathVariable Long id) {
         carService.deleteCar(id);

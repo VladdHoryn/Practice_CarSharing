@@ -50,7 +50,7 @@ public class PaymentController {
         return ResponseEntity.ok(paymentApplicationService.getById(id));
     }
 
-  @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @GetMapping
     public ResponseEntity<List<Payment>> getAll() {
 
@@ -59,7 +59,7 @@ public class PaymentController {
         return ResponseEntity.ok(paymentApplicationService.getAll());
     }
 
-  @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PutMapping("/{id}")
     public ResponseEntity<Payment> updatePayment(
             @PathVariable Long id, @RequestBody @Valid UpdatePaymentRequest request) {
@@ -73,7 +73,7 @@ public class PaymentController {
         return ResponseEntity.ok(updatedPayment);
     }
 
-  @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deletePayment(@PathVariable Long id) {
@@ -83,14 +83,14 @@ public class PaymentController {
         paymentApplicationService.deletePayment(id);
     }
 
-  @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PatchMapping("/{id}/pending")
     public ResponseEntity<Payment> markAsPending(@PathVariable Long id) {
 
         return ResponseEntity.ok(paymentApplicationService.markAsPending(id));
     }
 
-  @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PatchMapping("/{id}/processing")
     public ResponseEntity<Payment> markAsProcessing(
             @PathVariable Long id, @RequestBody @Valid MarkAsProcessingRequest request) {
@@ -100,28 +100,28 @@ public class PaymentController {
                         id, request.providerPaymentId(), request.clientSecret()));
     }
 
-  @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PatchMapping("/{id}/success")
     public ResponseEntity<Payment> markAsSuccess(@PathVariable Long id) {
 
         return ResponseEntity.ok(paymentApplicationService.markAsSuccess(id));
     }
 
-  @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PatchMapping("/{id}/failed")
     public ResponseEntity<Payment> markAsFailed(@PathVariable Long id) {
 
         return ResponseEntity.ok(paymentApplicationService.markAsFailed(id));
     }
 
-  @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PatchMapping("/{id}/cancel")
     public ResponseEntity<Payment> cancelPayment(@PathVariable Long id) {
 
         return ResponseEntity.ok(paymentApplicationService.cancelPayment(id));
     }
 
-  @PreAuthorize("hasAnyRole('RENTER', 'ADMINISTRATOR')")
+    @PreAuthorize("hasAnyRole('RENTER', 'ADMINISTRATOR')")
     @PatchMapping("/{id}/refund")
     public ResponseEntity<Payment> refundPayment(@PathVariable Long id) {
 
