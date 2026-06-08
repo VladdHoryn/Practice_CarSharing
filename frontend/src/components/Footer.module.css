@@ -1,7 +1,7 @@
 .footer {
     background-color: #f8f9fa;
     width: 100%;
-    margin-top: auto; /* Притискає футер до низу екрану */
+    margin-top: auto;
 }
 
 .mainFooter {
@@ -70,7 +70,7 @@
     transform: scale(1.1);
 }
 
-/* Кольори соцмереж як на макеті */
+
 .instagram { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); }
 .telegram { background-color: #27A7E7; }
 .viber { background-color: #7360F2; }

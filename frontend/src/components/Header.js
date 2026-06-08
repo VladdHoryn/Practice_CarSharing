@@ -9,30 +9,27 @@ const Header = () => {
 
     return (
         <header className={styles.header}>
-            {/* Логотип */}
             <Link to="/catalog" className={styles.logo}>
                 CarLink<span>°</span>
             </Link>
 
-            {/* Навігація */}
             <nav className={styles.nav}>
                 <Link to="/" className={styles.navLink}>Головна</Link>
                 <Link to="/catalog" className={styles.navLink}>Автопарк</Link>
 
-                {/* ⚙️ Посилання для адміністратора всередині меню */}
                 {isAdmin && (
                     <Link to="/admin/dashboard" className={`${styles.navLink} ${styles.adminLink}`}>
                         Панель адміна
                     </Link>
                 )}
 
-                {/* Чисті посилання без лишніх роутів всередині */}
+
                 <Link to="/terms" className={styles.navLink}>Умови та Ціни</Link>
                 <Link to="/about" className={styles.navLink}>Про нас & Блог</Link>
                 <Link to="/contacts" className={styles.navLink}>Контакти</Link>
             </nav>
 
-            {/* Права секція (Мова + Профіль) */}
+
             <div className={styles.rightSection}>
                 <div className={styles.languageSelect}>
                     Виберіть мову:

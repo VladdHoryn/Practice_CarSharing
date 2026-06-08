@@ -24,34 +24,36 @@ const AdminLayout = () => {
 
     return (
         <div className={styles.adminContainer}>
-            {/* 1) Спеціальний Header для Адміністратора */}
             <header className={styles.adminHeader}>
-                <div className={styles.logo} onClick={() => navigate('/')}>
-                    CarLink <span className={styles.badge}>ADMIN</span>
+                <div className={styles.logoStatic}>
+                    CarLink<span>°</span> <span className={styles.badge}>ADMIN PANEL</span>
                 </div>
-                <nav className={styles.navMenu}>
-                    {menuItems.map((item) => (
-                        <NavLink
-                            key={item.path}
-                            to={item.path}
-                            className={({ isActive }) => isActive ? `${styles.navLink} ${styles.active}` : styles.navLink}
-                        >
-                            {item.label}
-                        </NavLink>
-                    ))}
-                </nav>
+
                 <div className={styles.adminProfile}>
-                    <span>{user.fullName || 'Адміністратор'}</span>
+                    <span className={styles.adminName}>👤 {user.fullName || 'Адміністратор'}</span>
                     <button onClick={handleLogout} className={styles.logoutBtn}>Вихід</button>
                 </div>
             </header>
 
-            {/* Контентна область (Сюди рендериться активна вкладка) */}
-            <main className={styles.adminMain}>
-                <Outlet />
-            </main>
+            <div className={styles.adminWorkspace}>
+                <aside className={styles.sidebar}>
+                    <nav className={styles.sidebarNav}>
+                        {menuItems.map((item) => (
+                            <NavLink
+                                key={item.path}
+                                to={item.path}
+                                className={({ isActive }) => isActive ? `${styles.sidebarLink} ${styles.activeLink}` : styles.sidebarLink}
+                            >
+                                {item.label}
+                            </NavLink>
+                        ))}
+                    </nav>
+                </aside>
 
-            {/* 2) Footer відсутній за твоєю вимогою */}
+                <main className={styles.adminMain}>
+                    <Outlet />
+                </main>
+            </div>
         </div>
     );
 };

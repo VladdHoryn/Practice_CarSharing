@@ -6,7 +6,7 @@
 .queueList { display: flex; flex-direction: column; gap: 25px; }
 .moderationCard { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px; display: flex; gap: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.01); }
 
-/* Блоки картки */
+
 .detailsBlock { flex: 1.2; display: flex; flex-direction: column; gap: 20px; }
 .docsBlock { flex: 0.8; display: flex; flex-direction: column; gap: 15px; border-left: 1px solid #f1f5f9; padding-left: 30px; }
 
@@ -15,14 +15,12 @@
 .vinText code { background: #f1f5f9; padding: 3px 6px; border-radius: 4px; font-weight: 700; color: #0f172a; }
 .metaText { margin: 0; font-size: 13px; color: #64748b; }
 
-/* Галерея картинок авто */
 .gallerySection h4, .docsBlock h4 { margin: 0; font-size: 14px; color: #475569; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
 .photosGrid { display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap; }
 .photoThumb { width: 110px; height: 75px; border-radius: 6px; overflow: hidden; border: 1px solid #cbd5e1; cursor: pointer; transition: 0.2s; }
 .photoThumb img { width: 100%; height: 100%; object-fit: cover; }
 .photoThumb:hover { transform: scale(1.03); border-color: #3ba4f6; }
 
-/* Картки документів */
 .docsContainer { display: flex; flex-direction: column; gap: 12px; margin-top: 5px; }
 .docRowCard { display: flex; align-items: center; gap: 15px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
 .docRowCard:hover { border-color: #3ba4f6; background: #f0f7fe; }
@@ -30,7 +28,6 @@
 .docRowCard strong { display: block; font-size: 14px; color: #1e293b; }
 .docRowCard small { font-size: 11px; color: #64748b; }
 
-/* Кнопки дій */
 .actionButtons { display: flex; gap: 12px; margin-top: auto; padding-top: 15px; }
 .rejectBtn, .approveBtn { flex: 1; padding: 11px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: 0.15s; }
 .rejectBtn { background: #fff; color: #64748b; border: 1px solid #e2e8f0; }
@@ -38,7 +35,6 @@
 .approveBtn { background: #3ba4f6; color: white; }
 .approveBtn:hover { background: #258cdb; }
 
-/* Lightbox */
 .lightboxOverlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.9); z-index: 3000; display: flex; }
 .lightboxContainer { display: flex; flex-direction: column; width: 100vw; height: 100vh; }
 .toolbar { display: flex; justify-content: center; gap: 15px; background: rgba(30, 41, 59, 0.85); padding: 15px; backdrop-filter: blur(5px); z-index: 3100; }
@@ -47,7 +43,6 @@
 .imageWrapper { flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 40px; }
 .imageWrapper img { max-width: 90%; max-height: 80vh; object-fit: contain; box-shadow: 0 10px 40px rgba(0,0,0,0.5); transition: transform 0.2s ease-out; }
 
-/* Модалка відхилення */
 .modalOverlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.4); display: flex; align-items: center; justify-content: center; z-index: 2000; }
 .modal { background: white; padding: 30px; border-radius: 12px; width: 480px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 15px; }
 .modal h3 { margin: 0; font-size: 18px; color: #0f172a; }

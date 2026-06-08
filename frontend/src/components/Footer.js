@@ -6,12 +6,11 @@ const Footer = () => {
         <footer className={styles.footer}>
             <div className={styles.mainFooter}>
 
-                {/* Логотип */}
+
                 <div className={styles.logo}>
                     CarLink<span>°</span>
                 </div>
 
-                {/* Графік роботи */}
                 <div className={styles.infoBlock}>
                     <div>
                         <strong>Графік роботи:</strong>
@@ -19,12 +18,10 @@ const Footer = () => {
                     </div>
                 </div>
 
-                {/* Телефон */}
                 <div className={styles.phoneBlock}>
                     📱 +38 (xxx)x-xxx-xxx
                 </div>
 
-                {/* Соцмережі */}
                 <div className={styles.socials}>
                     <a href="/" className={`${styles.socialIcon} ${styles.instagram}`}>📷</a>
                     <a href="/" className={`${styles.socialIcon} ${styles.telegram}`}>✈️</a>
@@ -34,9 +31,8 @@ const Footer = () => {
 
             </div>
 
-            {/* Нижній рядок (Копірайт) */}
             <div className={styles.bottomBar}>
-                Car-Link © 2025 – Прокат автомобілів – Stat
+                Car-Link © 2026 – Прокат автомобілів – Stat
             </div>
         </footer>
     );

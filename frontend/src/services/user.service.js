@@ -2,7 +2,6 @@ import apiClient from '../api/apiClient';
 
 export const userService = {
     getAllUsers: async (params) => {
-        // params включає page, size, search
         const response = await apiClient.get('/user/v1/admin/users', { params });
         return response.data;
     },

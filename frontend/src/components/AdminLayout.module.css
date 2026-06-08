@@ -2,7 +2,7 @@
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    background-color: #f8fafc; /* Світлий приємний фон сайту */
+    background-color: #f8fafc;
     font-family: system-ui, -apple-system, sans-serif;
 }
 
@@ -10,62 +10,38 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background-color: #2c3e50; /* Темно-синій відтінок, як нижній блок на скріншоті */
-    color: #fff;
+    background-color: #ffffff;
     padding: 0 40px;
     height: 70px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    border-bottom: 1px solid #e2e8f0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
-.logo {
+.logoStatic {
     font-size: 22px;
     font-weight: 800;
-    cursor: pointer;
-    color: #fff;
+    color: #0f172a;
     letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    user-select: none;
 }
-
-.logo span {
+.logoStatic span {
     color: #3ba4f6;
 }
 
 .badge {
     font-size: 10px;
-    background: #3ba4f6; /* Замість червоного — приємний блакитний бренд-колір */
+    background: #1e293b;
     color: white;
-    padding: 2px 6px;
+    padding: 3px 8px;
     border-radius: 4px;
-    margin-left: 6px;
-    font-weight: bold;
+    font-weight: 700;
     text-transform: uppercase;
-}
-
-.navMenu {
-    display: flex;
-    gap: 5px;
-    height: 100%;
-}
-
-.navLink {
-    display: flex;
-    align-items: center;
-    color: #94a3b8; /* Спокійний сірий */
-    text-decoration: none;
-    padding: 0 16px;
-    font-size: 14px;
-    font-weight: 600;
-    height: 70px;
-    transition: all 0.2s ease;
-}
-
-.navLink:hover {
-    color: #fff;
-    background-color: rgba(255, 255, 255, 0.05);
-}
-
-.navLink.active {
-    color: #fff;
-    background-color: #3ba4f6; /* Активна вкладка виділяється фірмовим синім */
+    letter-spacing: 0.5px;
 }
 
 .adminProfile {
@@ -74,34 +50,77 @@
     gap: 20px;
 }
 
-.adminProfile span {
+.adminName {
     font-size: 14px;
-    font-weight: 500;
-    color: #e2e8f0;
+    font-weight: 600;
+    color: #475569;
 }
 
 .logoutBtn {
     background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    color: #fff;
-    padding: 6px 14px;
+    border: 1px solid #cbd5e1;
+    color: #64748b;
+    padding: 8px 16px;
     border-radius: 6px;
     cursor: pointer;
     font-size: 13px;
     font-weight: 600;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
 }
 
 .logoutBtn:hover {
-    background: #ef4444;
-    border-color: #ef4444;
+    background: #fef2f2;
+    color: #ef4444;
+    border-color: #fca5a5;
+}
+
+.adminWorkspace {
+    display: flex;
+    flex: 1;
+}
+
+.sidebar {
+    width: 260px;
+    background-color: #ffffff;
+    border-right: 1px solid #e2e8f0;
+    padding: 24px 16px;
+    box-sizing: border-box;
+}
+
+.sidebarNav {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: sticky;
+    top: 94px;
+}
+
+.sidebarLink {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    color: #475569;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sidebarLink:hover {
+    color: #0f172a;
+    background-color: #f1f5f9;
+}
+
+.activeLink {
+    color: #ffffff !important;
+    background-color: #3ba4f6;
+    box-shadow: 0 4px 12px rgba(59, 164, 246, 0.2);
 }
 
 .adminMain {
     flex: 1;
     padding: 40px;
-    max-width: 1400px;
-    width: 100%;
-    margin: 0 auto;
+    max-width: 1200px;
     box-sizing: border-box;
 }

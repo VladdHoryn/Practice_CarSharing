@@ -1,20 +1,16 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 
-// Компоненти сповіщень та стилі
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './App.css';
 
-// Базові компоненти інтерфейсу
 import Header from './components/Header';
 import Footer from './components/Footer';
 
-// Компоненти захисту та структури адмінки
 import AdminRoute from './components/AdminRoute';
 import AdminLayout from './components/AdminLayout';
 
-// Публічні та користувацькі сторінки
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import CarCatalogPage from './pages/CarCatalogPage';
@@ -25,7 +21,7 @@ import HomePage from './pages/HomePage';
 import RentalTermsPage from './pages/RentalTermsPage';
 import AboutAndBlogPage from './pages/AboutAndBlogPage';
 import ContactsPage from './pages/ContactsPage';
-// Сторінки адміністратора (Вкладки)
+
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UserManagement from './pages/admin/UserManagement';
 import CarManagement from './pages/admin/CarManagement';
@@ -34,22 +30,29 @@ import PaymentManagement from './pages/admin/PaymentManagement';
 import KycManagement from './pages/admin/KycManagement';
 import CarModeration from './pages/admin/CarModeration';
 
-// Внутрішній макет для звичайних користувачів (щоб ізолювати Header/Footer від адміна)
-const UserLayout = () => (
-    <div className="app-container">
-        <Header />
-        <main className="main-content">
-            <Outlet /> {/* Сюди рендеряться сторінки користувача */}
-        </main>
-        <Footer />
-    </div>
-);
+const UserLayout = () => {
+    const userStr = localStorage.getItem('user');
+    const user = userStr ? JSON.parse(userStr) : null;
+
+    if (user && user.role === 'ADMINISTRATOR') {
+        return <Navigate to="/admin/dashboard" replace />;
+    }
+
+    return (
+        <div className="app-container">
+            <Header />
+            <main className="main-content">
+                <Outlet />
+            </main>
+            <Footer />
+        </div>
+    );
+};
 
 function App() {
     return (
         <Router>
             <Routes>
-                {}
                 <Route element={<UserLayout />}>
                     <Route path="/" element={<HomePage />} />
                     <Route path="/catalog" element={<CarCatalogPage />} />
@@ -59,14 +62,11 @@ function App() {
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
 
-                    {/* Зв'язуємо решту пунктів меню із нашими новими компонентами */}
                     <Route path="/terms" element={<RentalTermsPage />} />
                     <Route path="/about" element={<AboutAndBlogPage />} />
                     <Route path="/contacts" element={<ContactsPage />} />
                 </Route>
-                {/* =====================================================
-                    2. 🔐 ЗАХИЩЕНІ МАРШРУТИ АДМІНА (Без старого Header/Footer)
-                   ===================================================== */}
+
                 <Route element={<AdminRoute />}>
                     <Route element={<AdminLayout />}>
                         <Route path="/admin/dashboard" element={<AdminDashboard />} />
@@ -76,10 +76,10 @@ function App() {
                         <Route path="/admin/payments" element={<PaymentManagement />} />
                         <Route path="/admin/kyc" element={<KycManagement />} />
                         <Route path="/admin/moderation" element={<CarModeration />} />
+                        <Route path="/admin/*" element={<Navigate to="/admin/dashboard" replace />} />
                     </Route>
                 </Route>
 
-                {/* Сторінка помилки доступу (Поза всіма макетами) */}
                 <Route path="/403" element={
                     <div style={{ padding: '100px', textAlign: 'center', background: '#f4f6f9', minHeight: '100vh' }}>
                         <h2 style={{ color: '#ef4444', fontSize: '28px' }}>Помилка 403: Доступ обмежено</h2>
@@ -89,7 +89,6 @@ function App() {
                 } />
             </Routes>
 
-            {/* Глобальний контейнер для красивих тостів */}
             <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
         </Router>
     );

@@ -1,11 +1,9 @@
-/* src/pages/RegisterPage.module.css */
-
 .pageContainer {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: calc(100vh - 160px); /* Віднімаємо висоту хедера та футера */
-  background-color: #f8f9fa; /* Світло-сірий фон з макету */
+  min-height: calc(100vh - 160px);
+  background-color: #f8f9fa;
   padding: 40px 20px;
 }
 
@@ -16,7 +14,7 @@
   padding: 40px;
   border-radius: 8px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  border: 1px dashed #4da6ff; /* Пунктирна рамка з макету (для розробки можна змінити на solid або прибрати) */
+  border: 1px dashed #4da6ff;
 }
 
 .title {
@@ -79,7 +77,6 @@
   cursor: pointer;
 }
 
-/* --- Світч (Toggle) "Орендар / Здати авто" --- */
 .roleToggle {
   display: flex;
   justify-content: center;
@@ -130,17 +127,17 @@
 }
 
 input:checked + .slider {
-  background-color: #3b5998; /* Темно-синій з макету */
+  background-color: #3b5998;
 }
 
 input:checked + .slider:before {
   transform: translateX(22px);
 }
 
-/* --- Кнопки та посилання --- */
+
 .submitBtn {
   width: 100%;
-  background-color: #3b5998; /* Темно-синій колір кнопки */
+  background-color: #3b5998;
   color: #ffffff;
   border: none;
   border-radius: 6px;

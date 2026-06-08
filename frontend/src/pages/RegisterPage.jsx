@@ -14,7 +14,6 @@ const RegisterPage = () => {
     password: '',
     confirmPassword: '',
     isOwner: false
-    // Remember me видалено
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -51,7 +50,6 @@ const RegisterPage = () => {
 
       await authService.register(userData);
 
-      // Виводимо красиве сповіщення замість alert
       toast.success('Реєстрація успішна! 🎉 Тепер ви можете увійти.');
       navigate('/login');
 
@@ -59,7 +57,7 @@ const RegisterPage = () => {
       console.error('Помилка реєстрації:', err);
       const errorMsg = err.response?.data?.message || "Помилка при реєстрації. Спробуйте ще раз.";
       setError(errorMsg);
-      toast.error(errorMsg); // Виводимо помилку гарним вікном
+      toast.error(errorMsg);
     } finally {
       setIsLoading(false);
     }
@@ -105,7 +103,6 @@ const RegisterPage = () => {
             </div>
           </div>
 
-          {/* Галочка Remember me ПРИБРАНА */}
 
           <div className={styles.roleToggle}>
             <span style={{ color: !formData.isOwner ? '#333' : '#999' }}>Я хочу орендувати</span>

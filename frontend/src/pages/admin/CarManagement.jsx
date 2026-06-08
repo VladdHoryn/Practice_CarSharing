@@ -8,7 +8,6 @@ const CarManagement = () => {
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // Стейт для форми нового/редагованого авто
     const [formData, setFormData] = useState({
         brand: '',
         model: '',
@@ -16,17 +15,16 @@ const CarManagement = () => {
         pricePerDay: '',
         status: 'AVAILABLE',
         vin: '',
-        images: [] // Готовність до масиву файлів
+        images: []
     });
 
     const fetchFleet = async () => {
         try {
             setLoading(true);
-            const data = await carService.getAllCars(); // Припускаємо наявність методу в car.service
+            const data = await carService.getAllCars();
             setCars(data);
         } catch (err) {
             console.error('Помилка завантаження автопарку:', err);
-            // Мокові дані для автономного тестування інтерфейсу
             setCars([
                 { id: 1, brand: 'Toyota', model: 'Yaris', year: 2021, pricePerDay: 25, status: 'AVAILABLE', vin: 'JT1BR32K00DXXXXXX' },
                 { id: 2, brand: 'Tesla', model: 'Model 3', year: 2022, pricePerDay: 60, status: 'MAINTENANCE', vin: '5YJ3E1EB7NFXXXXXX' },
@@ -43,7 +41,6 @@ const CarManagement = () => {
 
     const handleStatusChange = async (carId, newStatus) => {
         try {
-            // Виклик API для оновлення статусу
             if (carService.updateCarStatus) {
                 await carService.updateCarStatus(carId, newStatus);
             }

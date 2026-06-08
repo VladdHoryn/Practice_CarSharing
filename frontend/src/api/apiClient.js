@@ -9,7 +9,7 @@ const apiClient = axios.create({
     },
 });
 
-// Інтерцептори запиту/відповіді (залишаються як були)
+
 apiClient.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('token');
