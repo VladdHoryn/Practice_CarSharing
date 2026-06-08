@@ -21,50 +21,6 @@ import lombok.RequiredArgsConstructor;
 public class UserApplicationService {
   private final UserRepository userRepository;
 
-//    public AuthResponse register(UserRequest request) {
-//
-//        if (userRepository.existsByEmail(request.getEmail())) {
-//            throw new RuntimeException("User with this email already exists");
-//        }
-//
-//        User user = new User();
-//
-//        user.setFullName(request.getFullName());
-//        user.setEmail(request.getEmail());
-////        user.setPasswordHash(encodePassword(request.getPassword()));
-//
-//        user.setRole(request.getRole() != null ? request.getRole() : UserRole.RENTER);
-//
-//        User savedUser = userRepository.save(user);
-//
-//        return AuthResponse.builder()
-//                .message("Registration successful")
-//                .user(mapToResponse(savedUser))
-//                .build();
-//    }
-//
-//    public AuthResponse login(LoginRequest request) {
-//
-//        User user =
-//                userRepository
-//                        .findByEmail(request.getEmail())
-//                        .orElseThrow(
-//                                () -> new InvalidCredentialsException("Invalid email or password"));
-//
-//        if (!user.isActive()) {
-//            throw new RuntimeException("Account is deactivated");
-//        }
-//
-////        boolean passwordMatches =
-////                passwordEncoder.matches(request.getPassword(), user.getPasswordHash());
-//
-////        if (!passwordMatches) {
-////            throw new InvalidCredentialsException("Invalid email or password");
-////        }
-//
-//        return AuthResponse.builder().message("Login successful").user(mapToResponse(user)).build();
-//    }
-
   // CREATE
   public UserResponse createUser(UserRequest request) {
     if (userRepository.existsByEmail(request.getEmail())) {
@@ -75,7 +31,6 @@ public class UserApplicationService {
     user.setKeycloakId(request.getKeycloakId());
     user.setFullName(request.getFullName());
     user.setEmail(request.getEmail());
-//        user.setPasswordHash(encodePassword(request.getPassword()));
     user.setRole(request.getRole() != null ? request.getRole() : UserRole.RENTER);
 
     User savedUser = userRepository.save(user);
