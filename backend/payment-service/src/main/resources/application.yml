@@ -16,9 +16,11 @@ spring:
       ddl-auto: validate
     show-sql: true
 
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
-      - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8090/realms/carsharing-realm
+          jwk-set-uri: http://keycloak:8080/realms/carsharing-realm/protocol/openid-connect/certs
 server:
   port: 8084
