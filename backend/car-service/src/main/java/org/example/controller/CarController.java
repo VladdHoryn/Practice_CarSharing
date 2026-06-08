@@ -12,6 +12,7 @@ import org.example.dto.CarResponse;
 import org.example.dto.CreateCarRequest;
 import org.example.dto.RentCarRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,7 @@ public class CarController {
                 car.getImageUrl());
     }
 
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
     @PostMapping
     public ResponseEntity<CarResponse> createCar(@RequestBody @Valid CreateCarRequest request) {
         Car car = new Car();
@@ -54,6 +56,7 @@ public class CarController {
                 .body(toResponse(createdCar));
     }
 
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
     @PutMapping("/{id}")
     public ResponseEntity<CarResponse> updateCar(
             @PathVariable Long id, @RequestBody @Valid CreateCarRequest request) {
@@ -83,17 +86,20 @@ public class CarController {
         return ResponseEntity.ok(carService.getAllCars().stream().map(this::toResponse).toList());
     }
 
+  @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
     @GetMapping("/unconfirmed")
     public ResponseEntity<List<CarResponse>> getAllUnconfirmedCars() {
         return ResponseEntity.ok(
                 carService.getUnconfirmedCars().stream().map(this::toResponse).toList());
     }
 
+  @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
     @GetMapping("/owner/{id}")
     public ResponseEntity<List<CarResponse>> getCarsByUserId(@PathVariable Long id) {
         return ResponseEntity.ok(
                 carService.getCarsByUserId(id).stream().map(this::toResponse).toList());
     }
+
 
     @GetMapping("/available")
     public ResponseEntity<List<CarResponse>> getAvailableCars() {
@@ -106,27 +112,33 @@ public class CarController {
         return carService.isAvailableById(id);
     }
 
+
+    @PreAuthorize("hasAnyRole('RENTER', 'ADMINISTRATOR')")
     @PostMapping("/{carId}/rent")
     public ResponseEntity<CarResponse> rentCar(
             @PathVariable Long carId, @RequestBody @Valid RentCarRequest request) {
         return ResponseEntity.ok(toResponse(carService.rentCar(carId, request.userId())));
     }
 
+  @PreAuthorize("hasAnyRole('RENTER', 'ADMINISTRATOR')")
     @PostMapping("/{carId}/return")
     public ResponseEntity<CarResponse> returnCar(@PathVariable Long carId) {
         return ResponseEntity.ok(toResponse(carService.returnCar(carId)));
     }
 
+  @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
     @PostMapping("/{carId}/maintenance")
     public ResponseEntity<CarResponse> sendToMaintenance(@PathVariable Long carId) {
         return ResponseEntity.ok(toResponse(carService.sendToMaintenance(carId)));
     }
 
+  @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
     @PostMapping("/{carId}/maintenance/complete")
     public ResponseEntity<CarResponse> completeMaintenance(@PathVariable Long carId) {
         return ResponseEntity.ok(toResponse(carService.completeMaintenance(carId)));
     }
 
+  @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCar(@PathVariable Long id) {
         carService.deleteCar(id);
