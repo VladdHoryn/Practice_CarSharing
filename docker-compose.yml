@@ -246,8 +246,13 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: admin
     ports:
       - "8090:8080"
+    volumes:
+      - ./docker/keycloak/carsharing-realm.json:/opt/keycloak/data/import/realm.json:ro
     command:
       - start-dev
+      - --import-realm
+    networks:
+      - car-sharing-network
 
 
 # =====================================================
