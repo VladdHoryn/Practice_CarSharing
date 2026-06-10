@@ -17,4 +17,16 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByKeycloakId(String keycloakId);
 
     void deleteByKeycloakId(String keycloakId);
+
+    /**
+     * 1) Загальна кількість користувачів в системі (активних)
+     */
+    @Query("SELECT COUNT(u) FROM User u WHERE u.isActive = true")
+    long countActiveUsers();
+
+    /**
+     * Кількість користувачів за роллю
+     */
+    @Query("SELECT COUNT(u) FROM User u WHERE u.role = :role AND u.isActive = true")
+    long countByRole(@Param("role") UserRole role);
 }
