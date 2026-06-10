@@ -6,10 +6,10 @@ import java.util.List;
 import jakarta.validation.Valid;
 
 import org.example.application.BookingApplicationService;
+import org.example.application.BookingDriverApplicationService;
 import org.example.domain.Booking;
-import org.example.dto.BookingResponse;
-import org.example.dto.BookingStatusChange;
-import org.example.dto.CreateBookingRequest;
+import org.example.domain.BookingDriver;
+import org.example.dto.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class BookingController {
     private final BookingApplicationService bookingService;
+    private final BookingDriverApplicationService bookingDriverService;
 
     private BookingResponse toResponse(Booking booking) {
         return new BookingResponse(
@@ -35,6 +36,19 @@ public class BookingController {
                 booking.getCreatedAt(),
                 booking.getUpdatedAt());
     }
+
+  private BookingDriverResponse bookingDriverToResponse(BookingDriver bookingDriver) {
+    return new BookingDriverResponse(
+      bookingDriver.getId(),
+      bookingDriver.getBookingId(),
+      bookingDriver.getUserId(),
+      bookingDriver.getEmail(),
+      bookingDriver.getDriverCode(),
+      bookingDriver.getStatus(),
+      bookingDriver.getCreatedAt(),
+      bookingDriver.getUpdatedAt()
+    );
+  }
 
     @PreAuthorize("hasAnyRole('RENTER', 'ADMINISTRATOR')")
     @PostMapping
@@ -94,4 +108,69 @@ public class BookingController {
         bookingService.deleteBooking(id);
         return ResponseEntity.noContent().build();
     }
+
+  @PreAuthorize("hasAnyRole('RENTER')")
+  @PostMapping("/{bookingId}/drivers")
+  public ResponseEntity<BookingDriverResponse> createInvitation(
+    @PathVariable Long bookingId,
+    @RequestBody @Valid CreateBookingDriverRequest request) {
+
+    BookingDriver bookingDriver =
+      bookingDriverService.createInvitation(
+        bookingId,
+        request.userId(),
+        request.email(),
+        request.driverCode()
+      );
+
+    return ResponseEntity
+      .created(
+        URI.create(
+          "/booking/v1/" + bookingId + "/drivers/" + bookingDriver.getId()))
+      .body(this.bookingDriverToResponse(bookingDriver));
+  }
+
+  @PreAuthorize("hasAnyRole('RENTER')")
+  @PostMapping("/drivers/{invitationId}/accept")
+  public ResponseEntity<BookingDriverResponse> acceptInvitation(
+    @PathVariable Long invitationId) {
+
+    return ResponseEntity.ok(
+      bookingDriverToResponse(
+        bookingDriverService.acceptInvitation(invitationId)
+      )
+    );
+  }
+
+  @PreAuthorize("hasAnyRole('RENTER')")
+  @PostMapping("/drivers/{invitationId}/decline")
+  public ResponseEntity<BookingDriverResponse> declineInvitation(
+    @PathVariable Long invitationId) {
+
+    return ResponseEntity.ok(
+      bookingDriverToResponse(
+        bookingDriverService.declineInvitation(invitationId)
+      )
+    );
+  }
+
+  @GetMapping("/drivers/{userId}")
+  public ResponseEntity<List<BookingDriverResponse>> getInvitationsByUserId(
+    @PathVariable Long userId) {
+
+    return ResponseEntity.ok(
+        bookingDriverService.getByUserId(userId).stream()
+          .map(bookingDriver -> bookingDriverToResponse(bookingDriver))
+          .toList()
+    );
+  }
+
+  @GetMapping("/drivers")
+  public ResponseEntity<List<BookingDriverResponse>> getAllInvitations() {
+    return ResponseEntity.ok(
+      bookingDriverService.getAll().stream()
+        .map(bookingDriver -> bookingDriverToResponse(bookingDriver))
+        .toList()
+    );
+  }
 }
