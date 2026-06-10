@@ -9,7 +9,6 @@ import org.example.application.PaymentApplicationService;
 import org.example.domain.Payment;
 import org.example.dto.ChangePaymentStatus;
 import org.example.dto.CreatePaymentRequest;
-import org.example.dto.MarkAsProcessingRequest;
 import org.example.dto.UpdatePaymentRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -91,11 +90,12 @@ public class PaymentController {
         return ResponseEntity.ok(paymentApplicationService.refundPayment(id));
     }
 
-  @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PostMapping("/{id}/status/change")
-  public ResponseEntity<Void> changePaymentStatus(@PathVariable Long id,@Valid @RequestBody ChangePaymentStatus request) {
-    paymentApplicationService.changeStatus(id, request.newStatus());
+    public ResponseEntity<Void> changePaymentStatus(
+            @PathVariable Long id, @Valid @RequestBody ChangePaymentStatus request) {
+        paymentApplicationService.changeStatus(id, request.newStatus());
 
-    return ResponseEntity.noContent().build();
-  }
+        return ResponseEntity.noContent().build();
+    }
 }

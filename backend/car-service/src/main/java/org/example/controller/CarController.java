@@ -152,4 +152,20 @@ public class CarController {
 
         return ResponseEntity.noContent().build();
     }
+
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @PostMapping("/{carId}/moderation/confirm")
+    public ResponseEntity<CarResponse> confirmCar(@PathVariable Long carId) {
+        carService.confirmCar(carId);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @PostMapping("/{carId}/moderation/cancel")
+    public ResponseEntity<CarResponse> cancelCar(@PathVariable Long carId) {
+        carService.cancelCar(carId);
+
+        return ResponseEntity.noContent().build();
+    }
 }

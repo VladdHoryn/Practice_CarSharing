@@ -79,13 +79,14 @@ public class BookingController {
         return ResponseEntity.ok(toResponse(bookingService.cancelBooking(id)));
     }
 
-  @PreAuthorize("hasRole('ADMINISTRATOR')")
-  @PostMapping("/{id}/status/change")
-  public ResponseEntity<Void> changeBookingStatus(@PathVariable Long id, @RequestBody BookingStatusChange request) {
-    bookingService.changeStatus(id, request.newStatus());
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @PostMapping("/{id}/status/change")
+    public ResponseEntity<Void> changeBookingStatus(
+            @PathVariable Long id, @RequestBody BookingStatusChange request) {
+        bookingService.changeStatus(id, request.newStatus());
 
-    return ResponseEntity.noContent().build();
-  }
+        return ResponseEntity.noContent().build();
+    }
 
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     @DeleteMapping("/{id}")

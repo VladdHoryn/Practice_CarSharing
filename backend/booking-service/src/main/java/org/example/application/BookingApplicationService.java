@@ -37,7 +37,6 @@ public class BookingApplicationService {
                     "Цей автомобіль вже заброньовано на обрані дати. Будь ласка, оберіть інші дні.");
         }
 
-
         Booking booking = new Booking();
         booking.setUserId(userId);
         booking.setCarId(carId);
@@ -73,11 +72,10 @@ public class BookingApplicationService {
     }
 
     @Transactional
-    public void changeStatus(Long bookingId, BookingStatus newStatus){
-      Booking booking = getBookingById(bookingId);
+    public void changeStatus(Long bookingId, BookingStatus newStatus) {
+        Booking booking = getBookingById(bookingId);
 
-      booking.changeStatus(newStatus);
-
+        booking.changeStatus(newStatus);
     }
 
     // ANY → CANCELLED
@@ -89,7 +87,6 @@ public class BookingApplicationService {
 
         return booking;
     }
-
 
     @Transactional
     public void deleteBooking(Long id) {

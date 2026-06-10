@@ -3,7 +3,7 @@
 -- ENUMS
 -- =====================================================
 
-CREATE TYPE car_status AS ENUM ('AVAILABLE', 'RENTED', 'MAINTENANCE', 'UNCONFIRMED');
+CREATE TYPE car_status AS ENUM ('AVAILABLE', 'RENTED', 'MAINTENANCE', 'UNCONFIRMED', 'CANCELED');
 
 CREATE TYPE car_class AS ENUM ('ECONOMY', 'COMFORT', 'BUSINESS', 'LUXURY');
 

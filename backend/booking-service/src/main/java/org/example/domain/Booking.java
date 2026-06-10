@@ -105,11 +105,11 @@ public class Booking {
         this.status = BookingStatus.CANCELLED;
     }
 
-  public void changeStatus(BookingStatus newStatus){
-    log.info("Booking id={} changes status from {} to {}", id, this.status, newStatus);
+    public void changeStatus(BookingStatus newStatus) {
+        log.info("Booking id={} changes status from {} to {}", id, this.status, newStatus);
 
-    this.status = newStatus;
-  }
+        this.status = newStatus;
+    }
 
     public void calculateTotalPrice(BigDecimal pricePerDay) {
         long days = Duration.between(startDate, endDate).toDays();

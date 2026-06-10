@@ -114,9 +114,9 @@ public class PaymentApplicationService {
         return paymentRepository.save(payment);
     }
 
-    public void changeStatus(Long id, PaymentStatus newStatus){
-      Payment payment = getById(id);
+    public void changeStatus(Long id, PaymentStatus newStatus) {
+        Payment payment = getById(id);
 
-      payment.changeStatus(newStatus);
+        payment.changeStatus(newStatus);
     }
 }

@@ -98,9 +98,9 @@ public class Payment {
         log.info("Payment {} refunded", id);
     }
 
-    public void changeStatus(PaymentStatus newStatus){
-      log.info("Payment id={} status changed from {} to {}", this.id, this.status, newStatus);
+    public void changeStatus(PaymentStatus newStatus) {
+        log.info("Payment id={} status changed from {} to {}", this.id, this.status, newStatus);
 
-      this.status = newStatus;
+        this.status = newStatus;
     }
 }
