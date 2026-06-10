@@ -48,18 +48,6 @@ public class BookingControllerTest {
 
     @Test
     @WithMockUser(roles = {"USER"})
-    public void shouldConfirmBooking() throws Exception {
-        Long bookingId = 1L;
-        Booking booking = new Booking();
-
-        when(bookingService.confirmBooking(anyLong())).thenReturn(booking);
-
-        mockMvc.perform(post("/booking/v1/" + bookingId + "/confirm").with(csrf()))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    @WithMockUser(roles = {"USER"})
     public void shouldReturnUserBookings() throws Exception {
         Long userId = 100L;
         when(bookingService.getUserBookings(anyLong())).thenReturn(List.of(new Booking()));

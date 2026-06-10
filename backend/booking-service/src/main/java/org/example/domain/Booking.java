@@ -85,32 +85,6 @@ public class Booking {
         }
     }
 
-    private void validateCanModify() {
-        if (status == BookingStatus.CANCELLED || status == BookingStatus.COMPLETED) {
-            throw new IllegalStateException("Cannot modify finished booking");
-        }
-    }
-
-    public void submitForProcessing() {
-        log.info("Booking id={} -> PENDING", id);
-
-        if (status != BookingStatus.CREATED) {
-            throw new IllegalStateException("Only CREATED booking can be submitted");
-        }
-
-        this.status = BookingStatus.PENDING;
-    }
-
-    public void confirm() {
-        log.info("Booking id={} -> CONFIRMED", id);
-
-        if (status != BookingStatus.PENDING) {
-            throw new IllegalStateException("Only PENDING booking can be confirmed");
-        }
-
-        this.status = BookingStatus.CONFIRMED;
-    }
-
     public void cancel() {
         log.info("Booking id={} -> CANCELLED", id);
 
@@ -131,15 +105,11 @@ public class Booking {
         this.status = BookingStatus.CANCELLED;
     }
 
-    public void complete() {
-        log.info("Booking id={} -> COMPLETED", id);
+  public void changeStatus(BookingStatus newStatus){
+    log.info("Booking id={} changes status from {} to {}", id, this.status, newStatus);
 
-        if (status != BookingStatus.CONFIRMED) {
-            throw new IllegalStateException("Only CONFIRMED booking can be completed");
-        }
-
-        this.status = BookingStatus.COMPLETED;
-    }
+    this.status = newStatus;
+  }
 
     public void calculateTotalPrice(BigDecimal pricePerDay) {
         long days = Duration.between(startDate, endDate).toDays();
