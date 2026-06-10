@@ -9,6 +9,7 @@ import jakarta.transaction.Transactional;
 
 import org.example.domain.Payment;
 import org.example.domain.PaymentMethod;
+import org.example.domain.PaymentStatus;
 import org.example.repository.PaymentRepository;
 import org.springframework.stereotype.Service;
 
@@ -102,64 +103,6 @@ public class PaymentApplicationService {
         paymentRepository.delete(payment);
     }
 
-    public Payment markAsPending(Long id) {
-
-        log.info("Marking payment {} as PENDING", id);
-
-        Payment payment = getById(id);
-
-        payment.markAsPending();
-
-        return paymentRepository.save(payment);
-    }
-
-    public Payment markAsProcessing(Long id, String providerPaymentId, String clientSecret) {
-
-        log.info("Marking payment {} as PROCESSING", id);
-
-        Payment payment = getById(id);
-
-        payment.setProviderPaymentId(providerPaymentId);
-        payment.setClientSecret(clientSecret);
-
-        payment.markAsProcessing();
-
-        return paymentRepository.save(payment);
-    }
-
-    public Payment markAsSuccess(Long id) {
-
-        log.info("Marking payment {} as SUCCESS", id);
-
-        Payment payment = getById(id);
-
-        payment.markAsSuccess();
-
-        return paymentRepository.save(payment);
-    }
-
-    public Payment markAsFailed(Long id) {
-
-        log.info("Marking payment {} as FAILED", id);
-
-        Payment payment = getById(id);
-
-        payment.markAsFailed();
-
-        return paymentRepository.save(payment);
-    }
-
-    public Payment cancelPayment(Long id) {
-
-        log.info("Cancelling payment {}", id);
-
-        Payment payment = getById(id);
-
-        payment.cancel();
-
-        return paymentRepository.save(payment);
-    }
-
     public Payment refundPayment(Long id) {
 
         log.info("Refunding payment {}", id);
@@ -169,5 +112,11 @@ public class PaymentApplicationService {
         payment.refund();
 
         return paymentRepository.save(payment);
+    }
+
+    public void changeStatus(Long id, PaymentStatus newStatus){
+      Payment payment = getById(id);
+
+      payment.changeStatus(newStatus);
     }
 }

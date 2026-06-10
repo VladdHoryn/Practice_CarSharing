@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 
 import org.example.application.PaymentApplicationService;
 import org.example.domain.Payment;
+import org.example.dto.ChangePaymentStatus;
 import org.example.dto.CreatePaymentRequest;
 import org.example.dto.MarkAsProcessingRequest;
 import org.example.dto.UpdatePaymentRequest;
@@ -83,48 +84,18 @@ public class PaymentController {
         paymentApplicationService.deletePayment(id);
     }
 
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
-    @PatchMapping("/{id}/pending")
-    public ResponseEntity<Payment> markAsPending(@PathVariable Long id) {
-
-        return ResponseEntity.ok(paymentApplicationService.markAsPending(id));
-    }
-
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
-    @PatchMapping("/{id}/processing")
-    public ResponseEntity<Payment> markAsProcessing(
-            @PathVariable Long id, @RequestBody @Valid MarkAsProcessingRequest request) {
-
-        return ResponseEntity.ok(
-                paymentApplicationService.markAsProcessing(
-                        id, request.providerPaymentId(), request.clientSecret()));
-    }
-
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
-    @PatchMapping("/{id}/success")
-    public ResponseEntity<Payment> markAsSuccess(@PathVariable Long id) {
-
-        return ResponseEntity.ok(paymentApplicationService.markAsSuccess(id));
-    }
-
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
-    @PatchMapping("/{id}/failed")
-    public ResponseEntity<Payment> markAsFailed(@PathVariable Long id) {
-
-        return ResponseEntity.ok(paymentApplicationService.markAsFailed(id));
-    }
-
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
-    @PatchMapping("/{id}/cancel")
-    public ResponseEntity<Payment> cancelPayment(@PathVariable Long id) {
-
-        return ResponseEntity.ok(paymentApplicationService.cancelPayment(id));
-    }
-
     @PreAuthorize("hasAnyRole('RENTER', 'ADMINISTRATOR')")
     @PatchMapping("/{id}/refund")
     public ResponseEntity<Payment> refundPayment(@PathVariable Long id) {
 
         return ResponseEntity.ok(paymentApplicationService.refundPayment(id));
     }
+
+  @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @PostMapping("/{id}/status/change")
+  public ResponseEntity<Void> changePaymentStatus(@PathVariable Long id,@Valid @RequestBody ChangePaymentStatus request) {
+    paymentApplicationService.changeStatus(id, request.newStatus());
+
+    return ResponseEntity.noContent().build();
+  }
 }
