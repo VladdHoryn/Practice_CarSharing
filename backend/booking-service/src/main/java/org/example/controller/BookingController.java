@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import org.example.application.BookingApplicationService;
 import org.example.domain.Booking;
 import org.example.dto.BookingResponse;
+import org.example.dto.BookingStatusChange;
 import org.example.dto.CreateBookingRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -71,32 +72,20 @@ public class BookingController {
                 bookingService.getUserBookings(userId).stream().map(this::toResponse).toList());
     }
 
-    // CREATED → PENDING
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
-    @PostMapping("/{id}/submit")
-    public ResponseEntity<BookingResponse> submitBooking(@PathVariable Long id) {
-        return ResponseEntity.ok(toResponse(bookingService.submitBooking(id)));
-    }
-
-    // PENDING → CONFIRMED
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
-    @PostMapping("/{id}/confirm")
-    public ResponseEntity<BookingResponse> confirmBooking(@PathVariable Long id) {
-        return ResponseEntity.ok(toResponse(bookingService.confirmBooking(id)));
-    }
-
     // ANY → CANCELLED
-    @PreAuthorize("hasAnyRole('RENTER', 'ADMINISTRATOR')")
+    @PreAuthorize("hasAnyRole('RENTER')")
     @PostMapping("/{id}/cancel")
     public ResponseEntity<BookingResponse> cancelBooking(@PathVariable Long id) {
         return ResponseEntity.ok(toResponse(bookingService.cancelBooking(id)));
     }
 
-    // CONFIRMED → COMPLETED
     @PreAuthorize("hasRole('ADMINISTRATOR')")
-    @PostMapping("/{id}/complete")
-    public ResponseEntity<BookingResponse> completeBooking(@PathVariable Long id) {
-        return ResponseEntity.ok(toResponse(bookingService.completeBooking(id)));
+    @PostMapping("/{id}/status/change")
+    public ResponseEntity<Void> changeBookingStatus(
+            @PathVariable Long id, @RequestBody BookingStatusChange request) {
+        bookingService.changeStatus(id, request.newStatus());
+
+        return ResponseEntity.noContent().build();
     }
 
     @PreAuthorize("hasRole('ADMINISTRATOR')")

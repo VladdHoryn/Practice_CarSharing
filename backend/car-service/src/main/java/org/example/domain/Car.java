@@ -55,7 +55,7 @@ public class Car {
     private Long userId;
 
     @NotNull(message = "Car status is required")
-    @Enumerated(EnumType.STRING) // <-- ДОДАЙ ЦЕ
+    @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "status", nullable = false)
     private CarStatus status;
@@ -74,16 +74,6 @@ public class Car {
         }
     }
 
-    public void markAsAvailable() {
-        log.info("Car id={} -> AVAILABLE", id);
-
-        if (status == CarStatus.RENTED) {
-            throw new IllegalStateException("Cannot make rented car directly available");
-        }
-
-        this.status = CarStatus.AVAILABLE;
-    }
-
     public void rent(Long renterId) {
         log.info("Car id={} rented by userId={}", id, renterId);
 
@@ -97,6 +87,12 @@ public class Car {
 
         this.status = CarStatus.RENTED;
         this.userId = renterId;
+    }
+
+    public void changeStatus(CarStatus newStatus) {
+        log.info("Car id={} status was changed from {} to {}", id, this.status, newStatus);
+
+        this.setStatus(newStatus);
     }
 
     public void returnFromRent() {
@@ -128,6 +124,26 @@ public class Car {
         }
 
         this.status = CarStatus.AVAILABLE;
+    }
+
+    public void confirmCar() {
+        if (status != CarStatus.UNCONFIRMED) {
+            throw new IllegalStateException("Car is not unconfirmed");
+        }
+
+        log.info("Car id={} confirmed", id);
+
+        this.status = CarStatus.AVAILABLE;
+    }
+
+    public void cancelCar() {
+        if (status != CarStatus.UNCONFIRMED) {
+            throw new IllegalStateException("Car is not unconfirmed");
+        }
+
+        log.info("Car id={} canceled", id);
+
+        this.status = CarStatus.CANCELED;
     }
 
     public boolean isAvailableForRent() {

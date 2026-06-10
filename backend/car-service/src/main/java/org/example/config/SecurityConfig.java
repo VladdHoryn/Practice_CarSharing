@@ -64,7 +64,7 @@ public class SecurityConfig {
 
                     Map<String, Object> realmAccess = jwt.getClaim("realm_access");
 
-                    if (realmAccess != null && realmAccess.containsKey("realm_access")) {
+                    if (realmAccess != null && realmAccess.containsKey("roles")) {
                         @SuppressWarnings("unchecked")
                         List<String> roles = (List<String>) realmAccess.get("roles");
 
