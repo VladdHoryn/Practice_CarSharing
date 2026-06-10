@@ -17,4 +17,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByKeycloakId(String keycloakId);
 
     void deleteByKeycloakId(String keycloakId);
+
+    boolean existsByDriverCode(String driverCode);
+
+    Optional<User> findByDriverCode(String driverCode);
 }
