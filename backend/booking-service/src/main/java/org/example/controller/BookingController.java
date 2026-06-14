@@ -2,6 +2,7 @@ package org.example.controller;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 
 import jakarta.validation.Valid;
 
@@ -10,6 +11,7 @@ import org.example.application.BookingDriverApplicationService;
 import org.example.domain.Booking;
 import org.example.domain.BookingDriver;
 import org.example.dto.*;
+import org.example.exception.UserWasNotFound;
 import org.example.infrastructure.client.UserServiceClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,8 +25,9 @@ import lombok.RequiredArgsConstructor;
 public class BookingController {
     private final BookingApplicationService bookingService;
     private final BookingDriverApplicationService bookingDriverService;
+  private final UserServiceClient userServiceClient;
 
-    private BookingResponse toResponse(Booking booking) {
+  private BookingResponse toResponse(Booking booking) {
         return new BookingResponse(
                 booking.getId(),
                 booking.getUserId(),
@@ -116,10 +119,17 @@ public class BookingController {
     @PathVariable Long bookingId,
     @RequestBody @Valid CreateBookingDriverRequest request) {
 
+    Optional<Long> userId = userServiceClient.existByEmailAndDriverCode(request.email(), request.driverCode());
+
+    if(!userId.isPresent()){
+      throw new UserWasNotFound("User with email=" + request.email() + " and driverCode=" +
+        request.driverCode() + " was not found");
+    }
+
     BookingDriver bookingDriver =
       bookingDriverService.createInvitation(
         bookingId,
-        request.userId(),
+        userId.get(),
         request.email(),
         request.driverCode()
       );

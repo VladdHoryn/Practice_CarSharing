@@ -7,6 +7,8 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
+import java.util.Optional;
+
 @Component
 @Slf4j
 public class UserServiceClient {
@@ -21,15 +23,15 @@ public class UserServiceClient {
       .build();
   }
 
-  public Boolean existByEmailAndDriverCode(String email, String driverCode){
+  public Optional<Long> existByEmailAndDriverCode(String email, String driverCode){
     log.info("Requesting data weather user exist by email={} & driverCode={}", email, driverCode);
 
-    Boolean response = restClient.get()
+    Optional<Long> response = restClient.get()
       .uri(userServiceProperties.getUserPath() + "/exist/driverCode?email={email}&driverCode={driverCode}",
         email, driverCode)
       .retrieve()
-      .body(Boolean.class);
+      .body(new ParameterizedTypeReference<Optional<Long>>() {});
 
-    return Boolean.TRUE.equals(response);
+    return response;
   }
 }
