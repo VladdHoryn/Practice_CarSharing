@@ -129,4 +129,8 @@ public class UserApplicationService {
 
     return code;
   }
+
+  public boolean existByEmailAndDriverCode(String email, String driverCode){
+      return userRepository.existsUserByEmailAndDriverCode(email, driverCode);
+  }
 }

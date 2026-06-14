@@ -5,6 +5,7 @@ import java.util.List;
 import jakarta.validation.Valid;
 
 import org.example.application.UserApplicationService;
+import org.example.dto.UserEmailAndDriverCode;
 import org.example.dto.UserRequest;
 import org.example.dto.UserResponse;
 import org.springframework.http.ResponseEntity;
@@ -61,5 +62,11 @@ public class UserController {
     @PatchMapping("keycloak/{keycloakId}/deactivate")
     public ResponseEntity<UserResponse> deactivateUser(@PathVariable String keycloakId) {
         return ResponseEntity.ok(userService.deactivateUser(keycloakId));
+    }
+
+    @GetMapping("exist/driverCode")
+    public boolean userExistWithEmailAndDriverCode(@RequestParam String email,
+                                                   @RequestParam String driverCode){
+      return userService.existByEmailAndDriverCode(email, driverCode);
     }
 }

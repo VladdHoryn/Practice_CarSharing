@@ -21,4 +21,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByDriverCode(String driverCode);
 
     Optional<User> findByDriverCode(String driverCode);
+
+    boolean existsUserByEmailAndDriverCode(String email, String driverCode);
 }
