@@ -1,7 +1,10 @@
 package org.example.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 public record CreateBookingDriverRequest(
-  String email,
-  String driverCode
+  @NotBlank String email,
+  @NotBlank String driverCode
 ) {
 }
