@@ -1,6 +1,7 @@
 package org.example.controller;
 
 import java.util.List;
+import java.util.Optional;
 
 import jakarta.validation.Valid;
 
@@ -65,8 +66,8 @@ public class UserController {
     }
 
     @GetMapping("exist/driverCode")
-    public boolean userExistWithEmailAndDriverCode(@RequestParam String email,
-                                                   @RequestParam String driverCode){
+    public Optional<Long> userExistWithEmailAndDriverCode(@RequestParam String email,
+                                                          @RequestParam String driverCode){
       return userService.existByEmailAndDriverCode(email, driverCode);
     }
 }

@@ -1,6 +1,7 @@
 package org.example.application;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.example.domain.DriverCodeGenerator;
@@ -130,7 +131,7 @@ public class UserApplicationService {
     return code;
   }
 
-  public boolean existByEmailAndDriverCode(String email, String driverCode){
-      return userRepository.existsUserByEmailAndDriverCode(email, driverCode);
+  public Optional<Long> existByEmailAndDriverCode(String email, String driverCode){
+      return userRepository.findIdByEmailAndDriverCode(email, driverCode);
   }
 }
