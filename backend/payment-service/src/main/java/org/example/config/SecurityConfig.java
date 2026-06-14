@@ -1,6 +1,9 @@
 package org.example.config;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,6 +47,7 @@ public class SecurityConfig {
         return http.build();
     }
 
+    @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
 
@@ -51,11 +55,11 @@ public class SecurityConfig {
                 jwt -> {
                     Collection<GrantedAuthority> authorities = new ArrayList<>();
 
-                    Map<String, Object> realmAccess = jwt.getClaim("realm_access");
+                    Map<String, Object> realm_access = jwt.getClaim("realm_access");
 
-                    if (realmAccess != null && realmAccess.containsKey("roles")) {
+                    if (realm_access != null && realm_access.containsKey("roles")) {
                         @SuppressWarnings("unchecked")
-                        List<String> roles = (List<String>) realmAccess.get("roles");
+                        List<String> roles = (List<String>) realm_access.get("roles");
 
                         for (String role : roles) {
                             authorities.add(

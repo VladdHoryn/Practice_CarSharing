@@ -12,6 +12,7 @@ import lombok.Data;
 @Builder
 public class UserResponse {
     private Long id;
+    private String keycloakId;
     private String fullName;
     private String email;
     private UserRole role;

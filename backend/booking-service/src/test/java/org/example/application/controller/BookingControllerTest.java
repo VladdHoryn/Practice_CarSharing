@@ -2,9 +2,7 @@ package org.example.application.controller;
 
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
@@ -44,18 +42,6 @@ public class BookingControllerTest {
         when(bookingService.getBookingById(anyLong())).thenReturn(booking);
 
         mockMvc.perform(get("/booking/v1/" + bookingId)).andExpect(status().isOk());
-    }
-
-    @Test
-    @WithMockUser(roles = {"USER"})
-    public void shouldConfirmBooking() throws Exception {
-        Long bookingId = 1L;
-        Booking booking = new Booking();
-
-        when(bookingService.confirmBooking(anyLong())).thenReturn(booking);
-
-        mockMvc.perform(post("/booking/v1/" + bookingId + "/confirm").with(csrf()))
-                .andExpect(status().isOk());
     }
 
     @Test

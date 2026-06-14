@@ -8,8 +8,10 @@ import jakarta.validation.Valid;
 import org.example.application.BookingApplicationService;
 import org.example.domain.Booking;
 import org.example.dto.BookingResponse;
+import org.example.dto.BookingStatusChange;
 import org.example.dto.CreateBookingRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import lombok.RequiredArgsConstructor;
@@ -34,6 +36,7 @@ public class BookingController {
                 booking.getUpdatedAt());
     }
 
+    @PreAuthorize("hasAnyRole('RENTER', 'ADMINISTRATOR')")
     @PostMapping
     public ResponseEntity<BookingResponse> createBooking(
             @RequestBody @Valid CreateBookingRequest request) {
@@ -55,42 +58,37 @@ public class BookingController {
         return ResponseEntity.ok(toResponse(bookingService.getBookingById(id)));
     }
 
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @GetMapping
     public ResponseEntity<List<BookingResponse>> getAllBookings() {
         return ResponseEntity.ok(
                 bookingService.getAllBookings().stream().map(this::toResponse).toList());
     }
 
+    @PreAuthorize("hasAnyRole('RENTER', 'ADMINISTRATOR')")
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<BookingResponse>> getUserBookings(@PathVariable Long userId) {
         return ResponseEntity.ok(
                 bookingService.getUserBookings(userId).stream().map(this::toResponse).toList());
     }
 
-    // CREATED → PENDING
-    @PostMapping("/{id}/submit")
-    public ResponseEntity<BookingResponse> submitBooking(@PathVariable Long id) {
-        return ResponseEntity.ok(toResponse(bookingService.submitBooking(id)));
-    }
-
-    // PENDING → CONFIRMED
-    @PostMapping("/{id}/confirm")
-    public ResponseEntity<BookingResponse> confirmBooking(@PathVariable Long id) {
-        return ResponseEntity.ok(toResponse(bookingService.confirmBooking(id)));
-    }
-
     // ANY → CANCELLED
+    @PreAuthorize("hasAnyRole('RENTER')")
     @PostMapping("/{id}/cancel")
     public ResponseEntity<BookingResponse> cancelBooking(@PathVariable Long id) {
         return ResponseEntity.ok(toResponse(bookingService.cancelBooking(id)));
     }
 
-    // CONFIRMED → COMPLETED
-    @PostMapping("/{id}/complete")
-    public ResponseEntity<BookingResponse> completeBooking(@PathVariable Long id) {
-        return ResponseEntity.ok(toResponse(bookingService.completeBooking(id)));
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @PostMapping("/{id}/status/change")
+    public ResponseEntity<Void> changeBookingStatus(
+            @PathVariable Long id, @RequestBody BookingStatusChange request) {
+        bookingService.changeStatus(id, request.newStatus());
+
+        return ResponseEntity.noContent().build();
     }
 
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBooking(@PathVariable Long id) {
         bookingService.deleteBooking(id);

@@ -8,6 +8,11 @@ spring:
   cloud:
     gateway:
       routes:
+        - id: keycloak
+          uri: http://keycloak:8080
+          predicates:
+            - Path=/realms/carsharing-realm/**
+
         - id: user-service
           uri: http://user-service:8081
           predicates:
@@ -27,3 +32,4 @@ spring:
           uri: http://payment-service:8084
           predicates:
             - Path=/payment/v1/**
+

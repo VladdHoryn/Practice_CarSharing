@@ -31,14 +31,12 @@ public class BookingApplicationService {
 
         log.info("Creating booking: userId={}, carId={}", userId, carId);
 
-        // 1. ПЕРЕВІРКА НА ПЕРЕТИН ДАТ (Блокуємо подвійне бронювання)
         if (bookingRepository.isCarAlreadyBooked(carId, start, end)) {
             log.warn("Car {} is already booked for dates {} - {}", carId, start, end);
             throw new IllegalArgumentException(
                     "Цей автомобіль вже заброньовано на обрані дати. Будь ласка, оберіть інші дні.");
         }
 
-        // 2. Якщо авто вільне - продовжуємо створення
         Booking booking = new Booking();
         booking.setUserId(userId);
         booking.setCarId(carId);
@@ -73,24 +71,11 @@ public class BookingApplicationService {
         return bookingRepository.findByUserId(userId);
     }
 
-    // CREATED → PENDING
     @Transactional
-    public Booking submitBooking(Long bookingId) {
+    public void changeStatus(Long bookingId, BookingStatus newStatus) {
         Booking booking = getBookingById(bookingId);
 
-        booking.submitForProcessing();
-
-        return booking;
-    }
-
-    // PENDING → CONFIRMED
-    @Transactional
-    public Booking confirmBooking(Long bookingId) {
-        Booking booking = getBookingById(bookingId);
-
-        booking.confirm();
-
-        return booking;
+        booking.changeStatus(newStatus);
     }
 
     // ANY → CANCELLED
@@ -99,16 +84,6 @@ public class BookingApplicationService {
         Booking booking = getBookingById(bookingId);
 
         booking.cancel();
-
-        return booking;
-    }
-
-    // CONFIRMED → COMPLETED
-    @Transactional
-    public Booking completeBooking(Long bookingId) {
-        Booking booking = getBookingById(bookingId);
-
-        booking.complete();
 
         return booking;
     }

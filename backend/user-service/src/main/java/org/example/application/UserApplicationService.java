@@ -5,13 +5,9 @@ import java.util.stream.Collectors;
 
 import org.example.domain.User;
 import org.example.domain.UserRole;
-import org.example.dto.AuthResponse;
-import org.example.dto.LoginRequest;
 import org.example.dto.UserRequest;
 import org.example.dto.UserResponse;
-import org.example.exception.InvalidCredentialsException;
 import org.example.repository.UserRepository;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -20,67 +16,17 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserApplicationService {
     private final UserRepository userRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
-
-    private String encodePassword(String rawPassword) {
-        return passwordEncoder.encode(rawPassword);
-    }
-
-    public AuthResponse register(UserRequest request) {
-
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("User with this email already exists");
-        }
-
-        User user = new User();
-
-        user.setFullName(request.getFullName());
-        user.setEmail(request.getEmail());
-        user.setPasswordHash(encodePassword(request.getPassword()));
-
-        user.setRole(request.getRole() != null ? request.getRole() : UserRole.RENTER);
-
-        User savedUser = userRepository.save(user);
-
-        return AuthResponse.builder()
-                .message("Registration successful")
-                .user(mapToResponse(savedUser))
-                .build();
-    }
-
-    public AuthResponse login(LoginRequest request) {
-
-        User user =
-                userRepository
-                        .findByEmail(request.getEmail())
-                        .orElseThrow(
-                                () -> new InvalidCredentialsException("Invalid email or password"));
-
-        if (!user.isActive()) {
-            throw new RuntimeException("Account is deactivated");
-        }
-
-        boolean passwordMatches =
-                passwordEncoder.matches(request.getPassword(), user.getPasswordHash());
-
-        if (!passwordMatches) {
-            throw new InvalidCredentialsException("Invalid email or password");
-        }
-
-        return AuthResponse.builder().message("Login successful").user(mapToResponse(user)).build();
-    }
 
     // CREATE
     public UserResponse createUser(UserRequest request) {
-
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("User with this email already exists");
         }
 
         User user = new User();
+        user.setKeycloakId(request.getKeycloakId());
         user.setFullName(request.getFullName());
         user.setEmail(request.getEmail());
-        user.setPasswordHash(encodePassword(request.getPassword()));
         user.setRole(request.getRole() != null ? request.getRole() : UserRole.RENTER);
 
         User savedUser = userRepository.save(user);
@@ -104,20 +50,23 @@ public class UserApplicationService {
         return mapToResponse(user);
     }
 
-    // UPDATE
-    public UserResponse updateUser(Long id, UserRequest request) {
+    public UserResponse getUserByKeycloakId(String keycloakId) {
         User user =
                 userRepository
-                        .findById(id)
+                        .findByKeycloakId(keycloakId)
+                        .orElseThrow(() -> new RuntimeException("User not found"));
+        return mapToResponse(user);
+    }
+
+    // UPDATE
+    public UserResponse updateUser(String keycloakId, UserRequest request) {
+        User user =
+                userRepository
+                        .findByKeycloakId(keycloakId)
                         .orElseThrow(() -> new RuntimeException("User not found"));
 
         user.setFullName(request.getFullName());
         user.setEmail(request.getEmail());
-
-        // оновлюємо пароль тільки якщо переданий
-        if (request.getPassword() != null && !request.getPassword().isBlank()) {
-            user.setPasswordHash(encodePassword(request.getPassword()));
-        }
 
         if (request.getRole() != null) {
             user.setRole(request.getRole());
@@ -127,15 +76,15 @@ public class UserApplicationService {
     }
 
     // DELETE (soft delete через deactivate)
-    public void deleteUser(Long id) {
-        userRepository.deleteById(id);
+    public void deleteUser(String keycloakId) {
+        userRepository.deleteByKeycloakId(keycloakId);
     }
 
     // ACTIVATE USER
-    public UserResponse activateUser(Long id) {
+    public UserResponse activateUser(String keycloakId) {
         User user =
                 userRepository
-                        .findById(id)
+                        .findByKeycloakId(keycloakId)
                         .orElseThrow(() -> new RuntimeException("User not found"));
 
         user.activate();
@@ -143,10 +92,10 @@ public class UserApplicationService {
     }
 
     // DEACTIVATE USER
-    public UserResponse deactivateUser(Long id) {
+    public UserResponse deactivateUser(String keycloakId) {
         User user =
                 userRepository
-                        .findById(id)
+                        .findByKeycloakId(keycloakId)
                         .orElseThrow(() -> new RuntimeException("User not found"));
 
         user.deactivate();
@@ -158,6 +107,7 @@ public class UserApplicationService {
     private UserResponse mapToResponse(User user) {
         return UserResponse.builder()
                 .id(user.getId())
+                .keycloakId(user.getKeycloakId())
                 .fullName(user.getFullName())
                 .email(user.getEmail())
                 .role(user.getRole())

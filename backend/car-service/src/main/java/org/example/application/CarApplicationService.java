@@ -201,4 +201,31 @@ public class CarApplicationService {
 
         return carRepository.save(car);
     }
+
+    @Transactional
+    public void changeStatus(Long carId, CarStatus newStatus) {
+        Car car = getCarById(carId);
+
+        car.changeStatus(newStatus);
+
+        carRepository.save(car);
+    }
+
+    @Transactional
+    public void confirmCar(Long carId) {
+        Car car = getCarById(carId);
+
+        car.confirmCar();
+
+        carRepository.save(car);
+    }
+
+    @Transactional
+    public void cancelCar(Long carId) {
+        Car car = getCarById(carId);
+
+        car.cancelCar();
+
+        carRepository.save(car);
+    }
 }

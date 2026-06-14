@@ -18,7 +18,6 @@ public class ApiGatewayServiceApplication {
     @Bean
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration corsConfig = new CorsConfiguration();
-        // Дозволяємо доступ твоєму фронтенду (порт 3000)
         corsConfig.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
         corsConfig.setMaxAge(3600L);
         corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
