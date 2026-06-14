@@ -10,6 +10,7 @@ import org.example.application.BookingDriverApplicationService;
 import org.example.domain.Booking;
 import org.example.domain.BookingDriver;
 import org.example.dto.*;
+import org.example.infrastructure.client.UserServiceClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;

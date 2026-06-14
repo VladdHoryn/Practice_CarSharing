@@ -45,3 +45,6 @@ logging:
     org.springframework.web: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+user-service:
+  user-path: ${USER_BASE_URL:http://user-service:8081}
