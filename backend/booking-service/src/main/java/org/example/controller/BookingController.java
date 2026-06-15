@@ -11,6 +11,7 @@ import org.example.domain.Booking;
 import org.example.domain.BookingStatus;
 import org.example.dto.BookingResponse;
 import org.example.dto.BookingStatusChange;
+import org.example.dto.CarDto;
 import org.example.dto.CreateBookingRequest;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;

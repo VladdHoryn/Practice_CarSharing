@@ -8,6 +8,8 @@ import jakarta.transaction.Transactional;
 
 import org.example.domain.Booking;
 import org.example.domain.BookingStatus;
+import org.example.dto.CarDto;
+import org.example.infrastructure.client.CarServiceClient;
 import org.example.repository.BookingRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,8 @@ import lombok.extern.slf4j.Slf4j;
 public class BookingApplicationService {
 
     private final BookingRepository bookingRepository;
+
+    private final CarServiceClient carServiceClient;
 
     @Transactional
     public Booking createBooking(
@@ -103,6 +107,10 @@ public class BookingApplicationService {
     }
 
     // OWNER ANALYTICS
+
+    private List<CarDto> getCarsByUserId(Long userId){
+      return carServiceClient.getCarsByUserId(userId).get();
+    }
 
     public long countBookingsByOwnerId(Long ownerId){
       return bookingRepository.countBookingsByOwnerId(ownerId);
