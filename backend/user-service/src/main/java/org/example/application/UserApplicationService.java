@@ -120,18 +120,18 @@ public class UserApplicationService {
                 .build();
     }
 
-  private String generateUniqueDriverCode() {
+    private String generateUniqueDriverCode() {
 
-    String code;
+        String code;
 
-    do {
-      code = DriverCodeGenerator.generate();
-    } while (userRepository.existsByDriverCode(code));
+        do {
+            code = DriverCodeGenerator.generate();
+        } while (userRepository.existsByDriverCode(code));
 
-    return code;
-  }
+        return code;
+    }
 
-  public Optional<Long> existByEmailAndDriverCode(String email, String driverCode){
-      return userRepository.findIdByEmailAndDriverCode(email, driverCode);
-  }
+    public Optional<Long> existByEmailAndDriverCode(String email, String driverCode) {
+        return userRepository.findIdByEmailAndDriverCode(email, driverCode);
+    }
 }

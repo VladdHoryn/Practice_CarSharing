@@ -6,7 +6,6 @@ import java.util.Optional;
 import jakarta.validation.Valid;
 
 import org.example.application.UserApplicationService;
-import org.example.dto.UserEmailAndDriverCode;
 import org.example.dto.UserRequest;
 import org.example.dto.UserResponse;
 import org.springframework.http.ResponseEntity;
@@ -66,8 +65,8 @@ public class UserController {
     }
 
     @GetMapping("/exist/driverCode")
-    public Optional<Long> userExistWithEmailAndDriverCode(@RequestParam String email,
-                                                          @RequestParam String driverCode){
-      return userService.existByEmailAndDriverCode(email, driverCode);
+    public Optional<Long> userExistWithEmailAndDriverCode(
+            @RequestParam String email, @RequestParam String driverCode) {
+        return userService.existByEmailAndDriverCode(email, driverCode);
     }
 }

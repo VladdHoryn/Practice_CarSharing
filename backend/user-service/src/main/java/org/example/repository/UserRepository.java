@@ -25,5 +25,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByDriverCode(String driverCode);
 
     @Query("SELECT u.id FROM User u WHERE u.email = :email AND u.driverCode = :driverCode")
-    Optional<Long> findIdByEmailAndDriverCode(@Param("email") String email, @Param("driverCode") String driverCode);
+    Optional<Long> findIdByEmailAndDriverCode(
+            @Param("email") String email, @Param("driverCode") String driverCode);
 }
