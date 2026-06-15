@@ -12,6 +12,7 @@ import org.example.domain.BookingStatus;
 import org.example.dto.BookingResponse;
 import org.example.dto.BookingStatusChange;
 import org.example.dto.CreateBookingRequest;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -99,29 +100,39 @@ public class BookingController {
 
     // OWNER ANALYTICS
 
-    @GetMapping("analytics/owner/bookings")
-    public long countBookingsByOwnerId(Long ownerId){
+    @GetMapping("analytics/owner/{ownerId}/bookings")
+    public long countBookingsByOwnerId(@PathVariable Long ownerId){
       return bookingService.countBookingsByOwnerId(ownerId);
     }
 
-    @GetMapping("analytics/owner/bookings/whole")
-    public long countCompletedBookingsByOwnerId(Long ownerId, BookingStatus status){
+    @GetMapping("analytics/owner/{ownerId}/bookings/whole")
+    public long countCompletedBookingsByOwnerId(@PathVariable Long ownerId,
+                                                @RequestParam BookingStatus status){
       return bookingService.countCompletedBookingsByOwnerId(ownerId, status);
     }
 
-    @GetMapping("analytics/owner/revenue")
-    public double sumTotalPriceByOwnerIdAndStatus(Long ownerId, BookingStatus status){
+    @GetMapping("analytics/owner/{ownerId}/revenue")
+    public double sumTotalPriceByOwnerIdAndStatus(@PathVariable Long ownerId,
+                                                  @RequestParam BookingStatus status){
       return bookingService.sumTotalPriceByOwnerIdAndStatus(ownerId, status);
     }
 
-    @GetMapping("analytics/owner/revenue/year")
-    public List<Object[]> findMonthlyRevenueByOwnerId(Long ownerId, BookingStatus status, LocalDateTime startDate){
+    @GetMapping("analytics/owner/{ownerId}/revenue/year")
+    public List<Object[]> findMonthlyRevenueByOwnerId(
+      @PathVariable Long ownerId,
+      @RequestParam BookingStatus status,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate
+    ){
       return bookingService.findMonthlyRevenueByOwnerId(ownerId, status, startDate);
     }
 
-    @GetMapping("analytics/owner/load/week")
-    public List<Object[]> countBookedCarsByDayForOwner(Long ownerId, List<BookingStatus> activeStatuses,
-                                                       LocalDateTime startDate, LocalDateTime endDate){
+    @GetMapping("analytics/owner/{ownerId}/load/week")
+    public List<Object[]> countBookedCarsByDayForOwner(
+      @PathVariable Long ownerId,
+      @RequestParam List<BookingStatus> activeStatuses,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate
+    ){
       return bookingService.countBookedCarsByDayForOwner(ownerId, activeStatuses, startDate, endDate);
     }
 }

@@ -31,8 +31,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     /**
      * 1) Загальна кількість бронювань, які належать певному OWNER
      */
-    @Query("SELECT COUNT(b) FROM Booking b WHERE b.userId = :ownerId")
-    long countBookingsByOwnerId(@Param("ownerId") Long ownerId);
+    @Query("SELECT COUNT(b) FROM Booking b WHERE b.userId = :userId")
+    long countBookingsByOwnerId(@Param("userId") Long ownerId);
 
     /**
      * 2) Кількість бронювань зі статусом COMPLETED, які належать певному OWNER
