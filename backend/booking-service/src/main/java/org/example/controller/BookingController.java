@@ -1,12 +1,14 @@
 package org.example.controller;
 
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import jakarta.validation.Valid;
 
 import org.example.application.BookingApplicationService;
 import org.example.domain.Booking;
+import org.example.domain.BookingStatus;
 import org.example.dto.BookingResponse;
 import org.example.dto.BookingStatusChange;
 import org.example.dto.CreateBookingRequest;
@@ -93,5 +95,33 @@ public class BookingController {
     public ResponseEntity<Void> deleteBooking(@PathVariable Long id) {
         bookingService.deleteBooking(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // OWNER ANALYTICS
+
+    @GetMapping("analytics/owner/bookings")
+    public long countBookingsByOwnerId(Long ownerId){
+      return bookingService.countBookingsByOwnerId(ownerId);
+    }
+
+    @GetMapping("analytics/owner/bookings/whole")
+    public long countCompletedBookingsByOwnerId(Long ownerId, BookingStatus status){
+      return bookingService.countCompletedBookingsByOwnerId(ownerId, status);
+    }
+
+    @GetMapping("analytics/owner/revenue")
+    public double sumTotalPriceByOwnerIdAndStatus(Long ownerId, BookingStatus status){
+      return bookingService.sumTotalPriceByOwnerIdAndStatus(ownerId, status);
+    }
+
+    @GetMapping("analytics/owner/revenue/year")
+    public List<Object[]> findMonthlyRevenueByOwnerId(Long ownerId, BookingStatus status, LocalDateTime startDate){
+      return bookingService.findMonthlyRevenueByOwnerId(ownerId, status, startDate);
+    }
+
+    @GetMapping("analytics/owner/load/week")
+    public List<Object[]> countBookedCarsByDayForOwner(Long ownerId, List<BookingStatus> activeStatuses,
+                                                       LocalDateTime startDate, LocalDateTime endDate){
+      return bookingService.countBookedCarsByDayForOwner(ownerId, activeStatuses, startDate, endDate);
     }
 }

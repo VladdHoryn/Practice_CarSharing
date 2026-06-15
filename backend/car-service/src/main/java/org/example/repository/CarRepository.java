@@ -1,5 +1,6 @@
 package org.example.repository;
 
+import jakarta.validation.constraints.NotNull;
 import org.example.domain.Car;
 import org.example.domain.CarStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,7 +14,11 @@ import java.util.List;
 @Repository
 public interface CarRepository extends JpaRepository<Car, Long>, JpaSpecificationExecutor<Car> {
 
-    List<Car> findByStatus(CarStatus status);
+  public List<Car> findByStatus(@NotNull(message = "Car status is required") CarStatus status);
+
+  public List<Car> findCarByUserId(
+    @NotNull(message = "Owner does not have any cars") Long userId);
+
 
     /**
      * 4) Кількість авто, які належать певному OWNER

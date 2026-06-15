@@ -31,13 +31,13 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     /**
      * 1) Загальна кількість бронювань, які належать певному OWNER
      */
-    @Query("SELECT COUNT(b) FROM Booking b WHERE b.ownerId = :ownerId")
+    @Query("SELECT COUNT(b) FROM Booking b WHERE b.userId = :ownerId")
     long countBookingsByOwnerId(@Param("ownerId") Long ownerId);
 
     /**
      * 2) Кількість бронювань зі статусом COMPLETED, які належать певному OWNER
      */
-    @Query("SELECT COUNT(b) FROM Booking b WHERE b.ownerId = :ownerId AND b.status = :status")
+    @Query("SELECT COUNT(b) FROM Booking b WHERE b.userId = :ownerId AND b.status = :status")
     long countCompletedBookingsByOwnerId(
         @Param("ownerId") Long ownerId,
         @Param("status") BookingStatus status
@@ -46,7 +46,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     /**
      * 3) Загальна виручка за всі COMPLETED бронювання власника
      */
-    @Query("SELECT COALESCE(SUM(b.totalPrice), 0) FROM Booking b WHERE b.ownerId = :ownerId AND b.status = :status")
+    @Query("SELECT COALESCE(SUM(b.totalPrice), 0) FROM Booking b WHERE b.userId = :ownerId AND b.status = :status")
     double sumTotalPriceByOwnerIdAndStatus(
         @Param("ownerId") Long ownerId,
         @Param("status") BookingStatus status
@@ -59,7 +59,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
         SELECT FUNCTION('DATE_TRUNC', 'month', b.endDate) as month,
                COALESCE(SUM(b.totalPrice), 0) as revenue
         FROM Booking b
-        WHERE b.ownerId = :ownerId
+        WHERE b.userId = :ownerId
           AND b.status = :status
           AND b.endDate >= :startDate
         GROUP BY FUNCTION('DATE_TRUNC', 'month', b.endDate)
@@ -77,7 +77,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Query("""
         SELECT FUNCTION('DATE', b.startDate) as date, COUNT(DISTINCT b.carId) as bookedCars
         FROM Booking b
-        WHERE b.ownerId = :ownerId
+        WHERE b.userId = :ownerId
           AND b.status IN :activeStatuses
           AND b.startDate <= :endDate
           AND b.endDate >= :startDate

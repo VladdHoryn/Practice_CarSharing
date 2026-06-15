@@ -9,6 +9,7 @@ import jakarta.transaction.Transactional;
 import org.example.domain.Booking;
 import org.example.domain.BookingStatus;
 import org.example.repository.BookingRepository;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -99,5 +100,28 @@ public class BookingApplicationService {
         }
 
         bookingRepository.delete(booking);
+    }
+
+    // OWNER ANALYTICS
+
+    public long countBookingsByOwnerId(Long ownerId){
+      return bookingRepository.countBookingsByOwnerId(ownerId);
+    }
+
+    public long countCompletedBookingsByOwnerId(Long ownerId, BookingStatus status){
+      return bookingRepository.countCompletedBookingsByOwnerId(ownerId, status);
+    }
+
+    public double sumTotalPriceByOwnerIdAndStatus(Long ownerId, BookingStatus status){
+      return bookingRepository.sumTotalPriceByOwnerIdAndStatus(ownerId, status);
+    }
+
+    public List<Object[]> findMonthlyRevenueByOwnerId(Long ownerId, BookingStatus status, LocalDateTime startDate){
+      return bookingRepository.findMonthlyRevenueByOwnerId(ownerId, status, startDate);
+    }
+
+    public List<Object[]> countBookedCarsByDayForOwner(Long ownerId, List<BookingStatus> activeStatuses,
+                                                       LocalDateTime startDate, LocalDateTime endDate){
+      return bookingRepository.countBookedCarsByDayForOwner(ownerId, activeStatuses, startDate, endDate);
     }
 }
