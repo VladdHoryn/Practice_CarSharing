@@ -45,3 +45,6 @@ logging:
     org.springframework.web: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+car-service:
+  car-path: ${CAR_BASE_URL:http://car-service:8083}
