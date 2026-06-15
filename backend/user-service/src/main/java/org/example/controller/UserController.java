@@ -65,7 +65,7 @@ public class UserController {
         return ResponseEntity.ok(userService.deactivateUser(keycloakId));
     }
 
-    @GetMapping("exist/driverCode")
+    @GetMapping("/exist/driverCode")
     public Optional<Long> userExistWithEmailAndDriverCode(@RequestParam String email,
                                                           @RequestParam String driverCode){
       return userService.existByEmailAndDriverCode(email, driverCode);
