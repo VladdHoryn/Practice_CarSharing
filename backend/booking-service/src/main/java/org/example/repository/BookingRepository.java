@@ -13,6 +13,17 @@ import java.util.List;
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
+  List<Booking> findByUserId(Long userId);
+
+  @Query(
+    "SELECT COUNT(b) > 0 FROM Booking b WHERE b.carId = :carId "
+      + "AND b.status != 'CANCELLED' "
+      + "AND b.startDate < :endDate AND b.endDate > :startDate")
+  boolean isCarAlreadyBooked(
+    @Param("carId") Long carId,
+    @Param("startDate") LocalDateTime startDate,
+    @Param("endDate") LocalDateTime endDate);
+
     // =====================================================
     // OWNER ANALYTICS
     // =====================================================
@@ -45,10 +56,10 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
      * 5) Виручка за останні 12 місяців для OWNER (помісячно)
      */
     @Query("""
-        SELECT FUNCTION('DATE_TRUNC', 'month', b.endDate) as month, 
+        SELECT FUNCTION('DATE_TRUNC', 'month', b.endDate) as month,
                COALESCE(SUM(b.totalPrice), 0) as revenue
         FROM Booking b
-        WHERE b.ownerId = :ownerId 
+        WHERE b.ownerId = :ownerId
           AND b.status = :status
           AND b.endDate >= :startDate
         GROUP BY FUNCTION('DATE_TRUNC', 'month', b.endDate)
