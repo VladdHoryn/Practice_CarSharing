@@ -29,7 +29,7 @@ const UserProfilePage = () => {
     const [editingCar, setEditingCar] = useState(null);
     const [carForm, setCarForm] = useState({ brand: '', model: '', year: 2026, carClass: 'ECONOMY', pricePerDay: '', imageUrl: '' });
 
-    // Додаємо локальні стейти для редагування ПІБ
+
     const [profileForm, setProfileForm] = useState({ firstName: '', lastName: '' });
 
     useEffect(() => {
@@ -37,7 +37,6 @@ const UserProfilePage = () => {
         if (storedUser) {
             const parsedUser = JSON.parse(storedUser);
 
-            // 🚀 ЗАПИТ ДО РЕАЛЬНОГО БЕКЕНДУ ЧЕРЕЗ keycloakId
             userService.getUserByKeycloakId(parsedUser.id)
                 .then(realUserData => {
                     setUser({
@@ -53,7 +52,6 @@ const UserProfilePage = () => {
                     });
                 })
                 .catch(() => {
-                    // Fallback якщо в базі user-service цього користувача ще немає
                     const nameParts = parsedUser.fullName ? parsedUser.fullName.split(' ') : [''];
                     setUser({
                         id: parsedUser.id,
@@ -79,16 +77,20 @@ const UserProfilePage = () => {
     }, [navigate]);
 
     useEffect(() => {
-        if (activeTab === 'fleet' && user.role === 'OWNER') {
-            carService.getUnconfirmedCars()
-                .then(data => {
-                    // Звірка йде за рядковим унікальним keycloak_id
-                    const myCars = data.filter(car => car.userId === user.id);
-                    setOwnerCars(myCars);
-                })
-                .catch(err => console.error("Помилка завантаження авто власника:", err));
-        }
-    }, [activeTab, user.role, user.id]);
+            if (activeTab === 'fleet' && user.role === 'OWNER') {
+                const storedUser = localStorage.getItem('user');
+                if (!storedUser) return;
+                const parsedUser = JSON.parse(storedUser);
+
+                carService.getUnconfirmedCars()
+                    .then(data => {
+
+                        const myCars = data.filter(car => Number(car.userId) === Number(parsedUser.dbId));
+                        setOwnerCars(myCars);
+                    })
+                    .catch(err => console.error("Помилка завантаження авто власника:", err));
+            }
+        }, [activeTab, user.role, user.id]);
 
     useEffect(() => {
         if (activeTab === 'history' && user.id) {
@@ -135,29 +137,49 @@ const UserProfilePage = () => {
     };
 
     const submitCarForm = async (e) => {
-        e.preventDefault();
-        try {
-            const payload = {
-                ...carForm,
-                year: parseInt(carForm.year),
-                pricePerDay: parseFloat(carForm.pricePerDay),
-                userId: user.id
-            };
+            e.preventDefault();
+            try {
+                // Витягуємо збереженого при логіні користувача, щоб взяти його числовий dbId
+                const storedUser = localStorage.getItem('user');
+                if (!storedUser) return navigate('/login');
+                const parsedUser = JSON.parse(storedUser);
 
-            if (editingCar) {
-                const updatedCar = await carService.updateCar(editingCar.id, payload);
-                setOwnerCars(ownerCars.map(c => c.id === editingCar.id ? updatedCar : c));
-                toast.success('Авто успішно оновлено!');
-            } else {
-                const newCar = await carService.createCar(payload);
-                setOwnerCars([...ownerCars, newCar]);
-                toast.success('Нове авто додано!');
+                if (!parsedUser.dbId) {
+                    toast.error('Помилка: у вашому профілі відсутній числовий ID бази даних. Перезайдіть у систему.');
+                    return;
+                }
+
+                const payload = {
+                    brand: carForm.brand,
+                    model: carForm.model,
+                    year: parseInt(carForm.year),
+                    pricePerDay: parseFloat(carForm.pricePerDay),
+                    carClass: carForm.carClass.toUpperCase(), // Завжди великими літерами для Enum
+                    imageUrl: carForm.imageUrl || null,
+
+                    // 🔥 ВИПРАВЛЕНО: Замість UUID (user.id) передаємо числовий Long ID
+                    userId: Number(parsedUser.dbId)
+                };
+
+                console.log("Відправляємо дані автомобіля на бекенд:", payload);
+
+                if (editingCar) {
+                    const updatedCar = await carService.updateCar(editingCar.id, payload);
+                    setOwnerCars(ownerCars.map(c => c.id === editingCar.id ? updatedCar : c));
+                    toast.success('Авто успішно оновлено!');
+                } else {
+                    const newCar = await carService.createCar(payload);
+                    setOwnerCars([...ownerCars, newCar]);
+                    toast.success('Нове авто додано!');
+                }
+                setShowCarModal(false);
+            } catch (err) {
+                console.error("Помилка збереження авто:", err);
+                // Витягуємо точний опис помилки валідації від Spring Boot
+                const errorMsg = err.response?.data?.message || 'Помилка при збереженні авто.';
+                toast.error(errorMsg);
             }
-            setShowCarModal(false);
-        } catch (err) {
-            toast.error(err.response?.data?.message || 'Помилка при збереженні авто.');
-        }
-    };
+        };
 
     const deleteCar = async (id) => {
         if (window.confirm('Ви впевнені, що хочете видалити це авто?')) {
