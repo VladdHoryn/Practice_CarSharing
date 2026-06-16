@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
+
     Optional<User> findByFullName(String fullName);
 
     boolean existsByEmail(String email);
@@ -34,6 +35,15 @@ public interface UserRepository extends JpaRepository<User, Long> {
     long countActiveUsers();
 
     /** Кількість користувачів за роллю */
+    /**
+     * Загальна кількість всіх користувачів (включаючи неактивних)
+     */
+    @Query("SELECT COUNT(u) FROM User u")
+    long countAllUsers();
+
+    /**
+     * Кількість користувачів за роллю
+     */
     @Query("SELECT COUNT(u) FROM User u WHERE u.role = :role AND u.isActive = true")
     long countByRole(@Param("role") UserRole role);
 }
