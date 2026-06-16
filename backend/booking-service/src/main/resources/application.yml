@@ -48,3 +48,5 @@ logging:
 
 car-service:
   car-path: ${CAR_BASE_URL:http://car-service:8083/car/v1}
+user-service:
+  user-path: ${USER_BASE_URL:http://user-service:8081/user/v1/}
