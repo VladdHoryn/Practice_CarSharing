@@ -42,18 +42,18 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
   BigDecimal sumTotalPriceByCarIdsAndStatus(@Param("carIds") List<Long> carIds, @Param("status") BookingStatus status);
 
   // 4. Дохід по місяцях
-  @Query("SELECT FUNCTION('MONTH', b.startDate) as month, SUM(b.totalPrice) as revenue " +
+  @Query("SELECT EXTRACT(MONTH FROM b.startDate) as month, SUM(b.totalPrice) as revenue " +
     "FROM Booking b WHERE b.carId IN :carIds AND b.status = :status AND b.startDate >= :startDate " +
-    "GROUP BY FUNCTION('MONTH', b.startDate)")
+    "GROUP BY EXTRACT(MONTH FROM b.startDate)")
   List<Object[]> findMonthlyRevenueByCarIds(@Param("carIds") List<Long> carIds,
                                             @Param("status") BookingStatus status,
                                             @Param("startDate") LocalDateTime startDate);
 
   // 5. Завантаженість по днях (кількість заброньованих авто)
-  @Query("SELECT FUNCTION('DATE', b.startDate) as date, COUNT(b.carId) as count " +
+  @Query("SELECT CAST(b.startDate AS date) as date, COUNT(b.carId) as count " +
     "FROM Booking b WHERE b.carId IN :carIds AND b.status IN :activeStatuses " +
     "AND b.startDate >= :startDate AND b.endDate <= :endDate " +
-    "GROUP BY FUNCTION('DATE', b.startDate)")
+    "GROUP BY CAST(b.startDate AS date)")
   List<Object[]> countBookedCarsByDayForCarIds(@Param("carIds") List<Long> carIds,
                                                @Param("activeStatuses") List<BookingStatus> activeStatuses,
                                                @Param("startDate") LocalDateTime startDate,
