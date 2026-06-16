@@ -162,8 +162,11 @@ public class BookingApplicationService {
 
     // ADMIN ANALYTICS
 
-    public long countBookingsExcludingStatus(BookingStatus status) {
-      return bookingRepository.countBookingsExcludingStatus(status);
+    public long countBookingsByStatuses(List<BookingStatus> statuses) {
+      if (statuses == null || statuses.isEmpty()) {
+        return 0L;
+      }
+      return bookingRepository.countBookingsByStatuses(statuses);
     }
 
     public BigDecimal sumLastMonthRevenue(BookingStatus status, LocalDateTime startDate) {

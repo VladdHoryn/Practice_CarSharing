@@ -70,9 +70,9 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
   // =====================================================
 
 
-  // 1) Загальна кількість бронювань в системі за статусом, який не є CANCELLED
-  @Query("SELECT COUNT(b) FROM Booking b WHERE b.status != :status")
-  long countBookingsExcludingStatus(@Param("status") BookingStatus status);
+  // 1) Загальна кількість бронювань в системі за вказаним списком статусів
+  @Query("SELECT COUNT(b) FROM Booking b WHERE b.status IN :statuses")
+  long countBookingsByStatuses(@Param("statuses") List<BookingStatus> statuses);
 
 
   // 2) Дохід за останній місяць (бронювання, завершені за останні 30 днів)
