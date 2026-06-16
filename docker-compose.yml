@@ -218,7 +218,8 @@ services:
     depends_on:
       - api-gateway
     environment:
-      - NODE_ENV=development
+      NODE_ENV: development
+      REACT_APP_KEYCLOAK_SECRET: ${REACT_APP_KEYCLOAK_SECRET}
 
   # =====================================================
   # DATABASE MANAGEMENT (pgAdmin)
@@ -244,6 +245,7 @@ services:
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HOSTNAME_URL: http://localhost:8100
     ports:
       - "8090:8080"
     volumes:

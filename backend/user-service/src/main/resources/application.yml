@@ -27,7 +27,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8090/realms/carsharing-realm
+          issuer-uri: http://localhost:8100/realms/carsharing-realm
           jwk-set-uri: http://keycloak:8080/realms/carsharing-realm/protocol/openid-connect/certs
 
 server:
