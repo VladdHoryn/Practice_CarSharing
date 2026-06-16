@@ -6,9 +6,6 @@ import java.time.LocalDateTime;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -19,54 +16,54 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @NotBlank(message = "Full name is required")
-    @Size(min = 2, max = 100, message = "Full name must be between 2 and 100 characters")
-    @Column(name = "full_name", nullable = false)
-    private String fullName;
+  @NotBlank(message = "Full name is required")
+  @Size(min = 2, max = 100, message = "Full name must be between 2 and 100 characters")
+  @Column(name = "full_name", nullable = false)
+  private String fullName;
 
-    @NotBlank(message = "Password is required")
-    @Column(name = "password", nullable = false)
-    private String passwordHash;
+  @NotBlank(message = "Password is required")
+  @Column(name = "password", nullable = false)
+  private String passwordHash;
 
-    @NotBlank(message = "Email is required")
-    @Email(message = "Invalid email format")
-    @Column(name = "email", nullable = false, unique = true)
-    private String email;
+  @NotBlank(message = "Email is required")
+  @Email(message = "Invalid email format")
+  @Column(name = "email", nullable = false, unique = true)
+  private String email;
 
-    @NotNull(message = "Role is required")
-    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-    @Column(name = "role", nullable = false, columnDefinition = "user_role_enum")
-    private UserRole role;
+  @NotNull(message = "Role is required")
+  @Enumerated(EnumType.STRING)
+  @Column(name = "role", nullable = false)
+  private UserRole role;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDate createdAt;
+  @Column(name = "created_at", nullable = false, updatable = false)
+  private LocalDate createdAt;
 
-    @Column(name = "is_active", nullable = false)
-    private Boolean isActive;
+  @Column(name = "is_active", nullable = false)
+  private Boolean isActive;
 
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
+  @Column(name = "updated_at", nullable = false)
+  private LocalDateTime updatedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDate.now();
-        this.updatedAt = LocalDateTime.now();
-        this.isActive = true;
-    }
+  @PrePersist
+  protected void onCreate() {
+    this.createdAt = LocalDate.now();
+    this.updatedAt = LocalDateTime.now();
+    this.isActive = true;
+  }
 
-    public void deactivate() {
-        this.isActive = false;
-    }
+  public void deactivate() {
+    this.isActive = false;
+  }
 
-    public void activate() {
-        this.isActive = true;
-    }
+  public void activate() {
+    this.isActive = true;
+  }
 
-    public boolean isActive() {
-        return isActive;
-    }
+  public boolean isActive() {
+    return isActive;
+  }
 }
