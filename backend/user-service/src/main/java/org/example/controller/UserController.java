@@ -1,6 +1,7 @@
 package org.example.controller;
 
 import java.util.List;
+import java.util.Optional;
 
 import jakarta.validation.Valid;
 
@@ -61,5 +62,11 @@ public class UserController {
     @PatchMapping("keycloak/{keycloakId}/deactivate")
     public ResponseEntity<UserResponse> deactivateUser(@PathVariable String keycloakId) {
         return ResponseEntity.ok(userService.deactivateUser(keycloakId));
+    }
+
+    @GetMapping("/exist/driverCode")
+    public Optional<Long> userExistWithEmailAndDriverCode(
+            @RequestParam String email, @RequestParam String driverCode) {
+        return userService.existByEmailAndDriverCode(email, driverCode);
     }
 }

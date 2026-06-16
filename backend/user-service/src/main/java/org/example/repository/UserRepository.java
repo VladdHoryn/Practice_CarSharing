@@ -18,6 +18,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     void deleteByKeycloakId(String keycloakId);
 
+    boolean existsByDriverCode(String driverCode);
+
+    Optional<User> findByDriverCode(String driverCode);
+
+    @Query("SELECT u.id FROM User u WHERE u.email = :email AND u.driverCode = :driverCode")
+    Optional<Long> findIdByEmailAndDriverCode(
+            @Param("email") String email, @Param("driverCode") String driverCode);
+
     /**
      * 1) Загальна кількість користувачів в системі (активних)
      */

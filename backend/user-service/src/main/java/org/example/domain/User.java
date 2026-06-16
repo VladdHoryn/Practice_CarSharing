@@ -50,6 +50,9 @@ public class User {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @Column(name = "driver_code", nullable = false, unique = true, length = 10)
+    private String driverCode;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDate.now();

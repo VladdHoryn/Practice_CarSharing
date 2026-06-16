@@ -1,8 +1,10 @@
 package org.example.application;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.example.domain.DriverCodeGenerator;
 import org.example.domain.User;
 import org.example.domain.UserRole;
 import org.example.dto.UserRequest;
@@ -28,6 +30,8 @@ public class UserApplicationService {
         user.setFullName(request.getFullName());
         user.setEmail(request.getEmail());
         user.setRole(request.getRole() != null ? request.getRole() : UserRole.RENTER);
+
+        user.setDriverCode(generateUniqueDriverCode());
 
         User savedUser = userRepository.save(user);
         return mapToResponse(savedUser);
@@ -114,5 +118,20 @@ public class UserApplicationService {
                 .isActive(user.isActive())
                 .createdAt(user.getCreatedAt())
                 .build();
+    }
+
+    private String generateUniqueDriverCode() {
+
+        String code;
+
+        do {
+            code = DriverCodeGenerator.generate();
+        } while (userRepository.existsByDriverCode(code));
+
+        return code;
+    }
+
+    public Optional<Long> existByEmailAndDriverCode(String email, String driverCode) {
+        return userRepository.findIdByEmailAndDriverCode(email, driverCode);
     }
 }
