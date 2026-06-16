@@ -1,0 +1,166 @@
+package org.example.repository;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.example.domain.Booking;
+import org.example.domain.BookingStatus;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface BookingRepository extends JpaRepository<Booking, Long> {
+
+    List<Booking> findByUserId(Long userId);
+
+    // Видалили 'FAILED', залишили тільки 'CANCELLED'
+    @Query(
+            "SELECT COUNT(b) > 0 FROM Booking b WHERE b.carId = :carId "
+                    + "AND b.status != 'CANCELLED' "
+                    + "AND b.startDate < :endDate AND b.endDate > :startDate")
+    boolean isCarAlreadyBooked(
+            @Param("carId") Long carId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
+
+    // =====================================================
+    // ADMIN ANALYTICS
+    // =====================================================
+
+    /**
+     * 2) Загальна кількість бронювань в системі за статусом, який не є CANCELLED
+     */
+    @Query("SELECT COUNT(b) FROM Booking b WHERE b.status != :status")
+    long countBookingsExcludingStatus(@Param("status") BookingStatus status);
+
+    /**
+     * 3) Дохід за останній місяць (бронювання, завершені за останні 30 днів)
+     */
+    @Query("SELECT COALESCE(SUM(b.totalPrice), 0) FROM Booking b " +
+           "WHERE b.status = :status AND b.endDate >= :startDate")
+    double sumLastMonthRevenue(
+            @Param("status") BookingStatus status,
+            @Param("startDate") LocalDateTime startDate
+    );
+
+    /**
+     * 4) Кількість бронювань в процесі протягом наступних 7 днів
+     * (бронювання, які перетинаються з наступними 7 днями)
+     */
+    @Query("""
+        SELECT COUNT(DISTINCT b) FROM Booking b
+        WHERE b.status IN :activeStatuses
+          AND b.startDate <= :endDate
+          AND b.endDate >= :startDate
+        """)
+    long countUpcomingBookings(
+            @Param("activeStatuses") List<BookingStatus> activeStatuses,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate
+    );
+
+    // =====================================================
+    // ADDITIONAL ADMIN ANALYTICS (for charts)
+    // =====================================================
+
+    /**
+     * Динаміка доходів за останні N місяців (для графіка)
+     */
+    @Query("""
+        SELECT FUNCTION('DATE_TRUNC', 'month', b.endDate) as month,
+               COALESCE(SUM(b.totalPrice), 0) as revenue
+        FROM Booking b
+        WHERE b.status = :status
+          AND b.endDate >= :startDate
+        GROUP BY FUNCTION('DATE_TRUNC', 'month', b.endDate)
+        ORDER BY month ASC
+        """)
+    List<Object[]> findMonthlyRevenue(
+            @Param("status") BookingStatus status,
+            @Param("startDate") LocalDateTime startDate
+    );
+
+    /**
+     * Завантаженість автопарку по днях тижня (бронювання/день)
+     */
+    @Query("""
+        SELECT FUNCTION('EXTRACT', DOW FROM b.startDate) as dayOfWeek, 
+               COUNT(b) as count
+        FROM Booking b
+        WHERE b.status IN :activeStatuses
+        GROUP BY FUNCTION('EXTRACT', DOW FROM b.startDate)
+        ORDER BY FUNCTION('EXTRACT', DOW FROM b.startDate)
+        """)
+    List<Object[]> countBookingsByDayOfWeek(
+            @Param("activeStatuses") List<BookingStatus> activeStatuses
+    );
+    
+    // =====================================================
+    // OWNER ANALYTICS
+    // =====================================================
+
+    /**
+     * 1) Загальна кількість бронювань, які належать певному OWNER
+     */
+    @Query("SELECT COUNT(b) FROM Booking b WHERE b.ownerId = :ownerId")
+    long countBookingsByOwnerId(@Param("ownerId") Long ownerId);
+
+    /**
+     * 2) Кількість бронювань зі статусом COMPLETED, які належать певному OWNER
+     */
+    @Query("SELECT COUNT(b) FROM Booking b WHERE b.ownerId = :ownerId AND b.status = :status")
+    long countCompletedBookingsByOwnerId(
+            @Param("ownerId") Long ownerId,
+            @Param("status") BookingStatus status
+    );
+
+    /**
+     * 3) Загальна виручка за всі COMPLETED бронювання власника
+     */
+    @Query("SELECT COALESCE(SUM(b.totalPrice), 0) FROM Booking b WHERE b.ownerId = :ownerId AND b.status = :status")
+    double sumTotalPriceByOwnerIdAndStatus(
+            @Param("ownerId") Long ownerId,
+            @Param("status") BookingStatus status
+    );
+
+    /**
+     * 5) Виручка за останні 12 місяців для OWNER (помісячно)
+     */
+    @Query("""
+        SELECT FUNCTION('DATE_TRUNC', 'month', b.endDate) as month, 
+               COALESCE(SUM(b.totalPrice), 0) as revenue
+        FROM Booking b
+        WHERE b.ownerId = :ownerId 
+          AND b.status = :status
+          AND b.endDate >= :startDate
+        GROUP BY FUNCTION('DATE_TRUNC', 'month', b.endDate)
+        ORDER BY month ASC
+        """)
+    List<Object[]> findMonthlyRevenueByOwnerId(
+            @Param("ownerId") Long ownerId,
+            @Param("status") BookingStatus status,
+            @Param("startDate") LocalDateTime startDate
+    );
+
+    /**
+     * 6) Кількість авто, заброньованих на кожен день наступних 7 днів
+     */
+    @Query("""
+        SELECT FUNCTION('DATE', b.startDate) as date, COUNT(DISTINCT b.carId) as bookedCars
+        FROM Booking b
+        WHERE b.ownerId = :ownerId
+          AND b.status IN :activeStatuses
+          AND b.startDate <= :endDate
+          AND b.endDate >= :startDate
+        GROUP BY FUNCTION('DATE', b.startDate)
+        ORDER BY date ASC
+        """)
+    List<Object[]> countBookedCarsByDayForOwner(
+            @Param("ownerId") Long ownerId,
+            @Param("activeStatuses") List<BookingStatus> activeStatuses,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate
+    );
+}
