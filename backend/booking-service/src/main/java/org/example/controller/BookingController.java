@@ -164,6 +164,8 @@ public class BookingController {
         return ResponseEntity.ok(
                 bookingService.countBookedCarsByDayForOwner(
                         ownerId, activeStatuses, startDate, endDate));
+    }
+
     @PreAuthorize("hasAnyRole('RENTER')")
     @PostMapping("/{bookingId}/drivers")
     public ResponseEntity<BookingDriverResponse> createInvitation(
