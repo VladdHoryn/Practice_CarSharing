@@ -1,16 +1,39 @@
 import apiClient from '../api/apiClient';
 
 export const userService = {
-    getAllUsers: async (params) => {
-        const response = await apiClient.get('/user/v1/admin/users', { params });
+    // Відповідає Java: GET /user/v1 (Доступно тільки для ROLE_ADMINISTRATOR)
+    getAllUsers: async () => {
+        const response = await apiClient.get('/user/v1');
         return response.data;
     },
-    updateUserRole: async (id, role) => {
-        const response = await apiClient.put(`/user/v1/admin/users/${id}/role`, { role });
+
+    // Відповідає Java: GET /user/v1/keycloak/{keycloakId}
+    getUserByKeycloakId: async (keycloakId) => {
+        const response = await apiClient.get(`/user/v1/keycloak/${keycloakId}`);
         return response.data;
     },
-    deleteUser: async (id) => {
-        const response = await apiClient.delete(`/user/v1/admin/users/${id}`);
+
+    // Відповідає Java: PUT /user/v1/keycloak/{keycloakId}
+    updateUserByKeycloak: async (keycloakId, userData) => {
+        const response = await apiClient.put(`/user/v1/keycloak/${keycloakId}`, userData);
+        return response.data;
+    },
+
+    // Відповідає Java: DELETE /user/v1/keycloak/{keycloakId}
+    deleteUserByKeycloak: async (keycloakId) => {
+        const response = await apiClient.delete(`/user/v1/keycloak/${keycloakId}`);
+        return response.data;
+    },
+
+    // Відповідає Java: PATCH /user/v1/keycloak/{keycloakId}/activate
+    activateUserByKeycloak: async (keycloakId) => {
+        const response = await apiClient.patch(`/user/v1/keycloak/${keycloakId}/activate`);
+        return response.data;
+    },
+
+    // Відповідає Java: PATCH /user/v1/keycloak/{keycloakId}/deactivate
+    deactivateUserByKeycloak: async (keycloakId) => {
+        const response = await apiClient.patch(`/user/v1/keycloak/${keycloakId}/deactivate`);
         return response.data;
     }
 };

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './UserProfilePage.module.css';
 import { authService } from '../services/auth.service';
+import { userService } from '../services/user.service'; // Оновлений сервіс
 import { bookingService } from '../services/booking.service';
 import { carService } from '../services/car.service';
 import { toast } from 'react-toastify';
@@ -26,21 +27,46 @@ const UserProfilePage = () => {
 
     const [showCarModal, setShowCarModal] = useState(false);
     const [editingCar, setEditingCar] = useState(null);
-    const [carForm, setCarForm] = useState({ brand: '', model: '', year: 2024, carClass: 'ECONOMY', pricePerDay: '', imageUrl: '' });
+    const [carForm, setCarForm] = useState({ brand: '', model: '', year: 2026, carClass: 'ECONOMY', pricePerDay: '', imageUrl: '' });
+
+    // Додаємо локальні стейти для редагування ПІБ
+    const [profileForm, setProfileForm] = useState({ firstName: '', lastName: '' });
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
             const parsedUser = JSON.parse(storedUser);
-            const nameParts = parsedUser.fullName ? parsedUser.fullName.split(' ') : [''];
 
-            setUser({
-                id: parsedUser.id,
-                firstName: nameParts[0] || '',
-                lastName: nameParts.slice(1).join(' ') || '',
-                email: parsedUser.email,
-                role: parsedUser.role
-            });
+            // 🚀 ЗАПИТ ДО РЕАЛЬНОГО БЕКЕНДУ ЧЕРЕЗ keycloakId
+            userService.getUserByKeycloakId(parsedUser.id)
+                .then(realUserData => {
+                    setUser({
+                        id: parsedUser.id, // String UUID
+                        firstName: realUserData.firstName || '',
+                        lastName: realUserData.lastName || '',
+                        email: realUserData.email || parsedUser.email,
+                        role: parsedUser.role
+                    });
+                    setProfileForm({
+                        firstName: realUserData.firstName || '',
+                        lastName: realUserData.lastName || ''
+                    });
+                })
+                .catch(() => {
+                    // Fallback якщо в базі user-service цього користувача ще немає
+                    const nameParts = parsedUser.fullName ? parsedUser.fullName.split(' ') : [''];
+                    setUser({
+                        id: parsedUser.id,
+                        firstName: nameParts[0] || '',
+                        lastName: nameParts.slice(1).join(' ') || '',
+                        email: parsedUser.email,
+                        role: parsedUser.role
+                    });
+                    setProfileForm({
+                        firstName: nameParts[0] || '',
+                        lastName: nameParts.slice(1).join(' ') || ''
+                    });
+                });
 
             if (parsedUser.role === 'OWNER') {
                 setActiveTab('fleet');
@@ -56,6 +82,7 @@ const UserProfilePage = () => {
         if (activeTab === 'fleet' && user.role === 'OWNER') {
             carService.getUnconfirmedCars()
                 .then(data => {
+                    // Звірка йде за рядковим унікальним keycloak_id
                     const myCars = data.filter(car => car.userId === user.id);
                     setOwnerCars(myCars);
                 })
@@ -92,7 +119,7 @@ const UserProfilePage = () => {
 
     const openCreateCarModal = () => {
         setEditingCar(null);
-        setCarForm({ brand: '', model: '', year: 2024, carClass: 'ECONOMY', pricePerDay: '', imageUrl: '' });
+        setCarForm({ brand: '', model: '', year: 2026, carClass: 'ECONOMY', pricePerDay: '', imageUrl: '' });
         setShowCarModal(true);
     };
 
@@ -144,7 +171,6 @@ const UserProfilePage = () => {
         }
     };
 
-    // --- ФУНКЦІЯ СКАСУВАННЯ БРОНЮВАННЯ ---
     const cancelBooking = async (id) => {
         if (window.confirm('Скасувати це бронювання?')) {
             try {
@@ -154,6 +180,24 @@ const UserProfilePage = () => {
             } catch (err) {
                 toast.error(err.response?.data?.message || 'Не вдалося скасувати бронювання.');
             }
+        }
+    };
+
+    const handleProfileSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const updatedData = {
+                firstName: profileForm.firstName,
+                lastName: profileForm.lastName,
+                email: user.email
+            };
+            // 🚀 ВИКЛИК PUT ЗАПИТУ НА REAl BEKEND ЗА KEYCLOAK ID
+            await userService.updateUserByKeycloak(user.id, updatedData);
+
+            setUser(prev => ({ ...prev, ...updatedData }));
+            toast.success('Персональні дані успішно оновлено в БД!');
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Не вдалося оновити дані.');
         }
     };
 
@@ -177,11 +221,6 @@ const UserProfilePage = () => {
         { day: 'Чт', value: 45 }, { day: 'Пт', value: 75 }, { day: 'Сб', value: 95 }, { day: 'Нд', value: 80 }
     ];
 
-    const handleProfileSubmit = (e) => {
-        e.preventDefault();
-        alert('Ця функція скоро запрацює! Ваші нові дані: ' + user.firstName + ' ' + user.lastName);
-    };
-
     const renderTabContent = () => {
         if (activeTab === 'fleet') {
             return (
@@ -198,37 +237,37 @@ const UserProfilePage = () => {
 
                     <table className={styles.historyTable}>
                         <thead>
-                            <tr><th>Фото</th><th>Модель</th><th>Рік</th><th>Клас</th><th>Статус</th><th>Ціна</th><th>Дії</th></tr>
+                        <tr><th>Фото</th><th>Модель</th><th>Рік</th><th>Клас</th><th>Статус</th><th>Ціна</th><th>Дії</th></tr>
                         </thead>
                         <tbody>
-                            {ownerCars.length > 0 ? (
-                                ownerCars.map(car => (
-                                    <tr key={car.id}>
-                                        <td>
-                                            {car.imageUrl ? (
-                                                <img src={car.imageUrl} alt="car" className={styles.carThumb} style={{width: '60px', height: '40px', objectFit: 'cover', borderRadius: '4px'}}/>
-                                            ) : (
-                                                <div style={{width: '60px', height: '40px', backgroundColor: '#eee', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px'}}>Фото</div>
-                                            )}
-                                        </td>
-                                        <td><strong>{car.brand} {car.model}</strong></td>
-                                        <td>{car.year}</td>
-                                        <td>{car.carClass}</td>
-                                        <td><span style={{color: '#f39c12', fontWeight: 'bold'}}>{car.status || 'UNCONFIRMED'}</span></td>
-                                        <td>{car.pricePerDay}€</td>
-                                        <td style={{ verticalAlign: 'middle' }}>
-                                            <div className={styles.actionsWrapper}>
-                                                <span style={{color: '#3ba4f6', cursor:'pointer'}} onClick={() => openEditCarModal(car)}>Редаг.</span>
-                                                <span style={{color: '#dc3545', cursor:'pointer'}} onClick={() => deleteCar(car.id)}>Видалити</span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan="7" className={styles.emptyState} style={{textAlign: 'center', padding: '20px'}}>У вас немає непідтверджених авто.</td>
+                        {ownerCars.length > 0 ? (
+                            ownerCars.map(car => (
+                                <tr key={car.id}>
+                                    <td>
+                                        {car.imageUrl ? (
+                                            <img src={car.imageUrl} alt="car" className={styles.carThumb} style={{width: '60px', height: '40px', objectFit: 'cover', borderRadius: '4px'}}/>
+                                        ) : (
+                                            <div style={{width: '60px', height: '40px', backgroundColor: '#eee', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px'}}>Фото</div>
+                                        )}
+                                    </td>
+                                    <td><strong>{car.brand} {car.model}</strong></td>
+                                    <td>{car.year}</td>
+                                    <td>{car.carClass}</td>
+                                    <td><span style={{color: '#f39c12', fontWeight: 'bold'}}>{car.status || 'UNCONFIRMED'}</span></td>
+                                    <td>{car.pricePerDay}€</td>
+                                    <td style={{ verticalAlign: 'middle' }}>
+                                        <div className={styles.actionsWrapper}>
+                                            <span style={{color: '#3ba4f6', cursor:'pointer'}} onClick={() => openEditCarModal(car)}>Редаг.</span>
+                                            <span style={{color: '#dc3545', cursor:'pointer'}} onClick={() => deleteCar(car.id)}>Видалити</span>
+                                        </div>
+                                    </td>
                                 </tr>
-                            )}
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="7" className={styles.emptyState} style={{textAlign: 'center', padding: '20px'}}>У вас немає непідтверджених авто.</td>
+                            </tr>
+                        )}
                         </tbody>
                     </table>
                 </>
@@ -287,33 +326,33 @@ const UserProfilePage = () => {
                     <h2 className={styles.tabTitle}>Історія замовлень</h2>
                     <table className={styles.historyTable}>
                         <thead>
-                            <tr><th>ID Бронювання</th><th>Авто</th><th>Період</th><th>Сума</th><th>Статус</th><th>Дії</th></tr>
+                        <tr><th>ID Бронювання</th><th>Авто</th><th>Період</th><th>Сума</th><th>Статус</th><th>Дії</th></tr>
                         </thead>
                         <tbody>
-                            {bookings.length > 0 ? (
-                                bookings.map(order => (
-                                    <tr key={order.id}>
-                                        <td>#{order.id}</td>
-                                        <td><strong>{order.carName}</strong></td>
-                                        <td>{order.startDate.split('T')[0]} — {order.endDate.split('T')[0]}</td>
-                                        <td><strong>{order.totalPrice}€</strong></td>
-                                        <td>
+                        {bookings.length > 0 ? (
+                            bookings.map(order => (
+                                <tr key={order.id}>
+                                    <td>#{order.id}</td>
+                                    <td><strong>{order.carName}</strong></td>
+                                    <td>{order.startDate.split('T')[0]} — {order.endDate.split('T')[0]}</td>
+                                    <td><strong>{order.totalPrice}€</strong></td>
+                                    <td>
                                             <span className={styles.statusBadge} style={{color: order.status === 'CREATED' ? '#28a745' : (order.status === 'CANCELLED' ? '#dc3545' : '#666')}}>
                                                 {order.status}
                                             </span>
-                                        </td>
-                                        <td>
-                                            {(order.status === 'CREATED' || order.status === 'PENDING') && (
-                                                <span style={{color: '#dc3545', cursor:'pointer', fontWeight: 'bold'}} onClick={() => cancelBooking(order.id)}>
+                                    </td>
+                                    <td>
+                                        {(order.status === 'CREATED' || order.status === 'PENDING') && (
+                                            <span style={{color: '#dc3545', cursor:'pointer', fontWeight: 'bold'}} onClick={() => cancelBooking(order.id)}>
                                                     Скасувати
                                                 </span>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr><td colSpan="6" className={styles.emptyState}>У вас ще немає замовлень.</td></tr>
-                            )}
+                                        )}
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr><td colSpan="6" className={styles.emptyState}>У вас ще немає замовлень.</td></tr>
+                        )}
                         </tbody>
                     </table>
                 </>
@@ -339,14 +378,20 @@ const UserProfilePage = () => {
                     <h2 className={styles.tabTitle}>Персональні дані</h2>
                     <form onSubmit={handleProfileSubmit}>
                         <div className={styles.formGrid}>
-                            <div className={styles.inputGroup}><label>Ім'я</label><input type="text" name="firstName" defaultValue={user.firstName} /></div>
-                            <div className={styles.inputGroup}><label>Прізвище</label><input type="text" name="lastName" defaultValue={user.lastName} /></div>
+                            <div className={styles.inputGroup}>
+                                <label>Ім'я</label>
+                                <input type="text" value={profileForm.firstName} onChange={(e) => setProfileForm({...profileForm, firstName: e.target.value})} />
+                            </div>
+                            <div className={styles.inputGroup}>
+                                <label>Прізвище</label>
+                                <input type="text" value={profileForm.lastName} onChange={(e) => setProfileForm({...profileForm, lastName: e.target.value})} />
+                            </div>
                             <div className={styles.inputGroup}><label>Email (не змінюється)</label><input type="email" value={user.email} disabled style={{background:'#eee', cursor: 'not-allowed'}}/></div>
                         </div>
-                        <h3 className={styles.sectionSubtitle}>Зміна пароля</h3>
+                        <h3 className={styles.sectionSubtitle}>Зміна пароля (через Keycloak Console)</h3>
                         <div className={styles.formGrid}>
-                            <div className={styles.inputGroup}><label>Новий пароль</label><input type="password" /></div>
-                            <div className={styles.inputGroup}><label>Повторіть новий пароль</label><input type="password" /></div>
+                            <div className={styles.inputGroup}><label>Новий пароль</label><input type="password" disabled placeholder="Зміна в кабінеті Keycloak" style={{background:'#eee'}}/></div>
+                            <div className={styles.inputGroup}><label>Повторіть новий пароль</label><input type="password" disabled placeholder="Зміна в кабінеті Keycloak" style={{background:'#eee'}}/></div>
                         </div>
                         <button type="submit" className={styles.primaryBtn}>Зберегти зміни</button>
                     </form>
@@ -394,14 +439,14 @@ const UserProfilePage = () => {
                                 <div style={{flex: 1}}><label>Ціна (€/доба)</label><input required type="number" step="0.1" name="pricePerDay" value={carForm.pricePerDay} onChange={handleCarFormChange} style={{width:'100%', padding:'8px'}}/></div>
                             </div>
                             <div style={{marginBottom: '10px'}}>
-                                                            <label>Клас авто</label>
-                                                            <select name="carClass" value={carForm.carClass} onChange={handleCarFormChange} style={{width:'100%', padding:'8px'}}>
-                                                                <option value="ECONOMY">Economy</option>
-                                                                <option value="COMFORT">Comfort</option>
-                                                                <option value="BUSINESS">Business</option>
-                                                                <option value="LUXURY">Luxury</option>
-                                                            </select>
-                                                        </div>
+                                <label>Клас авто</label>
+                                <select name="carClass" value={carForm.carClass} onChange={handleCarFormChange} style={{width:'100%', padding:'8px'}}>
+                                    <option value="ECONOMY">Economy</option>
+                                    <option value="COMFORT">Comfort</option>
+                                    <option value="BUSINESS">Business</option>
+                                    <option value="LUXURY">Luxury</option>
+                                </select>
+                            </div>
                             <div style={{marginBottom: '20px'}}>
                                 <label>URL фотографії</label>
                                 <input type="url" name="imageUrl" value={carForm.imageUrl} onChange={handleCarFormChange} placeholder="https://..." style={{width:'100%', padding:'8px'}}/>
