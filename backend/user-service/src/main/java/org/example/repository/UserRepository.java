@@ -29,15 +29,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<Long> findIdByEmailAndDriverCode(
             @Param("email") String email, @Param("driverCode") String driverCode);
 
-    /**
-     * 1) Загальна кількість користувачів в системі (активних)
-     */
+    /** 1) Загальна кількість користувачів в системі (активних) */
     @Query("SELECT COUNT(u) FROM User u WHERE u.isActive = true")
     long countActiveUsers();
 
-    /**
-     * Кількість користувачів за роллю
-     */
+    /** Кількість користувачів за роллю */
     @Query("SELECT COUNT(u) FROM User u WHERE u.role = :role AND u.isActive = true")
     long countByRole(@Param("role") UserRole role);
 }
