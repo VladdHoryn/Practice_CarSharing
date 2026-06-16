@@ -1,5 +1,6 @@
 package org.example.controller;
 
+import java.math.BigDecimal;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -113,8 +114,8 @@ public class BookingController {
     }
 
     @GetMapping("analytics/owner/{ownerId}/revenue")
-    public double sumTotalPriceByOwnerIdAndStatus(@PathVariable Long ownerId,
-                                                  @RequestParam BookingStatus status){
+    public BigDecimal sumTotalPriceByOwnerIdAndStatus(@PathVariable Long ownerId,
+                                                      @RequestParam BookingStatus status){
       return bookingService.sumTotalPriceByOwnerIdAndStatus(ownerId, status);
     }
 

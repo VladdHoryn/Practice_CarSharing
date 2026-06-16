@@ -41,14 +41,14 @@ public class CarServiceClient {
       ).build();
   }
 
-  public Optional<List<CarDto>> getCarsByUserId(Long userId){
+  public List<CarDto> getCarsByUserId(Long userId){
     log.info("Request all cars that belong to user={}", userId);
 
-    return Optional.ofNullable(
+    return
       restClient.get()
         .uri("/owner/{userId}", userId)
         .retrieve()
-        .body(new ParameterizedTypeReference<List<CarDto>>() {})
+        .body(new ParameterizedTypeReference<List<CarDto>>() {}
     );
   }
 }
