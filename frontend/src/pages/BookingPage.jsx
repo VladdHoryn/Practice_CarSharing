@@ -102,19 +102,22 @@ const BookingPage = () => {
         if (!userStr) return navigate('/login');
 
         const currentUser = JSON.parse(userStr);
-        setIsProcessing(true);
 
+        if (!currentUser.dbId) {
+                    toast.error('Помилка авторизації в базі даних. Спробуйте перелогінитися.');
+                    return;
+                }
+
+        setIsProcessing(true);
         let createdBookingId = null;
 
         try {
-
-            // ЕТАП 1: Створюємо бронювання
             const bookingRequest = {
-                userId: Number(currentUser.id),
+                userId: Number(currentUser.dbId),
                 carId: Number(car.id),
                 startDate: `${dates.start}T12:00:00`,
                 endDate: `${dates.end}T12:00:00`,
-                pricePerDay: Number(car.pricePerDay).toFixed(2)
+                pricePerDay: Number(car.pricePerDay)
             };
 
             console.log("Відправляємо дані на бронювання:", bookingRequest);

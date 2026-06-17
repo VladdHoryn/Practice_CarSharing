@@ -7,6 +7,9 @@ spring:
 
   cloud:
     gateway:
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_FIRST
+
       routes:
         - id: keycloak
           uri: http://keycloak:8080
@@ -32,4 +35,3 @@ spring:
           uri: http://payment-service:8084
           predicates:
             - Path=/payment/v1/**
-

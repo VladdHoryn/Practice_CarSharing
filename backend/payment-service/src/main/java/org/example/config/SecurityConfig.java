@@ -15,6 +15,8 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -23,53 +25,48 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable)
-                .cors(Customizer.withDefaults())
-                .sessionManagement(
-                        session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(
-                        auth ->
-                                auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**")
-                                        .permitAll()
-                                        .requestMatchers("/error")
-                                        .permitAll()
-                                        .anyRequest()
-                                        .authenticated())
-                .oauth2ResourceServer(
-                        oauth2 ->
-                                oauth2.jwt(
-                                        jwt ->
-                                                jwt.jwtAuthenticationConverter(
-                                                        jwtAuthenticationConverter())));
+  @Bean
+  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http.csrf(AbstractHttpConfigurer::disable)
+      .cors(Customizer.withDefaults())
+      .sessionManagement(
+        session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+      .authorizeHttpRequests(
+        auth ->
+          auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/error").permitAll()
+            .anyRequest().authenticated())
+      .oauth2ResourceServer(
+        oauth2 ->
+          oauth2.jwt(
+            jwt ->
+              jwt.jwtAuthenticationConverter(
+                jwtAuthenticationConverter())));
 
-        return http.build();
-    }
+    return http.build();
+  }
 
-    @Bean
-    public JwtAuthenticationConverter jwtAuthenticationConverter() {
-        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+  // 🎯 ДОДАНО: Локальна валідація токенів у мережі докера
+  @Bean
+  public JwtDecoder jwtDecoder() {
+    return NimbusJwtDecoder.withJwkSetUri("http://keycloak:8080/realms/carsharing-realm/protocol/openid-connect/certs").build();
+  }
 
-        converter.setJwtGrantedAuthoritiesConverter(
-                jwt -> {
-                    Collection<GrantedAuthority> authorities = new ArrayList<>();
-
-                    Map<String, Object> realm_access = jwt.getClaim("realm_access");
-
-                    if (realm_access != null && realm_access.containsKey("roles")) {
-                        @SuppressWarnings("unchecked")
-                        List<String> roles = (List<String>) realm_access.get("roles");
-
-                        for (String role : roles) {
-                            authorities.add(
-                                    new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()));
-                        }
-                    }
-
-                    return authorities;
-                });
-
-        return converter;
-    }
+  @Bean // 👑 ВИПРАВЛЕНО: Повернуто анотацію Біна
+  public JwtAuthenticationConverter jwtAuthenticationConverter() {
+    JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+    converter.setJwtGrantedAuthoritiesConverter(
+      jwt -> {
+        Collection<GrantedAuthority> authorities = new ArrayList<>();
+        Map<String, Object> realmAccess = jwt.getClaim("realm_access");
+        if (realmAccess != null && realmAccess.containsKey("roles")) {
+          @SuppressWarnings("unchecked")
+          List<String> roles = (List<String>) realmAccess.get("roles");
+          for (String role : roles) {
+            authorities.add(new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()));
+          }
+        }
+        return authorities;
+      });
+    return converter;
+  }
 }
