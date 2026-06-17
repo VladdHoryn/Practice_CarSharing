@@ -2,12 +2,15 @@ package org.example.application;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 import jakarta.transaction.Transactional;
 
 import org.example.domain.Booking;
 import org.example.domain.BookingStatus;
+import org.example.dto.CarDto;
+import org.example.infrastructure.client.CarServiceClient;
 import org.example.repository.BookingRepository;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +23,8 @@ import lombok.extern.slf4j.Slf4j;
 public class BookingApplicationService {
 
     private final BookingRepository bookingRepository;
+
+    private final CarServiceClient carServiceClient;
 
     @Transactional
     public Booking createBooking(
@@ -99,5 +104,59 @@ public class BookingApplicationService {
         }
 
         bookingRepository.delete(booking);
+    }
+
+    // OWNER ANALYTICS
+
+    private List<Long> getCarIdsByOwner(Long ownerId) {
+        log.debug("Fetching cars for ownerId={} from car-service", ownerId);
+        List<CarDto> cars = carServiceClient.getCarsByUserId(ownerId);
+
+        if (cars == null || cars.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return cars.stream().map(CarDto::id).toList();
+    }
+
+    public long countBookingsByOwnerId(Long ownerId) {
+        List<Long> carIds = getCarIdsByOwner(ownerId);
+        if (carIds.isEmpty()) return 0L;
+
+        return bookingRepository.countBookingsByCarIds(carIds);
+    }
+
+    public long countCompletedBookingsByOwnerId(Long ownerId, BookingStatus status) {
+        List<Long> carIds = getCarIdsByOwner(ownerId);
+        if (carIds.isEmpty()) return 0L;
+
+        return bookingRepository.countCompletedBookingsByCarIds(carIds, status);
+    }
+
+    public BigDecimal sumTotalPriceByOwnerIdAndStatus(Long ownerId, BookingStatus status) {
+        List<Long> carIds = getCarIdsByOwner(ownerId);
+        if (carIds.isEmpty()) return BigDecimal.ZERO;
+
+        return bookingRepository.sumTotalPriceByCarIdsAndStatus(carIds, status);
+    }
+
+    public List<Object[]> findMonthlyRevenueByOwnerId(
+            Long ownerId, BookingStatus status, LocalDateTime startDate) {
+        List<Long> carIds = getCarIdsByOwner(ownerId);
+        if (carIds.isEmpty()) return Collections.emptyList();
+
+        return bookingRepository.findMonthlyRevenueByCarIds(carIds, status, startDate);
+    }
+
+    public List<Object[]> countBookedCarsByDayForOwner(
+            Long ownerId,
+            List<BookingStatus> activeStatuses,
+            LocalDateTime startDate,
+            LocalDateTime endDate) {
+        List<Long> carIds = getCarIdsByOwner(ownerId);
+        if (carIds.isEmpty()) return Collections.emptyList();
+
+        return bookingRepository.countBookedCarsByDayForCarIds(
+                carIds, activeStatuses, startDate, endDate);
     }
 }

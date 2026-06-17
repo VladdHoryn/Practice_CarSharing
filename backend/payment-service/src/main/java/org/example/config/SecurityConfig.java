@@ -15,6 +15,8 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -31,9 +33,7 @@ public class SecurityConfig {
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(
                         auth ->
-                                auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**")
-                                        .permitAll()
-                                        .requestMatchers("/error")
+                                auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/error")
                                         .permitAll()
                                         .anyRequest()
                                         .authenticated())
@@ -47,29 +47,31 @@ public class SecurityConfig {
         return http.build();
     }
 
+    // 🎯 ДОДАНО: Локальна валідація токенів у мережі докера
     @Bean
+    public JwtDecoder jwtDecoder() {
+        return NimbusJwtDecoder.withJwkSetUri(
+                        "http://keycloak:8080/realms/carsharing-realm/protocol/openid-connect/certs")
+                .build();
+    }
+
+    @Bean // 👑 ВИПРАВЛЕНО: Повернуто анотацію Біна
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
-
         converter.setJwtGrantedAuthoritiesConverter(
                 jwt -> {
                     Collection<GrantedAuthority> authorities = new ArrayList<>();
-
-                    Map<String, Object> realm_access = jwt.getClaim("realm_access");
-
-                    if (realm_access != null && realm_access.containsKey("roles")) {
+                    Map<String, Object> realmAccess = jwt.getClaim("realm_access");
+                    if (realmAccess != null && realmAccess.containsKey("roles")) {
                         @SuppressWarnings("unchecked")
-                        List<String> roles = (List<String>) realm_access.get("roles");
-
+                        List<String> roles = (List<String>) realmAccess.get("roles");
                         for (String role : roles) {
                             authorities.add(
                                     new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()));
                         }
                     }
-
                     return authorities;
                 });
-
         return converter;
     }
 }

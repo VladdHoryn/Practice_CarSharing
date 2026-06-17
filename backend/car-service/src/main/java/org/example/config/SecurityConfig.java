@@ -16,6 +16,8 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -32,16 +34,13 @@ public class SecurityConfig {
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(
                         auth ->
-                                auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**")
+                                auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/error")
                                         .permitAll()
-                                        .requestMatchers("/error")
+                                        // 👑 ВИПРАВЛЕНО: Дозволяємо гостям дивитися каталог машин
+                                        .requestMatchers(HttpMethod.GET, "/car/v1/available")
                                         .permitAll()
-                                        .requestMatchers(HttpMethod.GET, "/car/*")
-                                        .permitAll()
-                                        .requestMatchers(HttpMethod.GET, "/car/*/available/**")
-                                        .permitAll()
-                                        .requestMatchers(HttpMethod.GET, "/car/*/{id}")
-                                        .permitAll()
+                                        // Усі інші ендпоінти (наприклад, /unconfirmed) вимагають
+                                        // авторизації
                                         .anyRequest()
                                         .authenticated())
                 .oauth2ResourceServer(
@@ -54,29 +53,31 @@ public class SecurityConfig {
         return http.build();
     }
 
+    // 🎯 ДОДАНО: Локальна валідація токенів у мережі докера
+    @Bean
+    public JwtDecoder jwtDecoder() {
+        return NimbusJwtDecoder.withJwkSetUri(
+                        "http://keycloak:8080/realms/carsharing-realm/protocol/openid-connect/certs")
+                .build();
+    }
+
     @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
-
         converter.setJwtGrantedAuthoritiesConverter(
                 jwt -> {
                     Collection<GrantedAuthority> authorities = new ArrayList<>();
-
                     Map<String, Object> realmAccess = jwt.getClaim("realm_access");
-
                     if (realmAccess != null && realmAccess.containsKey("roles")) {
                         @SuppressWarnings("unchecked")
                         List<String> roles = (List<String>) realmAccess.get("roles");
-
                         for (String role : roles) {
                             authorities.add(
                                     new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()));
                         }
                     }
-
                     return authorities;
                 });
-
         return converter;
     }
 }

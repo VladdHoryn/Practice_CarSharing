@@ -1,6 +1,8 @@
 package org.example.controller;
 
+import java.math.BigDecimal;
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -10,9 +12,14 @@ import org.example.application.BookingApplicationService;
 import org.example.application.BookingDriverApplicationService;
 import org.example.domain.Booking;
 import org.example.domain.BookingDriver;
+import org.example.domain.BookingStatus;
+import org.example.dto.BookingResponse;
+import org.example.dto.BookingStatusChange;
+import org.example.dto.CreateBookingRequest;
 import org.example.dto.*;
 import org.example.exception.UserWasNotFound;
 import org.example.infrastructure.client.UserServiceClient;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -110,6 +117,53 @@ public class BookingController {
     public ResponseEntity<Void> deleteBooking(@PathVariable Long id) {
         bookingService.deleteBooking(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // OWNER ANALYTICS
+
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
+    @GetMapping("/analytics/owners/{ownerId}/bookings")
+    public ResponseEntity<Long> countBookingsByOwnerId(@PathVariable Long ownerId) {
+        return ResponseEntity.ok(bookingService.countBookingsByOwnerId(ownerId));
+    }
+
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
+    @GetMapping("/analytics/owners/{ownerId}/bookings/whole")
+    public ResponseEntity<Long> countCompletedBookingsByOwnerId(
+            @PathVariable Long ownerId, @RequestParam BookingStatus status) {
+        return ResponseEntity.ok(bookingService.countCompletedBookingsByOwnerId(ownerId, status));
+    }
+
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
+    @GetMapping("/analytics/owners/{ownerId}/revenue")
+    public ResponseEntity<BigDecimal> sumTotalPriceByOwnerIdAndStatus(
+            @PathVariable Long ownerId, @RequestParam BookingStatus status) {
+        return ResponseEntity.ok(bookingService.sumTotalPriceByOwnerIdAndStatus(ownerId, status));
+    }
+
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
+    @GetMapping("/analytics/owners/{ownerId}/revenue/year")
+    public ResponseEntity<List<Object[]>> findMonthlyRevenueByOwnerId(
+            @PathVariable Long ownerId,
+            @RequestParam BookingStatus status,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+                    LocalDateTime startDate) {
+        return ResponseEntity.ok(
+                bookingService.findMonthlyRevenueByOwnerId(ownerId, status, startDate));
+    }
+
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
+    @GetMapping("/analytics/owners/{ownerId}/load/week")
+    public ResponseEntity<List<Object[]>> countBookedCarsByDayForOwner(
+            @PathVariable Long ownerId,
+            @RequestParam List<BookingStatus> activeStatuses,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+                    LocalDateTime startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+                    LocalDateTime endDate) {
+        return ResponseEntity.ok(
+                bookingService.countBookedCarsByDayForOwner(
+                        ownerId, activeStatuses, startDate, endDate));
     }
 
     @PreAuthorize("hasAnyRole('RENTER')")

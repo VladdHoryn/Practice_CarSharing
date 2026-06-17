@@ -12,10 +12,13 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -34,7 +37,7 @@ public class SecurityConfig {
                         auth ->
                                 auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**")
                                         .permitAll()
-                                        .requestMatchers(HttpMethod.POST, "/users/*")
+                                        .requestMatchers(HttpMethod.POST, "/user/v1")
                                         .permitAll()
                                         .requestMatchers("/error")
                                         .permitAll()
@@ -48,6 +51,18 @@ public class SecurityConfig {
                                                         jwtAuthenticationConverter())));
 
         return http.build();
+    }
+
+    @Bean
+    public JwtDecoder jwtDecoder() {
+        return NimbusJwtDecoder.withJwkSetUri(
+                        "http://keycloak:8080/realms/carsharing-realm/protocol/openid-connect/certs")
+                .build();
+    }
+
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring().requestMatchers(HttpMethod.POST, "/user/v1");
     }
 
     @Bean
