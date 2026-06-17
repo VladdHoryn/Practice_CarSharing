@@ -1,20 +1,23 @@
 package org.example.application;
 
-import java.util.List;
-
 import jakarta.transaction.Transactional;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.domain.Car;
+import org.example.domain.CarImage;
 import org.example.domain.CarStatus;
-import org.example.dto.CarFilterDto;
+import org.example.dto.*;
+import org.example.repository.CarImageRepository;
 import org.example.repository.CarRepository;
 import org.example.specification.CarSpecification;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -22,6 +25,150 @@ import lombok.extern.slf4j.Slf4j;
 public class CarApplicationService {
 
     private final CarRepository carRepository;
+    private final CarImageRepository carImageRepository;
+
+
+    // =====================================================
+    // IMAGE OPERATIONS
+    // =====================================================
+
+    @Transactional
+    public CarSummaryResponse uploadImage(Long carId, MultipartFile file) throws IOException {
+        log.info("Uploading image for car id={}, file={}", carId, file.getOriginalFilename());
+
+        // Валідація файлу
+        validateImageFile(file);
+
+        Car car = getCarById(carId);
+
+        CarImage image = CarImage.builder()
+                .car(car)
+                .imageData(file.getBytes())
+                .contentType(file.getContentType())
+                .fileName(file.getOriginalFilename())
+                .fileSize(file.getSize())
+                .isMain(car.getImages().isEmpty()) // перше фото стає головним
+                .build();
+
+        car.addImage(image);
+        carRepository.save(car);
+
+        return convertToSummaryResponse(car);
+    }
+
+    @Transactional
+    public CarDetailedResponse setMainImage(Long carId, Long imageId) {
+        log.info("Setting main image for car id={}, imageId={}", carId, imageId);
+
+        Car car = getCarById(carId);
+        car.setMainImage(imageId);
+        carRepository.save(car);
+
+        return convertToDetailedResponse(car);
+    }
+
+    @Transactional
+    public CarDetailedResponse deleteImage(Long carId, Long imageId) {
+        log.info("Deleting image id={} for car id={}", imageId, carId);
+
+        Car car = getCarById(carId);
+        boolean removed = car.removeImage(imageId);
+
+        if (!removed) {
+            throw new IllegalArgumentException("Image not found with id: " + imageId);
+        }
+
+        carRepository.save(car);
+        return convertToDetailedResponse(car);
+    }
+
+    // =====================================================
+    // CONVERTERS (для різних DTO)
+    // =====================================================
+
+    public CarSummaryResponse convertToSummaryResponse(Car car) {
+        CarImage mainImage = car.getMainImage();
+
+        return CarSummaryResponse.builder()
+                .id(car.getId())
+                .brand(car.getBrand())
+                .model(car.getModel())
+                .year(car.getYear())
+                .carClass(car.getCarClass().name())
+                .pricePerDay(car.getPricePerDay())
+                .userId(car.getUserId())
+                .status(car.getStatus())
+                .locationCity(car.getLocationCity())
+                .mainImage(mainImage != null ? mainImage.getImageData() : null)
+                .build();
+    }
+
+    public CarDetailedResponse convertToDetailedResponse(Car car) {
+        CarImage mainImage = car.getMainImage();
+
+        List<byte[]> galleryImages = car.getImages().stream()
+                .map(CarImage::getImageData)
+                .toList();
+
+        return CarDetailedResponse.builder()
+                .id(car.getId())
+                .brand(car.getBrand())
+                .model(car.getModel())
+                .year(car.getYear())
+                .carClass(car.getCarClass().name())
+                .pricePerDay(car.getPricePerDay())
+                .userId(car.getUserId())
+                .status(car.getStatus())
+                .locationCity(car.getLocationCity())
+                .mainImage(mainImage != null ? mainImage.getImageData() : null)
+                .galleryImages(galleryImages)
+                .build();
+    }
+
+    // =====================================================
+    // FILTERING OPERATIONS
+    // =====================================================
+
+    public List<CarSummaryResponse> getAvailableCarsSummary() {
+        log.debug("Fetching available cars (summary)");
+        return carRepository.findByStatus(CarStatus.AVAILABLE).stream()
+                .map(this::convertToSummaryResponse)
+                .toList();
+    }
+
+    public CarDetailedResponse getCarDetails(Long carId) {
+        log.debug("Fetching car details for id={}", carId);
+        Car car = getCarById(carId);
+        return convertToDetailedResponse(car);
+    }
+
+    public Page<CarSummaryResponse> getFilteredCarsSummary(CarFilterDto filter, Pageable pageable) {
+        log.debug("Filtering cars with criteria: {}", filter);
+        return carRepository.findAll(CarSpecification.filterBy(filter), pageable)
+                .map(this::convertToSummaryResponse);
+    }
+
+    // =====================================================
+    // VALIDATION
+    // =====================================================
+
+    private void validateImageFile(MultipartFile file) {
+        // Перевірка на пустий файл
+        if (file.isEmpty()) {
+            throw new IllegalArgumentException("File is empty");
+        }
+
+        // Перевірка типу файлу
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new IllegalArgumentException("File must be an image (JPEG, PNG, etc.)");
+        }
+
+        // Перевірка розміру (max 5MB)
+        if (file.getSize() > 5 * 1024 * 1024) {
+            throw new IllegalArgumentException("File size must not exceed 5MB");
+        }
+    }
 
     // =====================================================
     // CRUD Operations
@@ -227,5 +374,30 @@ public class CarApplicationService {
         car.cancelCar();
 
         carRepository.save(car);
+    }
+    
+    /**
+     * Отримати всі фото авто (головне + галерея)
+     */
+    public List<String> getAllCarImages(Long carId) {
+        Car car = getCarById(carId);
+        return car.getAllImages();
+    }
+
+    /**
+     * Отримати головне фото
+     */
+    public String getMainImage(Long carId) {
+        Car car = getCarById(carId);
+        if (car.getImageUrl() != null && !car.getImageUrl().isEmpty()) {
+            return car.getImageUrl();
+        }
+        if (car.getPrimaryImage() != null && !car.getPrimaryImage().isEmpty()) {
+            return car.getPrimaryImage();
+        }
+        if (car.getImages() != null && !car.getImages().isEmpty()) {
+            return car.getImages().get(0);
+        }
+        return null;
     }
 }
