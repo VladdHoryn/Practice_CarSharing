@@ -11,15 +11,15 @@ import jakarta.validation.Valid;
 import org.example.application.BookingApplicationService;
 import org.example.application.BookingDriverApplicationService;
 import org.example.domain.Booking;
+import org.example.domain.BookingDriver;
 import org.example.domain.BookingStatus;
 import org.example.dto.BookingResponse;
 import org.example.dto.BookingStatusChange;
 import org.example.dto.CreateBookingRequest;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.example.domain.BookingDriver;
 import org.example.dto.*;
 import org.example.exception.UserWasNotFound;
 import org.example.infrastructure.client.UserServiceClient;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -161,10 +161,11 @@ public class BookingController {
                     LocalDateTime startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
                     LocalDateTime endDate) {
-      return ResponseEntity.ok(
-        bookingService.countBookedCarsByDayForOwner(
-          ownerId, activeStatuses, startDate, endDate));
+        return ResponseEntity.ok(
+                bookingService.countBookedCarsByDayForOwner(
+                        ownerId, activeStatuses, startDate, endDate));
     }
+
     @PreAuthorize("hasAnyRole('RENTER')")
     @PostMapping("/{bookingId}/drivers")
     public ResponseEntity<BookingDriverResponse> createInvitation(
