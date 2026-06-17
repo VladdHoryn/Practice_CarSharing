@@ -11,7 +11,11 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@FeignClient(name = "booking-service", path = "/booking/v1") // Вкажи правильний шлях
+@FeignClient(
+  name = "booking-service",
+  url = "${app.feign.booking-service-url}",
+  path = "/booking/v1"
+)
 public interface BookingServiceClient {
 
   @GetMapping("/analytics/owners/{ownerId}/bookings")
