@@ -8,36 +8,18 @@ const UserManagement = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
 
-    const [currentPage, setCurrentPage] = useState(0);
-    const [totalPages, setTotalPages] = useState(1);
-    const pageSize = 10;
-
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [selectedUser, setSelectedUser] = useState(null);
-    const [newRole, setNewRole] = useState('RENTER');
+    // 👑 ДОДАНО: Локальне сортування та фільтрація
+    const [filterStatus, setFilterStatus] = useState('ALL');
+    const [sortKey, setSortByKey] = useState('fullName');
 
     const fetchUsers = async () => {
         try {
             setLoading(true);
-            const params = {
-                page: currentPage,
-                size: pageSize,
-                search: searchTerm
-            };
-            const data = await userService.getAllUsers(params);
-
-
-            setUsers(data.content || data);
-            setTotalPages(data.totalPages || 1);
+            const data = await userService.getAllUsers();
+            setUsers(data || []);
         } catch (err) {
             console.error('Помилка завантаження користувачів:', err);
-
-            setUsers([
-                { id: 12, fullName: 'Zhuryk Maks', email: 'zhuryk@carsharing.com', role: 'ADMINISTRATOR', isActive: true },
-                { id: 101, fullName: 'Олексій Коваленко', email: 'olex@gmail.com', role: 'RENTER', isActive: true },
-                { id: 102, fullName: 'Марія Петренко', email: 'maria.p@gmail.com', role: 'OWNER', isActive: false },
-            ]);
+            toast.error('Не вдалося завантажити список користувачів.');
         } finally {
             setLoading(false);
         }
@@ -45,57 +27,63 @@ const UserManagement = () => {
 
     useEffect(() => {
         fetchUsers();
-    }, [currentPage, searchTerm]);
+    }, []);
 
-    const handleSearchChange = (e) => {
-        setSearchTerm(e.target.value);
-        setCurrentPage(0);
-    };
+    const handleToggleBlock = async (user) => {
+        const actionText = user.isActive ? 'деактивувати' : 'активувати';
+        if (!window.confirm(`Ви впевнені, що хочете ${actionText} користувача ${user.fullName}?`)) return;
 
-    const openEditModal = (user) => {
-        setSelectedUser(user);
-        setNewRole(user.role);
-        setIsEditModalOpen(true);
-    };
-
-    const handleUpdateRole = async () => {
         try {
-            await userService.updateUserRole(selectedUser.id, newRole);
-            toast.success(`Роль користувача ${selectedUser.fullName} успішно змінено!`);
-            setIsEditModalOpen(false);
+            if (user.isActive) {
+                await userService.deactivateUserByKeycloak(user.keycloakId);
+                toast.warning(`Користувача ${user.fullName} заблоковано.`);
+            } else {
+                await userService.activateUserByKeycloak(user.keycloakId);
+                toast.success(`Користувача ${user.fullName} активовано!`);
+            }
             fetchUsers();
         } catch (err) {
-            toast.error('Не вдалося оновити роль.');
+            toast.error('Помилка при зміні статусу користувача. Перевірте CORS PATCH на шлюзі.');
         }
     };
 
-    const openDeleteModal = (user) => {
-        setSelectedUser(user);
-        setIsDeleteModalOpen(true);
-    };
-
-    const handleDeleteUser = async () => {
-        try {
-            await userService.deleteUser(selectedUser.id);
-            toast.success(`Користувача заблоковано/видалено.`);
-            setIsDeleteModalOpen(false);
-            fetchUsers();
-        } catch (err) {
-            toast.error('Помилка при видаленні користувача.');
-        }
-    };
+    // 👑 ДОДАНО: Обробка пошуку, фільтрації за статусом та сортування на фронті
+    const processedUsers = users
+        .filter(user => {
+            const matchesSearch = user.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                user.email?.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesStatus = filterStatus === 'ALL' ||
+                (filterStatus === 'ACTIVE' && user.isActive) ||
+                (filterStatus === 'BLOCKED' && !user.isActive);
+            return matchesSearch && matchesStatus;
+        })
+        .sort((a, b) => {
+            if (!a[sortKey] || !b[sortKey]) return 0;
+            return a[sortKey].toString().localeCompare(b[sortKey].toString());
+        });
 
     return (
         <div className={styles.container}>
             <div className={styles.tableHeader}>
                 <h1 className={styles.title}>👥 Керування користувачами</h1>
-                <input
-                    type="text"
-                    placeholder="Пошук за Email або ПІБ..."
-                    className={styles.searchInput}
-                    value={searchTerm}
-                    onChange={handleSearchChange}
-                />
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <input
+                        type="text"
+                        placeholder="Пошук за Email або ПІБ..."
+                        className={styles.searchInput}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className={styles.searchInput} style={{ width: '160px' }}>
+                        <option value="ALL">Всі статуси</option>
+                        <option value="ACTIVE">⚡ Active</option>
+                        <option value="BLOCKED">🔒 Blocked</option>
+                    </select>
+                    <select value={sortKey} onChange={(e) => setSortByKey(e.target.value)} className={styles.searchInput} style={{ width: '160px' }}>
+                        <option value="fullName">Сортувати: ПІБ</option>
+                        <option value="email">Сортувати: Email</option>
+                    </select>
+                </div>
             </div>
 
             {loading ? (
@@ -114,71 +102,26 @@ const UserManagement = () => {
                         </tr>
                         </thead>
                         <tbody>
-                        {users.map((user) => (
+                        {processedUsers.map((user) => (
                             <tr key={user.id}>
                                 <td>#{user.id}</td>
                                 <td><strong>{user.fullName}</strong></td>
                                 <td>{user.email}</td>
+                                <td><span className={`${styles.roleBadge} ${styles[user.role?.toLowerCase() || 'renter']}`}>{user.role}</span></td>
                                 <td>
-                                        <span className={`${styles.roleBadge} ${styles[user.role.toLowerCase()]}`}>
-                                            {user.role}
-                                        </span>
+                                    <span className={user.isActive ? styles.statusActive : styles.statusBlocked}>
+                                        {user.isActive ? '● Active' : '● Blocked'}
+                                    </span>
                                 </td>
                                 <td>
-                                        <span className={user.isActive ? styles.statusActive : styles.statusBlocked}>
-                                            {user.isActive ? '● Active' : '● Blocked'}
-                                        </span>
-                                </td>
-                                <td>
-                                    <div className={styles.actions}>
-                                        <button onClick={() => openEditModal(user)} className={styles.editBtn}>✏️ Роль</button>
-                                        <button onClick={() => openDeleteModal(user)} className={styles.deleteBtn}>🔒 Блок</button>
-                                    </div>
+                                    <button onClick={() => handleToggleBlock(user)} className={user.isActive ? styles.deleteBtn : styles.editBtn} style={{ padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>
+                                        {user.isActive ? '🔒 Блок' : '🔓 Розблок'}
+                                    </button>
                                 </td>
                             </tr>
                         ))}
                         </tbody>
                     </table>
-
-                    {totalPages > 1 && (
-                        <div className={styles.pagination}>
-                            <button disabled={currentPage === 0} onClick={() => setCurrentPage(prev => prev - 1)}>« Назад</button>
-                            <span>Сторінка {currentPage + 1} з {totalPages}</span>
-                            <button disabled={currentPage >= totalPages - 1} onClick={() => setCurrentPage(prev => prev + 1)}>Вперед »</button>
-                        </div>
-                    )}
-                </div>
-            )}
-
-            {isEditModalOpen && (
-                <div className={styles.modalOverlay}>
-                    <div className={styles.modal}>
-                        <h3>Зміна доступу для {selectedUser?.fullName}</h3>
-                        <p>Оберіть нову системну роль користувача:</p>
-                        <select value={newRole} onChange={(e) => setNewRole(e.target.value)} className={styles.select}>
-                            <option value="RENTER">RENTER (Орендар)</option>
-                            <option value="OWNER">OWNER (Власник авто)</option>
-                            <option value="ADMINISTRATOR">ADMINISTRATOR (Адміністратор)</option>
-                        </select>
-                        <div className={styles.modalActions}>
-                            <button onClick={() => setIsEditModalOpen(false)} className={styles.cancelBtn}>Скасувати</button>
-                            <button onClick={handleUpdateRole} className={styles.saveBtn}>Зберегти зміни</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {isDeleteModalOpen && (
-                <div className={styles.modalOverlay}>
-                    <div className={styles.modal}>
-                        <h3 style={{ color: '#ef4444' }}>⚠️ Підтвердження дії</h3>
-                        <p>Ви впевнені, що хочете заблокувать доступ для <strong>{selectedUser?.fullName}</strong>?</p>
-                        <p style={{ fontSize: '13px', color: '#64748b' }}>Користувач втратить можливість авторизуватися на платформі.</p>
-                        <div className={styles.modalActions}>
-                            <button onClick={() => setIsDeleteModalOpen(false)} className={styles.cancelBtn}>Ні, назад</button>
-                            <button onClick={handleDeleteUser} className={styles.confirmDangerBtn}>Так, заблокувати</button>
-                        </div>
-                    </div>
                 </div>
             )}
         </div>

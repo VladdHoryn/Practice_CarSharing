@@ -93,10 +93,17 @@ const UserProfilePage = () => {
         }, [activeTab, user.role, user.id]);
 
     useEffect(() => {
-        if (activeTab === 'history' && user.id) {
+        // 1. Дістаємо актуальні дані користувача прямо з localStorage
+        const storedUser = localStorage.getItem('user');
+        if (!storedUser) return;
+        const parsedUser = JSON.parse(storedUser);
+
+        if (activeTab === 'history' && parsedUser.dbId) {
             const loadBookingsWithCars = async () => {
                 try {
-                    const bookingsData = await bookingService.getUserBookings(user.id);
+                    // 🚀 ПЕРЕДАЄМО ЧИСЛО (наприклад, 4), яке так чекає booking-service
+                    const bookingsData = await bookingService.getUserBookings(parsedUser.dbId);
+
                     const enrichedBookings = await Promise.all(bookingsData.map(async (booking) => {
                         try {
                             const carInfo = await carService.getCarById(booking.carId);
@@ -105,14 +112,16 @@ const UserProfilePage = () => {
                             return { ...booking, carName: `Авто (Видалено з БД)` };
                         }
                     }));
-                    setBookings(enrichedBookings.sort((a,b) => b.id - a.id));
+
+                    setBookings(enrichedBookings.sort((a, b) => b.id - a.id));
                 } catch (err) {
                     console.error("Помилка завантаження бронювань:", err);
+                    toast.error("Не вдалося завантажити історію бронювань.");
                 }
             };
             loadBookingsWithCars();
         }
-    }, [activeTab, user.id]);
+    }, [activeTab]); // Слідкуємо тільки за перемиканням вкладки
 
     const handleLogout = () => {
         authService.logout();
@@ -139,7 +148,6 @@ const UserProfilePage = () => {
     const submitCarForm = async (e) => {
             e.preventDefault();
             try {
-                // Витягуємо збереженого при логіні користувача, щоб взяти його числовий dbId
                 const storedUser = localStorage.getItem('user');
                 if (!storedUser) return navigate('/login');
                 const parsedUser = JSON.parse(storedUser);
