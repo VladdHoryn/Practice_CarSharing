@@ -1,0 +1,9 @@
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 2000
+        readTimeout: 5000
+
+server:
+  port: 8085
