@@ -9,7 +9,8 @@ import java.util.stream.Collectors;
 
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
-import lombok.extern.slf4j.Slf4j;
+import jakarta.ws.rs.core.Response;
+
 import org.example.domain.DriverCodeGenerator;
 import org.example.domain.User;
 import org.example.domain.UserRole;
@@ -19,18 +20,15 @@ import org.example.repository.UserRepository;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UserResource;
-import org.keycloak.representations.idm.RoleRepresentation;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import jakarta.ws.rs.core.Response;
-import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
+import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
@@ -45,80 +43,85 @@ public class UserApplicationService {
     // CREATE
     @Transactional
     public UserResponse createUser(UserRequest request) {
-      if (userRepository.existsByEmail(request.getEmail())) {
-        throw new RuntimeException("User with this email already exists");
-      }
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new RuntimeException("User with this email already exists");
+        }
 
-      UserRepresentation kcUser = new UserRepresentation();
-      kcUser.setUsername(request.getEmail());
-      kcUser.setEmail(request.getEmail());
-      kcUser.setEnabled(true);
-      kcUser.setEmailVerified(true);
+        UserRepresentation kcUser = new UserRepresentation();
+        kcUser.setUsername(request.getEmail());
+        kcUser.setEmail(request.getEmail());
+        kcUser.setEnabled(true);
+        kcUser.setEmailVerified(true);
 
-      String[] names = request.getFullName().split(" ", 2);
-      kcUser.setFirstName(names[0]);
-      if (names.length > 1) {
-        kcUser.setLastName(names[1]);
-      }
+        String[] names = request.getFullName().split(" ", 2);
+        kcUser.setFirstName(names[0]);
+        if (names.length > 1) {
+            kcUser.setLastName(names[1]);
+        }
 
-      CredentialRepresentation credential = new CredentialRepresentation();
-      credential.setType(CredentialRepresentation.PASSWORD);
-      credential.setValue(request.getPassword());
-      credential.setTemporary(false);
-      kcUser.setCredentials(Collections.singletonList(credential));
+        CredentialRepresentation credential = new CredentialRepresentation();
+        credential.setType(CredentialRepresentation.PASSWORD);
+        credential.setValue(request.getPassword());
+        credential.setTemporary(false);
+        kcUser.setCredentials(Collections.singletonList(credential));
 
-      UsersResource usersResource = keycloak.realm(realm).users();
-      Response response = usersResource.create(kcUser);
+        UsersResource usersResource = keycloak.realm(realm).users();
+        Response response = usersResource.create(kcUser);
 
-      if (response.getStatus() != 201) {
-        throw new RuntimeException("Failed to create user in Keycloak. Status: " + response.getStatus());
-      }
+        if (response.getStatus() != 201) {
+            throw new RuntimeException(
+                    "Failed to create user in Keycloak. Status: " + response.getStatus());
+        }
 
-      String path = response.getLocation().getPath();
-      String keycloakId = path.substring(path.lastIndexOf('/') + 1);
+        String path = response.getLocation().getPath();
+        String keycloakId = path.substring(path.lastIndexOf('/') + 1);
 
-      UserRole role = request.getRole() != null ? request.getRole() : UserRole.RENTER;
+        UserRole role = request.getRole() != null ? request.getRole() : UserRole.RENTER;
 
-      assignRealmRoleToUser(keycloakId, role);
+        assignRealmRoleToUser(keycloakId, role);
 
-      User user = new User();
-      user.setKeycloakId(keycloakId);
-      user.setFullName(request.getFullName());
-      user.setEmail(request.getEmail());
-      user.setRole(role);
-      user.setDriverCode(generateUniqueDriverCode());
-      user.setIsActive(true);
-      user.setCreatedAt(LocalDate.now());
-      user.setUpdatedAt(LocalDateTime.now());
+        User user = new User();
+        user.setKeycloakId(keycloakId);
+        user.setFullName(request.getFullName());
+        user.setEmail(request.getEmail());
+        user.setRole(role);
+        user.setDriverCode(generateUniqueDriverCode());
+        user.setIsActive(true);
+        user.setCreatedAt(LocalDate.now());
+        user.setUpdatedAt(LocalDateTime.now());
 
-      User savedUser = userRepository.save(user);
-      return mapToResponse(savedUser);
+        User savedUser = userRepository.save(user);
+        return mapToResponse(savedUser);
     }
 
-  private void assignRealmRoleToUser(String keycloakId, UserRole role) {
-    try {
-      RealmResource realmResource = keycloak.realm(realm);
+    private void assignRealmRoleToUser(String keycloakId, UserRole role) {
+        try {
+            RealmResource realmResource = keycloak.realm(realm);
 
-      UserResource userResource = realmResource.users().get(keycloakId);
+            UserResource userResource = realmResource.users().get(keycloakId);
 
-      RoleRepresentation realmRole = realmResource.roles()
-        .get(role.name())
-        .toRepresentation();
+            RoleRepresentation realmRole =
+                    realmResource.roles().get(role.name()).toRepresentation();
 
-      userResource.roles()
-        .realmLevel()
-        .add(Collections.singletonList(realmRole));
+            userResource.roles().realmLevel().add(Collections.singletonList(realmRole));
 
-      log.info("Role {} successfully assigned to user {} in Keycloak", role.name(), keycloakId);
+            log.info(
+                    "Role {} successfully assigned to user {} in Keycloak",
+                    role.name(),
+                    keycloakId);
 
-    } catch (NotFoundException e) {
-      log.error("Role {} not found in Keycloak realm {}", role.name(), realm);
-      throw new RuntimeException("Failed to assign role: Role not found in Keycloak");
-    } catch (Exception e) {
-      log.error("Error assigning role {} to user {}: {}", role.name(), keycloakId, e.getMessage());
-      throw new RuntimeException("Failed to assign role in Keycloak", e);
+        } catch (NotFoundException e) {
+            log.error("Role {} not found in Keycloak realm {}", role.name(), realm);
+            throw new RuntimeException("Failed to assign role: Role not found in Keycloak");
+        } catch (Exception e) {
+            log.error(
+                    "Error assigning role {} to user {}: {}",
+                    role.name(),
+                    keycloakId,
+                    e.getMessage());
+            throw new RuntimeException("Failed to assign role in Keycloak", e);
+        }
     }
-  }
 
     // READ ALL
     public List<UserResponse> getAllUsers() {
