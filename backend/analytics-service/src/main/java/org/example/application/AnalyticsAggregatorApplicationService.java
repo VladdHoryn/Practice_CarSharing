@@ -5,9 +5,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import org.example.dto.AdminAnalyticsSummaryResponse;
 import org.example.dto.OwnerAnalyticsSummaryResponse;
 import org.example.infrastructure.client.BookingServiceClient;
 import org.example.infrastructure.client.CarServiceClient;
+import org.example.infrastructure.client.UserServiceClient;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ public class AnalyticsAggregatorApplicationService {
 
     private final CarServiceClient carServiceClient;
     private final BookingServiceClient bookingServiceClient;
+  private final UserServiceClient userServiceClient;
 
     public OwnerAnalyticsSummaryResponse getOwnerAnalyticsSummary(
             String token,
@@ -97,6 +100,65 @@ public class AnalyticsAggregatorApplicationService {
                 .weeklyLoad(weeklyLoadFuture.join())
                 .build();
     }
+
+  public AdminAnalyticsSummaryResponse getAdminAnalyticsSummary(
+    String token,
+    List<String> allStatuses,
+    String completedStatus,
+    List<String> activeStatuses,
+    LocalDateTime periodStart,
+    LocalDateTime upcomingStart,
+    LocalDateTime upcomingEnd,
+    LocalDateTime yearStart) {
+
+    CompletableFuture<Long> activeUsersFuture = CompletableFuture.supplyAsync(() ->
+        userServiceClient.countActiveUsers(token).getBody())
+      .exceptionally(e -> fallbackLog("activeUsers", e, 0L));
+
+    CompletableFuture<Long> ownersFuture = CompletableFuture.supplyAsync(() ->
+        userServiceClient.countUsersByRole(token, "OWNER").getBody())
+      .exceptionally(e -> fallbackLog("ownersCount", e, 0L));
+
+    CompletableFuture<Long> rentersFuture = CompletableFuture.supplyAsync(() ->
+        userServiceClient.countUsersByRole(token, "RENTER").getBody())
+      .exceptionally(e -> fallbackLog("rentersCount", e, 0L));
+
+    CompletableFuture<Long> totalBookingsFuture = CompletableFuture.supplyAsync(() ->
+        bookingServiceClient.countBookingsByStatuses(token, allStatuses).getBody())
+      .exceptionally(e -> fallbackLog("totalBookingsAdmin", e, 0L));
+
+    CompletableFuture<BigDecimal> periodRevenueFuture = CompletableFuture.supplyAsync(() ->
+        bookingServiceClient.sumLastMonthRevenue(token, completedStatus, periodStart).getBody())
+      .exceptionally(e -> fallbackLog("periodRevenue", e, BigDecimal.ZERO));
+
+    CompletableFuture<Long> upcomingBookingsFuture = CompletableFuture.supplyAsync(() ->
+        bookingServiceClient.countUpcomingBookings(token, activeStatuses, upcomingStart, upcomingEnd).getBody())
+      .exceptionally(e -> fallbackLog("upcomingBookings", e, 0L));
+
+    CompletableFuture<List<Object[]>> monthlyRevenueFuture = CompletableFuture.supplyAsync(() ->
+        bookingServiceClient.findMonthlyRevenue(token, completedStatus, yearStart).getBody())
+      .exceptionally(e -> fallbackLog("monthlyRevenueAdmin", e, null));
+
+    CompletableFuture<List<Object[]>> dayOfWeekLoadFuture = CompletableFuture.supplyAsync(() ->
+        bookingServiceClient.countBookingsByDayOfWeek(token, activeStatuses).getBody())
+      .exceptionally(e -> fallbackLog("dayOfWeekLoad", e, null));
+
+    CompletableFuture.allOf(
+      activeUsersFuture, ownersFuture, rentersFuture, totalBookingsFuture,
+      periodRevenueFuture, upcomingBookingsFuture, monthlyRevenueFuture, dayOfWeekLoadFuture
+    ).join();
+
+    return AdminAnalyticsSummaryResponse.builder()
+      .activeUsers(activeUsersFuture.join())
+      .totalOwners(ownersFuture.join())
+      .totalRenters(rentersFuture.join())
+      .totalBookings(totalBookingsFuture.join())
+      .periodRevenue(periodRevenueFuture.join())
+      .upcomingBookings(upcomingBookingsFuture.join())
+      .monthlyRevenue(monthlyRevenueFuture.join())
+      .bookingsByDayOfWeek(dayOfWeekLoadFuture.join())
+      .build();
+  }
 
     private <T> T fallbackLog(String operationName, Throwable e, T defaultValue) {
         log.error("Error fetching data for operation [{}]: {}", operationName, e.getMessage());

@@ -51,4 +51,33 @@ public interface BookingServiceClient {
                     LocalDateTime startDate,
             @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
                     LocalDateTime endDate);
+
+  @GetMapping("/analytics/admin/bookings/count")
+  ResponseEntity<Long> countBookingsByStatuses(
+    @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+    @RequestParam("statuses") List<String> statuses);
+
+  @GetMapping("/analytics/admin/revenue/period")
+  ResponseEntity<BigDecimal> sumLastMonthRevenue(
+    @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+    @RequestParam("status") String status,
+    @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate);
+
+  @GetMapping("/analytics/admin/bookings/upcoming")
+  ResponseEntity<Long> countUpcomingBookings(
+    @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+    @RequestParam("activeStatuses") List<String> activeStatuses,
+    @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+    @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate);
+
+  @GetMapping("/analytics/admin/revenue/monthly")
+  ResponseEntity<List<Object[]>> findMonthlyRevenue(
+    @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+    @RequestParam("status") String status,
+    @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate);
+
+  @GetMapping("/analytics/admin/load/day-of-week")
+  ResponseEntity<List<Object[]>> countBookingsByDayOfWeek(
+    @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+    @RequestParam("activeStatuses") List<String> activeStatuses);
 }
