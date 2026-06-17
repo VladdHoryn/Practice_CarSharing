@@ -2,6 +2,7 @@ package org.example.dto;
 
 import jakarta.validation.constraints.*;
 
+import lombok.Builder;
 import org.example.domain.UserRole;
 
 import lombok.Data;
@@ -10,6 +11,9 @@ import lombok.Data;
 public class UserRequest {
     @NotBlank(message = "keycloakId is required")
     private String keycloakId;
+
+    @NotBlank(message = "Password is required")
+    private String password;
 
     @NotBlank(message = "Full name is required")
     @Size(min = 2, max = 50, message = "Full name must be between 2 and 100 characters")
