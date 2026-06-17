@@ -229,13 +229,13 @@ public class CarApplicationService {
         carRepository.save(car);
     }
 
-  public long countCarsByOwnerId(Long ownerId) {
-    log.debug("Counting cars for ownerId: {}", ownerId);
+    public long countCarsByOwnerId(Long ownerId) {
+        log.debug("Counting cars for ownerId: {}", ownerId);
 
-    if (ownerId == null || ownerId <= 0) {
-      throw new IllegalArgumentException("Valid owner ID is required");
+        if (ownerId == null || ownerId <= 0) {
+            throw new IllegalArgumentException("Valid owner ID is required");
+        }
+
+        return carRepository.countByOwnerId(ownerId);
     }
-
-    return carRepository.countByOwnerId(ownerId);
-  }
 }

@@ -163,27 +163,26 @@ public class BookingApplicationService {
     // ADMIN ANALYTICS
 
     public long countBookingsByStatuses(List<BookingStatus> statuses) {
-      if (statuses == null || statuses.isEmpty()) {
-        return 0L;
-      }
-      return bookingRepository.countBookingsByStatuses(statuses);
+        if (statuses == null || statuses.isEmpty()) {
+            return 0L;
+        }
+        return bookingRepository.countBookingsByStatuses(statuses);
     }
 
     public BigDecimal sumLastMonthRevenue(BookingStatus status, LocalDateTime startDate) {
-      return bookingRepository.sumLastMonthRevenue(status, startDate);
+        return bookingRepository.sumLastMonthRevenue(status, startDate);
     }
 
-    public long countUpcomingBookings(List<BookingStatus> activeStatuses,
-                                      LocalDateTime startDate,
-                                      LocalDateTime endDate) {
-      return bookingRepository.countUpcomingBookings(activeStatuses, startDate, endDate);
+    public long countUpcomingBookings(
+            List<BookingStatus> activeStatuses, LocalDateTime startDate, LocalDateTime endDate) {
+        return bookingRepository.countUpcomingBookings(activeStatuses, startDate, endDate);
     }
 
     public List<Object[]> findMonthlyRevenue(BookingStatus status, LocalDateTime startDate) {
-      return bookingRepository.findMonthlyRevenue(status, startDate);
+        return bookingRepository.findMonthlyRevenue(status, startDate);
     }
 
     public List<Object[]> countBookingsByDayOfWeek(List<BookingStatus> activeStatuses) {
-      return bookingRepository.countBookingsByDayOfWeek(activeStatuses);
+        return bookingRepository.countBookingsByDayOfWeek(activeStatuses);
     }
 }
