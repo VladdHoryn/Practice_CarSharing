@@ -202,6 +202,25 @@ services:
     networks:
       - car-sharing-network
 
+  analytics-service:
+    build:
+      context: ./backend/analytics-service
+      dockerfile: Dockerfile
+    container_name: analytics-service
+    restart: always
+    depends_on:
+      - car-service
+      - booking-service
+      - keycloak
+    environment:
+      CAR_SERVICE_URL: http://car-service:8083
+      BOOKING_SERVICE_URL: http://booking-service:8082
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak:8080/realms/carsharing
+    ports:
+      - "8085:8085"
+    networks:
+      - car-sharing-network
+
   # =====================================================
   # FRONTEND (React Application)
   # =====================================================
