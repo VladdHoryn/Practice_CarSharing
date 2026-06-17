@@ -507,6 +507,76 @@
       },
       "notBefore": 0,
       "groups": []
+    },
+    {
+      "id": "10000000-0000-0000-0000-000000000001",
+      "username": "admin@carsharing.com",
+      "email": "admin@carsharing.com",
+      "enabled": true,
+      "firstName": "System",
+      "lastName": "Administrator",
+      "credentials": [{ "type": "password", "value": "pass123", "temporary": false }],
+      "realmRoles": [ "ADMINISTRATOR" ]
+    },
+    {
+      "id": "20000000-0000-0000-0000-000000000001",
+      "username": "owner1@carsharing.com",
+      "email": "owner1@carsharing.com",
+      "enabled": true,
+      "firstName": "John",
+      "lastName": "Smith",
+      "credentials": [{ "type": "password", "value": "pass123", "temporary": false }],
+      "realmRoles": [ "OWNER" ]
+    },
+    {
+      "id": "20000000-0000-0000-0000-000000000002",
+      "username": "owner2@carsharing.com",
+      "email": "owner2@carsharing.com",
+      "enabled": true,
+      "firstName": "Maria",
+      "lastName": "Garcia",
+      "credentials": [{ "type": "password", "value": "pass123", "temporary": false }],
+      "realmRoles": [ "OWNER" ]
+    },
+    {
+      "id": "30000000-0000-0000-0000-000000000001",
+      "username": "renter1@carsharing.com",
+      "email": "renter1@carsharing.com",
+      "enabled": true,
+      "firstName": "James",
+      "lastName": "Wilson",
+      "credentials": [{ "type": "password", "value": "pass123", "temporary": false }],
+      "realmRoles": [ "RENTER" ]
+    },
+    {
+      "id": "30000000-0000-0000-0000-000000000002",
+      "username": "renter2@carsharing.com",
+      "email": "renter2@carsharing.com",
+      "enabled": true,
+      "firstName": "Emily",
+      "lastName": "Brown",
+      "credentials": [{ "type": "password", "value": "pass123", "temporary": false }],
+      "realmRoles": [ "RENTER" ]
+    },
+    {
+      "id": "30000000-0000-0000-0000-000000000003",
+      "username": "renter3@carsharing.com",
+      "email": "renter3@carsharing.com",
+      "enabled": true,
+      "firstName": "Michael",
+      "lastName": "Lee",
+      "credentials": [{ "type": "password", "value": "pass123", "temporary": false }],
+      "realmRoles": [ "RENTER" ]
+    },
+    {
+      "id": "30000000-0000-0000-0000-000000000004",
+      "username": "renter4@carsharing.com",
+      "email": "renter4@carsharing.com",
+      "enabled": true,
+      "firstName": "Sarah",
+      "lastName": "Johnson",
+      "credentials": [{ "type": "password", "value": "pass123", "temporary": false }],
+      "realmRoles": [ "RENTER" ]
     }
   ],
   "scopeMappings": [
