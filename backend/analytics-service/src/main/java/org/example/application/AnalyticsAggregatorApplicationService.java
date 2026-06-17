@@ -22,6 +22,7 @@ public class AnalyticsAggregatorApplicationService {
     private final BookingServiceClient bookingServiceClient;
 
     public OwnerAnalyticsSummaryResponse getOwnerAnalyticsSummary(
+            String token,
             Long ownerId,
             String completedStatus,
             List<String> activeStatuses,
@@ -29,17 +30,16 @@ public class AnalyticsAggregatorApplicationService {
             LocalDateTime weekStart,
             LocalDateTime weekEnd) {
 
-        // 1. Запускаємо всі запити асинхронно
         CompletableFuture<Long> totalCarsFuture =
                 CompletableFuture.supplyAsync(
-                                () -> carServiceClient.countCarsByOwnerId(ownerId).getBody())
+                                () -> carServiceClient.countCarsByOwnerId(token, ownerId).getBody())
                         .exceptionally(e -> fallbackLog("totalCars", e, 0L));
 
         CompletableFuture<Long> totalBookingsFuture =
                 CompletableFuture.supplyAsync(
                                 () ->
                                         bookingServiceClient
-                                                .countBookingsByOwnerId(ownerId)
+                                                .countBookingsByOwnerId(token, ownerId)
                                                 .getBody())
                         .exceptionally(e -> fallbackLog("totalBookings", e, 0L));
 
@@ -48,7 +48,7 @@ public class AnalyticsAggregatorApplicationService {
                                 () ->
                                         bookingServiceClient
                                                 .countCompletedBookingsByOwnerId(
-                                                        ownerId, completedStatus)
+                                                  token, ownerId, completedStatus)
                                                 .getBody())
                         .exceptionally(e -> fallbackLog("completedBookings", e, 0L));
 
@@ -57,7 +57,7 @@ public class AnalyticsAggregatorApplicationService {
                                 () ->
                                         bookingServiceClient
                                                 .sumTotalPriceByOwnerIdAndStatus(
-                                                        ownerId, completedStatus)
+                                                  token, ownerId, completedStatus)
                                                 .getBody())
                         .exceptionally(e -> fallbackLog("totalRevenue", e, BigDecimal.ZERO));
 
@@ -66,7 +66,7 @@ public class AnalyticsAggregatorApplicationService {
                                 () ->
                                         bookingServiceClient
                                                 .findMonthlyRevenueByOwnerId(
-                                                        ownerId, completedStatus, yearStart)
+                                                  token, ownerId, completedStatus, yearStart)
                                                 .getBody())
                         .exceptionally(e -> fallbackLog("monthlyRevenue", e, null));
 
@@ -75,7 +75,7 @@ public class AnalyticsAggregatorApplicationService {
                                 () ->
                                         bookingServiceClient
                                                 .countBookedCarsByDayForOwner(
-                                                        ownerId, activeStatuses, weekStart, weekEnd)
+                                                  token, ownerId, activeStatuses, weekStart, weekEnd)
                                                 .getBody())
                         .exceptionally(e -> fallbackLog("weeklyLoad", e, null));
 

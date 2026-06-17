@@ -9,6 +9,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpHeaders;
 
 import lombok.RequiredArgsConstructor;
 
@@ -22,6 +23,7 @@ public class AnalyticsController {
     @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
     @GetMapping("/owners/{ownerId}/summary")
     public ResponseEntity<OwnerAnalyticsSummaryResponse> getSummary(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
             @PathVariable Long ownerId,
             @RequestParam(defaultValue = "COMPLETED") String completedStatus,
             @RequestParam(defaultValue = "ACTIVE,IN_PROGRESS") List<String> activeStatuses,
@@ -34,7 +36,7 @@ public class AnalyticsController {
 
         OwnerAnalyticsSummaryResponse summary =
                 analyticsAggregatorService.getOwnerAnalyticsSummary(
-                        ownerId, completedStatus, activeStatuses, yearStart, weekStart, weekEnd);
+                        token, ownerId, completedStatus, activeStatuses, yearStart, weekStart, weekEnd);
 
         return ResponseEntity.ok(summary);
     }
