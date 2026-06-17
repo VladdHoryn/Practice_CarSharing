@@ -25,3 +25,4 @@ app:
   feign:
     car-service-url: ${CAR_SERVICE_URL:http://car-service:8083}
     booking-service-url: ${BOOKING_SERVICE_URL:http://booking-service:8082}
+    user-service-url: ${USER_SERVICE_URL:http://user-service:8081}

@@ -211,10 +211,12 @@ services:
     depends_on:
       - car-service
       - booking-service
+      - user-service
       - keycloak
     environment:
       CAR_SERVICE_URL: http://car-service:8083
       BOOKING_SERVICE_URL: http://booking-service:8082
+      USER_SERVICE_URL: http://user-service:8081
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak:8080/realms/carsharing
     ports:
       - "8085:8085"
