@@ -220,4 +220,19 @@ public class UserApplicationService {
     public Optional<Long> existByEmailAndDriverCode(String email, String driverCode) {
         return userRepository.findIdByEmailAndDriverCode(email, driverCode);
     }
+
+    // ==========================================
+    //              ADMIN ANALYTICS
+    // ==========================================
+
+    public long countActiveUsers() {
+        return userRepository.countActiveUsers();
+    }
+
+    public long countByRole(UserRole role) {
+        if (role == null) {
+            return 0L; // Повертаємо 0, якщо роль не передана, щоб уникнути NullPointerException
+        }
+        return userRepository.countByRole(role);
+    }
 }

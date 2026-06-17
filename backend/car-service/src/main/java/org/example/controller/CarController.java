@@ -168,4 +168,14 @@ public class CarController {
 
         return ResponseEntity.noContent().build();
     }
+
+    // ==========================================
+    //              OWNER ANALYTICS
+    // ==========================================
+
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
+    @GetMapping("/analytics/owners/{ownerId}/cars/count")
+    public ResponseEntity<Long> countCarsByOwnerId(@PathVariable Long ownerId) {
+        return ResponseEntity.ok(carService.countCarsByOwnerId(ownerId));
+    }
 }

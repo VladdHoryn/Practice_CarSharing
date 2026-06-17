@@ -69,4 +69,20 @@ public class UserController {
             @RequestParam String email, @RequestParam String driverCode) {
         return userService.existByEmailAndDriverCode(email, driverCode);
     }
+
+    // ==========================================
+    //              ADMIN ANALYTICS
+    // ==========================================
+
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @GetMapping("/analytics/admin/active/count")
+    public ResponseEntity<Long> countActiveUsers() {
+        return ResponseEntity.ok(userService.countActiveUsers());
+    }
+
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @GetMapping("/analytics/admin/roles/count")
+    public ResponseEntity<Long> countUsersByRole(@RequestParam org.example.domain.UserRole role) {
+        return ResponseEntity.ok(userService.countByRole(role));
+    }
 }

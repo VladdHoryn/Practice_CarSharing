@@ -227,4 +227,55 @@ public class BookingController {
                         .map(bookingDriver -> bookingDriverToResponse(bookingDriver))
                         .toList());
     }
+
+    //              ADMIN ANALYTICS
+
+    // 1) Загальна кількість бронювань в системі за списком статусів
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @GetMapping("/analytics/admin/bookings/count")
+    public ResponseEntity<Long> countBookingsByStatuses(
+            @RequestParam List<BookingStatus> statuses) {
+        return ResponseEntity.ok(bookingService.countBookingsByStatuses(statuses));
+    }
+
+    // 2) Дохід за визначений період (наприклад, за останні 30 днів)
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @GetMapping("/analytics/admin/revenue/period")
+    public ResponseEntity<BigDecimal> sumLastMonthRevenue(
+            @RequestParam BookingStatus status,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+                    LocalDateTime startDate) {
+        return ResponseEntity.ok(bookingService.sumLastMonthRevenue(status, startDate));
+    }
+
+    // 3) Кількість бронювань у процесі (майбутніх/поточних)
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @GetMapping("/analytics/admin/bookings/upcoming")
+    public ResponseEntity<Long> countUpcomingBookings(
+            @RequestParam List<BookingStatus> activeStatuses,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+                    LocalDateTime startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+                    LocalDateTime endDate) {
+        return ResponseEntity.ok(
+                bookingService.countUpcomingBookings(activeStatuses, startDate, endDate));
+    }
+
+    // 4) Динаміка доходів (по місяцях) для графіка
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @GetMapping("/analytics/admin/revenue/monthly")
+    public ResponseEntity<List<Object[]>> findMonthlyRevenue(
+            @RequestParam BookingStatus status,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+                    LocalDateTime startDate) {
+        return ResponseEntity.ok(bookingService.findMonthlyRevenue(status, startDate));
+    }
+
+    // 5) Завантаженість автопарку по днях тижня
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @GetMapping("/analytics/admin/load/day-of-week")
+    public ResponseEntity<List<Object[]>> countBookingsByDayOfWeek(
+            @RequestParam List<BookingStatus> activeStatuses) {
+        return ResponseEntity.ok(bookingService.countBookingsByDayOfWeek(activeStatuses));
+    }
 }
