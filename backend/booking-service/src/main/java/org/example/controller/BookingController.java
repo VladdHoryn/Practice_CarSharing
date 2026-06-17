@@ -161,9 +161,10 @@ public class BookingController {
                     LocalDateTime startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
                     LocalDateTime endDate) {
-        return ResponseEntity.ok(
-                bookingService.countBookedCarsByDayForOwner(
-                        ownerId, activeStatuses, startDate, endDate));
+      return ResponseEntity.ok(
+        bookingService.countBookedCarsByDayForOwner(
+          ownerId, activeStatuses, startDate, endDate));
+    }
     @PreAuthorize("hasAnyRole('RENTER')")
     @PostMapping("/{bookingId}/drivers")
     public ResponseEntity<BookingDriverResponse> createInvitation(
