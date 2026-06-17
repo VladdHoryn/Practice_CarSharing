@@ -19,19 +19,21 @@ public class ApiGatewayServiceApplication {
     }
 
     @Bean
-    public CorsWebFilter corsWebFilter() {
-        CorsConfiguration corsConfig = new CorsConfiguration();
-        corsConfig.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
-        corsConfig.setMaxAge(3600L);
-        corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        corsConfig.setAllowedHeaders(List.of("Content-Type", "Authorization", "X-Requested-With"));
-        corsConfig.setAllowCredentials(true);
+        public CorsWebFilter corsWebFilter() {
+            CorsConfiguration corsConfig = new CorsConfiguration();
+            corsConfig.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+            corsConfig.setMaxAge(3600L);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", corsConfig);
+            corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 
-        return new CorsWebFilter(source);
-    }
+            corsConfig.setAllowedHeaders(List.of("Content-Type", "Authorization", "X-Requested-With"));
+            corsConfig.setAllowCredentials(true);
+
+            UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+            source.registerCorsConfiguration("/**", corsConfig);
+
+            return new CorsWebFilter(source);
+        }
 
     @Bean
     public WebFilter corsDeduplicationFilter() {
