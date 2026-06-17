@@ -11,6 +11,10 @@ spring:
         - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_FIRST
 
       routes:
+        - id: analytics-service
+          uri: http://analytics-service:8085
+          predicates:
+          - Path=/api/v1/analytics/**
         - id: keycloak
           uri: http://keycloak:8080
           predicates:

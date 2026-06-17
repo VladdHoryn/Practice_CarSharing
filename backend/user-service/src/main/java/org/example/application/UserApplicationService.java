@@ -221,18 +221,18 @@ public class UserApplicationService {
         return userRepository.findIdByEmailAndDriverCode(email, driverCode);
     }
 
-  // ==========================================
-  //              ADMIN ANALYTICS
-  // ==========================================
+    // ==========================================
+    //              ADMIN ANALYTICS
+    // ==========================================
 
-  public long countActiveUsers() {
-    return userRepository.countActiveUsers();
-  }
-
-  public long countByRole(UserRole role) {
-    if (role == null) {
-      return 0L; // Повертаємо 0, якщо роль не передана, щоб уникнути NullPointerException
+    public long countActiveUsers() {
+        return userRepository.countActiveUsers();
     }
-    return userRepository.countByRole(role);
-  }
+
+    public long countByRole(UserRole role) {
+        if (role == null) {
+            return 0L; // Повертаємо 0, якщо роль не передана, щоб уникнути NullPointerException
+        }
+        return userRepository.countByRole(role);
+    }
 }
