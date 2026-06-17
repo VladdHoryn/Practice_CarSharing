@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 
-@FeignClient(name = "car-service", url = "${app.feign.car-service-url}", path = "/cars/v1")
+@FeignClient(name = "car-service", url = "${app.feign.car-service-url}", path = "/car/v1")
 public interface CarServiceClient {
 
     @GetMapping("/analytics/owners/{ownerId}/cars/count")

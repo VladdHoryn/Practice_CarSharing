@@ -79,7 +79,6 @@ public class AnalyticsAggregatorApplicationService {
                                                 .getBody())
                         .exceptionally(e -> fallbackLog("weeklyLoad", e, null));
 
-        // 2. Чекаємо завершення всіх потоків
         CompletableFuture.allOf(
                         totalCarsFuture,
                         totalBookingsFuture,
@@ -89,7 +88,6 @@ public class AnalyticsAggregatorApplicationService {
                         weeklyLoadFuture)
                 .join();
 
-        // 3. Збираємо фінальний результат
         return OwnerAnalyticsSummaryResponse.builder()
                 .totalCars(totalCarsFuture.join())
                 .totalBookings(totalBookingsFuture.join())
@@ -100,7 +98,6 @@ public class AnalyticsAggregatorApplicationService {
                 .build();
     }
 
-    // Метод для обробки помилок і повернення дефолтного значення
     private <T> T fallbackLog(String operationName, Throwable e, T defaultValue) {
         log.error("Error fetching data for operation [{}]: {}", operationName, e.getMessage());
         return defaultValue;
