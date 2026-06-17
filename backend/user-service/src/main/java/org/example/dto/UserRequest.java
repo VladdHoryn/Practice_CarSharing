@@ -9,9 +9,6 @@ import lombok.Data;
 
 @Data
 public class UserRequest {
-    @NotBlank(message = "keycloakId is required")
-    private String keycloakId;
-
     @NotBlank(message = "Password is required")
     private String password;
 

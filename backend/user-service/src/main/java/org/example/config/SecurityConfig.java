@@ -37,7 +37,6 @@ public class SecurityConfig {
       .authorizeHttpRequests(
         auth ->
           auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-            // 👑 ВИПРАВЛЕНО: Точний мапінг без букви "s" та зірочок для реєстрації
             .requestMatchers(HttpMethod.POST, "/user/v1").permitAll()
             .requestMatchers("/error").permitAll()
             .anyRequest().authenticated())

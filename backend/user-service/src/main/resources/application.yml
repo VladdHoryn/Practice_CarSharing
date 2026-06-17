@@ -30,6 +30,13 @@ spring:
           issuer-uri: http://localhost:8100/realms/carsharing-realm
           jwk-set-uri: http://keycloak:8080/realms/carsharing-realm/protocol/openid-connect/certs
 
+keycloak:
+  auth-server-url: ${KEYCLOAK_AUTH_SERVER_URL:http://keycloak:8080}
+  realm: ${KEYCLOAK_REALM:carsharing-realm}
+  resource: ${KEYCLOAK_RESOURCE:carsharing-client}
+  credentials:
+    secret: ${KEYCLOAK_CREDENTIALS_SECRET:**********}
+
 server:
   port: ${SERVER_PORT:8081}
 
