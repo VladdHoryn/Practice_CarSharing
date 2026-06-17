@@ -21,22 +21,24 @@ public interface BookingServiceClient {
 
     @GetMapping("/analytics/owners/{ownerId}/bookings")
     ResponseEntity<Long> countBookingsByOwnerId(
-      @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
-      @PathVariable("ownerId") Long ownerId);
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+            @PathVariable("ownerId") Long ownerId);
 
     @GetMapping("/analytics/owners/{ownerId}/bookings/whole")
     ResponseEntity<Long> countCompletedBookingsByOwnerId(
-      @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
-            @PathVariable("ownerId") Long ownerId, @RequestParam("status") String status);
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+            @PathVariable("ownerId") Long ownerId,
+            @RequestParam("status") String status);
 
     @GetMapping("/analytics/owners/{ownerId}/revenue")
     ResponseEntity<BigDecimal> sumTotalPriceByOwnerIdAndStatus(
-      @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
-            @PathVariable("ownerId") Long ownerId, @RequestParam("status") String status);
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+            @PathVariable("ownerId") Long ownerId,
+            @RequestParam("status") String status);
 
     @GetMapping("/analytics/owners/{ownerId}/revenue/year")
     ResponseEntity<List<Object[]>> findMonthlyRevenueByOwnerId(
-      @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
             @PathVariable("ownerId") Long ownerId,
             @RequestParam("status") String status,
             @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
@@ -44,7 +46,7 @@ public interface BookingServiceClient {
 
     @GetMapping("/analytics/owners/{ownerId}/load/week")
     ResponseEntity<List<Object[]>> countBookedCarsByDayForOwner(
-      @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
             @PathVariable("ownerId") Long ownerId,
             @RequestParam("activeStatuses") List<String> activeStatuses,
             @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
@@ -52,32 +54,36 @@ public interface BookingServiceClient {
             @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
                     LocalDateTime endDate);
 
-  @GetMapping("/analytics/admin/bookings/count")
-  ResponseEntity<Long> countBookingsByStatuses(
-    @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
-    @RequestParam("statuses") List<String> statuses);
+    @GetMapping("/analytics/admin/bookings/count")
+    ResponseEntity<Long> countBookingsByStatuses(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+            @RequestParam("statuses") List<String> statuses);
 
-  @GetMapping("/analytics/admin/revenue/period")
-  ResponseEntity<BigDecimal> sumLastMonthRevenue(
-    @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
-    @RequestParam("status") String status,
-    @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate);
+    @GetMapping("/analytics/admin/revenue/period")
+    ResponseEntity<BigDecimal> sumLastMonthRevenue(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+            @RequestParam("status") String status,
+            @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+                    LocalDateTime startDate);
 
-  @GetMapping("/analytics/admin/bookings/upcoming")
-  ResponseEntity<Long> countUpcomingBookings(
-    @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
-    @RequestParam("activeStatuses") List<String> activeStatuses,
-    @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-    @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate);
+    @GetMapping("/analytics/admin/bookings/upcoming")
+    ResponseEntity<Long> countUpcomingBookings(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+            @RequestParam("activeStatuses") List<String> activeStatuses,
+            @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+                    LocalDateTime startDate,
+            @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+                    LocalDateTime endDate);
 
-  @GetMapping("/analytics/admin/revenue/monthly")
-  ResponseEntity<List<Object[]>> findMonthlyRevenue(
-    @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
-    @RequestParam("status") String status,
-    @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate);
+    @GetMapping("/analytics/admin/revenue/monthly")
+    ResponseEntity<List<Object[]>> findMonthlyRevenue(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+            @RequestParam("status") String status,
+            @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+                    LocalDateTime startDate);
 
-  @GetMapping("/analytics/admin/load/day-of-week")
-  ResponseEntity<List<Object[]>> countBookingsByDayOfWeek(
-    @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
-    @RequestParam("activeStatuses") List<String> activeStatuses);
+    @GetMapping("/analytics/admin/load/day-of-week")
+    ResponseEntity<List<Object[]>> countBookingsByDayOfWeek(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+            @RequestParam("activeStatuses") List<String> activeStatuses);
 }

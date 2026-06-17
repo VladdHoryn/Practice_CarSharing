@@ -12,7 +12,6 @@ public interface CarServiceClient {
 
     @GetMapping("/analytics/owners/{ownerId}/cars/count")
     ResponseEntity<Long> countCarsByOwnerId(
-      @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
-      @PathVariable("ownerId") Long ownerId
-    );
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+            @PathVariable("ownerId") Long ownerId);
 }

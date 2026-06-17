@@ -7,10 +7,10 @@ import org.example.application.AnalyticsAggregatorApplicationService;
 import org.example.dto.AdminAnalyticsSummaryResponse;
 import org.example.dto.OwnerAnalyticsSummaryResponse;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.http.HttpHeaders;
 
 import lombok.RequiredArgsConstructor;
 
@@ -37,34 +37,52 @@ public class AnalyticsController {
 
         OwnerAnalyticsSummaryResponse summary =
                 analyticsAggregatorService.getOwnerAnalyticsSummary(
-                        token, ownerId, completedStatus, activeStatuses, yearStart, weekStart, weekEnd);
+                        token,
+                        ownerId,
+                        completedStatus,
+                        activeStatuses,
+                        yearStart,
+                        weekStart,
+                        weekEnd);
 
         return ResponseEntity.ok(summary);
     }
 
-  @PreAuthorize("hasRole('ADMINISTRATOR')")
-  @GetMapping("/admin/summary")
-  public ResponseEntity<AdminAnalyticsSummaryResponse> getAdminSummary(
-    @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
-    @RequestParam(defaultValue = "PENDING,CONFIRMED,COMPLETED,CANCELED") List<String> allStatuses,
-    @RequestParam(defaultValue = "COMPLETED") String completedStatus,
-    @RequestParam(defaultValue = "CONFIRMED,PENDING") List<String> activeStatuses,
-    @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime periodStart,
-    @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime upcomingStart,
-    @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime upcomingEnd,
-    @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime yearStart) {
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @GetMapping("/admin/summary")
+    public ResponseEntity<AdminAnalyticsSummaryResponse> getAdminSummary(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+            @RequestParam(defaultValue = "PENDING,CONFIRMED,COMPLETED,CANCELED")
+                    List<String> allStatuses,
+            @RequestParam(defaultValue = "COMPLETED") String completedStatus,
+            @RequestParam(defaultValue = "CONFIRMED,PENDING") List<String> activeStatuses,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+                    LocalDateTime periodStart,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+                    LocalDateTime upcomingStart,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+                    LocalDateTime upcomingEnd,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+                    LocalDateTime yearStart) {
 
-    LocalDateTime now = LocalDateTime.now();
-    if (periodStart == null) periodStart = now.minusDays(30);
-    if (upcomingStart == null) upcomingStart = now;
-    if (upcomingEnd == null) upcomingEnd = now.plusDays(30);
-    if (yearStart == null) yearStart = now.withDayOfYear(1).withHour(0).withMinute(0); // Початок поточного року
+        LocalDateTime now = LocalDateTime.now();
+        if (periodStart == null) periodStart = now.minusDays(30);
+        if (upcomingStart == null) upcomingStart = now;
+        if (upcomingEnd == null) upcomingEnd = now.plusDays(30);
+        if (yearStart == null)
+            yearStart = now.withDayOfYear(1).withHour(0).withMinute(0); // Початок поточного року
 
-    AdminAnalyticsSummaryResponse summary = analyticsAggregatorService.getAdminAnalyticsSummary(
-      token, allStatuses, completedStatus, activeStatuses,
-      periodStart, upcomingStart, upcomingEnd, yearStart
-    );
+        AdminAnalyticsSummaryResponse summary =
+                analyticsAggregatorService.getAdminAnalyticsSummary(
+                        token,
+                        allStatuses,
+                        completedStatus,
+                        activeStatuses,
+                        periodStart,
+                        upcomingStart,
+                        upcomingEnd,
+                        yearStart);
 
-    return ResponseEntity.ok(summary);
-  }
+        return ResponseEntity.ok(summary);
+    }
 }
