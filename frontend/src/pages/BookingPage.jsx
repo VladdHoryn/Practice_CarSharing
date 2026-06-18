@@ -152,8 +152,15 @@ const BookingPage = () => {
             navigate('/profile');
 
         } catch (err) {
-            console.error(err);
-            toast.error(err.message || "Сталася непередбачувана помилка.");
+            console.error("Помилка при виконанні операції:", err);
+
+            const backendMessage = err.response?.data?.message || err.message;
+
+            if (backendMessage.includes("already booked") || backendMessage.includes("overlap")) {
+                toast.error("🚨 Цей автомобіль уже заброньовано на обрані дати! Будь ласка, змініть період оренди.");
+            } else {
+                toast.error(backendMessage || "Сталася непередбачувана помилка.");
+            }
         } finally {
             setIsProcessing(false);
         }
