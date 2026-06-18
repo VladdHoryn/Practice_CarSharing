@@ -65,8 +65,6 @@ const UserProfilePage = () => {
                         const nameParts = realUserData.fullName ? realUserData.fullName.split(' ') : [''];
                         const fName = nameParts[0] || '';
                         const lName = nameParts.slice(1).join(' ') || '';
-
-                        // 👑 ОНОВЛЕНО: Синхронізація фолбеку з реальними SQL-скриптами вашої БД
                         const serverCode = realUserData.driverCode || realUserData.driver_code;
                         let fallbackCode = `RNT${parsedUser.dbId || 4}PL91ZX`;
                         if (Number(parsedUser.dbId) === 4 || parsedUser.email?.includes('renter1')) {
@@ -199,9 +197,6 @@ const UserProfilePage = () => {
                 bookingService.getInvitationsByUserId(parsedUser.dbId)
                     .then(data => {
                         setIncomingInvites(data.filter(i => i.status === 'PENDING'));
-
-                        // 👑 АВТО-СИНХРОНІЗАЦІЯ: Якщо бекенд повернув хоч один інвайт,
-                        // беремо реальний driverCode з бази і перевизначаємо верхню плашку
                         if (data.length > 0 && data[0].driverCode) {
                             setUser(prev => ({ ...prev, driverCode: data[0].driverCode }));
                         }
@@ -436,8 +431,6 @@ const UserProfilePage = () => {
                 </>
             );
         }
-
-        // 👑 KILLER FEATURE UI: Код водія перенесено сюди (показується тільки на сторінці інвайтів)
         if (activeTab === 'invitations') {
             return (
                 <>

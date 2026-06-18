@@ -18,7 +18,6 @@ const BookingManagement = () => {
             const data = await bookingService.getAllBookings();
             setBookings(data || []);
 
-            // 👑 KILLER FEATURE: Отримання всіх інвайтів співводіїв для моніторингу адміном
             if (bookingService.getAllInvitations) {
                 const invites = await bookingService.getAllInvitations();
                 setAllInvitations(invites || []);
@@ -57,7 +56,6 @@ const BookingManagement = () => {
             return b.id - a.id;
         });
 
-    // 👑 Фільтрація запрошень водіїв для конкретного обраного бронювання
     const currentBookingDrivers = allInvitations.filter(
         invite => invite.bookingId === selectedBooking?.id
     );
@@ -147,7 +145,6 @@ const BookingManagement = () => {
                             </div>
                             <div className={styles.infoGroup}><label>Фінансова частина</label><span className={styles.drawerPrice}>{selectedBooking.totalPrice} €</span></div>
 
-                            {/* 👑 KILLER FEATURE UI: Перегляд списку всіх водіїв для Адміністратора */}
                             <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #eee' }}>
                                 <h3 style={{ fontSize: '16px', marginBottom: '10px' }}>👥 Зареєстровані водії за договором:</h3>
                                 <div style={{ fontSize: '14px', marginBottom: '8px' }}>

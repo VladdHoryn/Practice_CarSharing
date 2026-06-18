@@ -70,7 +70,6 @@ const BookingPage = () => {
     }, [dates]);
 
     const addCoDriver = () => {
-        // 👑 МІНЯЄМО ЛІМІТ: Максимум 2 активні запрошення згідно з ТЗ бекенду
         if (coDrivers.length < 2) {
             setCoDrivers([...coDrivers, { email: '', driverCode: '' }]);
         } else {
@@ -125,7 +124,6 @@ const BookingPage = () => {
             const bookingResult = await bookingService.createBooking(bookingRequest);
             createdBookingId = bookingResult.id;
 
-            // Етап оплати
             try {
                 const paymentRequest = {
                     bookingId: createdBookingId,
@@ -144,7 +142,6 @@ const BookingPage = () => {
                 throw new Error(`Оплату не виконано: ${realError}. Бронювання скасовано.`);
             }
 
-            // 👑 KILLER FEATURE AUTOMATION: Автоматично розсилаємо інвайти друзям
             if (coDrivers.length > 0) {
                 try {
                     await Promise.all(coDrivers.map(driver =>
@@ -219,7 +216,6 @@ const BookingPage = () => {
                                     <input type="email" required value={driver.email} onChange={(e) => handleCoDriverChange(index, 'email', e.target.value)} placeholder="friend@carsharing.com"/>
                                 </div>
                                 <div className={styles.inputGroup}>
-                                    {/* 👑 КОРЕКЦІЯ: Зміна Номера посвідчення на Код Водія для сумісності з ТЗ */}
                                     <label>Унікальний код водія</label>
                                     <input type="text" required value={driver.driverCode} onChange={(e) => handleCoDriverChange(index, 'driverCode', e.target.value)} placeholder="Напр. RNT5PL91ZX"/>
                                 </div>
