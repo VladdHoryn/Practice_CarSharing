@@ -5,10 +5,10 @@ import styles from './BookingManagement.module.css';
 
 const BookingManagement = () => {
     const [bookings, setBookings] = useState([]);
+    const [allInvitations, setAllInvitations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedBooking, setSelectedBooking] = useState(null);
 
-    // 👑 ДОДАНО: Локальні фільтри та сортування
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [sortBy, setSortBy] = useState('id');
 
@@ -17,6 +17,12 @@ const BookingManagement = () => {
             setLoading(true);
             const data = await bookingService.getAllBookings();
             setBookings(data || []);
+
+            // 👑 KILLER FEATURE: Отримання всіх інвайтів співводіїв для моніторингу адміном
+            if (bookingService.getAllInvitations) {
+                const invites = await bookingService.getAllInvitations();
+                setAllInvitations(invites || []);
+            }
         } catch (err) {
             console.error('Помилка завантаження бронювань:', err);
             toast.error('Не вдалося завантажити бронювання з сервера.');
@@ -32,7 +38,6 @@ const BookingManagement = () => {
     const handleForceStatusChange = async (bookingId, newStatus) => {
         try {
             await bookingService.changeBookingStatus(bookingId, newStatus);
-
             toast.success(`Статус бронювання #${bookingId} примусово змінено на ${newStatus}`);
             fetchAllBookings();
 
@@ -52,11 +57,15 @@ const BookingManagement = () => {
             return b.id - a.id;
         });
 
+    // 👑 Фільтрація запрошень водіїв для конкретного обраного бронювання
+    const currentBookingDrivers = allInvitations.filter(
+        invite => invite.bookingId === selectedBooking?.id
+    );
+
     return (
         <div className={styles.container}>
             <h1 className={styles.title}>📅 Керування сесіями оренди</h1>
 
-            {/* 👑 Панель локальних фільтрів */}
             <div style={{ marginBottom: '15px', display: 'flex', gap: '15px' }}>
                 <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className={styles.statusSelect}>
                     <option value="ALL">Всі статуси</option>
@@ -121,7 +130,6 @@ const BookingManagement = () => {
                 </div>
             )}
 
-            {/* Модалка детального перегляду Drawer (залишається без змін) */}
             {selectedBooking && (
                 <div className={styles.drawerOverlay} onClick={() => setSelectedBooking(null)}>
                     <div className={styles.drawer} onClick={(e) => e.stopPropagation()}>
@@ -130,7 +138,7 @@ const BookingManagement = () => {
                             <button className={styles.closeBtn} onClick={() => setSelectedBooking(null)}>✖</button>
                         </div>
                         <div className={styles.drawerContent}>
-                            <div className={styles.infoGroup}><label>Користувач системи (ID)</label><p>{selectedBooking.userId}</p></div>
+                            <div className={styles.infoGroup}><label>Головний користувач системи (ID)</label><p>{selectedBooking.userId}</p></div>
                             <div className={styles.infoGroup}><label>Обраний транспорт (ID)</label><p>{selectedBooking.carId}</p></div>
                             <div className={styles.infoGroup}>
                                 <label>Терміни активності</label>
@@ -138,6 +146,30 @@ const BookingManagement = () => {
                                 <p>По: {selectedBooking.endDate?.replace('T', ' ')}</p>
                             </div>
                             <div className={styles.infoGroup}><label>Фінансова частина</label><span className={styles.drawerPrice}>{selectedBooking.totalPrice} €</span></div>
+
+                            {/* 👑 KILLER FEATURE UI: Перегляд списку всіх водіїв для Адміністратора */}
+                            <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #eee' }}>
+                                <h3 style={{ fontSize: '16px', marginBottom: '10px' }}>👥 Зареєстровані водії за договором:</h3>
+                                <div style={{ fontSize: '14px', marginBottom: '8px' }}>
+                                    • <span style={{ fontWeight: 'bold' }}>ID #{selectedBooking.userId}</span> (Головний водій / Орендар)
+                                </div>
+                                {currentBookingDrivers.length > 0 ? (
+                                    currentBookingDrivers.map((driver) => (
+                                        <div key={driver.id} style={{ fontSize: '14px', padding: '6px 0', borderBottom: '1px dashed #f0f0f0' }}>
+                                            • {driver.email} [Код: <code>{driver.driverCode}</code>] —
+                                            <span style={{
+                                                marginLeft: '6px',
+                                                fontWeight: 'bold',
+                                                color: driver.status === 'ACCEPTED' ? '#28a745' : (driver.status === 'PENDING' ? '#f39c12' : '#dc3545')
+                                            }}>
+                                                {driver.status}
+                                            </span>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p style={{ fontSize: '12px', color: '#888', fontStyle: 'italic' }}>Додаткових співводіїв не запрошено.</p>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
