@@ -88,50 +88,6 @@ public class Payment {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public boolean canBeProcessed() {
-        return status == PaymentStatus.CREATED || status == PaymentStatus.PENDING;
-    }
-
-    public void markAsSuccess() {
-        validateTransition(PaymentStatus.SUCCESS);
-
-        this.status = PaymentStatus.SUCCESS;
-
-        log.info("Payment {} successfully completed", id);
-    }
-
-    public void markAsFailed() {
-        validateTransition(PaymentStatus.FAILED);
-
-        this.status = PaymentStatus.FAILED;
-
-        log.warn("Payment {} failed", id);
-    }
-
-    public void markAsPending() {
-        validateTransition(PaymentStatus.PENDING);
-
-        this.status = PaymentStatus.PENDING;
-
-        log.info("Payment {} moved to PENDING", id);
-    }
-
-    public void markAsProcessing() {
-        validateTransition(PaymentStatus.PROCESSING);
-
-        this.status = PaymentStatus.PROCESSING;
-
-        log.info("Payment {} moved to PROCESSING", id);
-    }
-
-    public void cancel() {
-        validateTransition(PaymentStatus.CANCELLED);
-
-        this.status = PaymentStatus.CANCELLED;
-
-        log.warn("Payment {} cancelled", id);
-    }
-
     public void refund() {
         if (status != PaymentStatus.SUCCESS) {
             throw new IllegalStateException("Only SUCCESS payments can be refunded");
@@ -142,33 +98,9 @@ public class Payment {
         log.info("Payment {} refunded", id);
     }
 
-    private void validateTransition(PaymentStatus targetStatus) {
+    public void changeStatus(PaymentStatus newStatus) {
+        log.info("Payment id={} status changed from {} to {}", this.id, this.status, newStatus);
 
-        boolean valid =
-                switch (status) {
-                    case CREATED ->
-                            targetStatus == PaymentStatus.PENDING
-                                    || targetStatus == PaymentStatus.CANCELLED
-                                    || targetStatus == PaymentStatus.FAILED;
-
-                    case PENDING ->
-                            targetStatus == PaymentStatus.PROCESSING
-                                    || targetStatus == PaymentStatus.CANCELLED
-                                    || targetStatus == PaymentStatus.FAILED;
-
-                    case PROCESSING ->
-                            targetStatus == PaymentStatus.SUCCESS
-                                    || targetStatus == PaymentStatus.FAILED;
-
-                    case SUCCESS -> targetStatus == PaymentStatus.REFUNDED;
-
-                    case FAILED, CANCELLED, REFUNDED -> false;
-                };
-
-        if (!valid) {
-            throw new IllegalStateException(
-                    String.format(
-                            "Invalid payment status transition: %s -> %s", status, targetStatus));
-        }
+        this.status = newStatus;
     }
 }

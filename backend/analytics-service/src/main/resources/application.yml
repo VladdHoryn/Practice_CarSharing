@@ -1,0 +1,28 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: analytics-service
+  cloud:
+    compatibility-verifier:
+      enabled: false
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8090/realms/carsharing
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 3000
+        readTimeout: 10000
+        loggerLevel: FULL
+
+app:
+  feign:
+    car-service-url: ${CAR_SERVICE_URL:http://car-service:8083}
+    booking-service-url: ${BOOKING_SERVICE_URL:http://booking-service:8082}
+    user-service-url: ${USER_SERVICE_URL:http://user-service:8081}

@@ -6,22 +6,16 @@ import styles from './PaymentManagement.module.css';
 const PaymentManagement = () => {
     const [payments, setPayments] = useState([]);
     const [loading, setLoading] = useState(true);
-
     const [statusFilter, setStatusFilter] = useState('ALL');
-    const [dateFilter, setDateFilter] = useState('');
 
     const fetchPayments = async () => {
         try {
             setLoading(true);
-            const data = await paymentService.getAll();
+            const data = await paymentService.getAllPayments();
             setPayments(data || []);
         } catch (err) {
             console.error('Помилка завантаження платежів:', err);
-            setPayments([
-                { id: 1, bookingId: 11, amount: 25.00, method: 'GOOGLE_PAY', currency: 'USD', status: 'PENDING', paymentDate: '2026-05-28' },
-                { id: 2, bookingId: 9, amount: 120.00, method: 'CARD', currency: 'USD', status: 'PAID', paymentDate: '2026-05-25' },
-                { id: 3, bookingId: 8, amount: 50.00, method: 'APPLE_PAY', currency: 'USD', status: 'FAILED', paymentDate: '2026-05-24' }
-            ]);
+            toast.error('Не вдалося отримати дані транзакцій.');
         } finally {
             setLoading(false);
         }
@@ -31,55 +25,30 @@ const PaymentManagement = () => {
         fetchPayments();
     }, []);
 
-    const handleMarkAsPaid = async (paymentId) => {
-        const confirmAction = window.confirm(`Ви впевнені, що хочете вручну відзначити платіж #${paymentId} як ОПЛАЧЕНИЙ?`);
-        if (!confirmAction) return;
-
+    const handleMarkAsPaid = async (bookingId) => {
+        if (!window.confirm(`Підтвердити платіж для бронювання #BK-${bookingId} як CONFIRMED вручну?`)) return;
         try {
-            if (paymentService.markAsSuccess) {
-                await paymentService.markAsSuccess(paymentId);
-            }
-            toast.success(`Платіж #${paymentId} успішно підтверджено вручну! 💳`);
-            fetchPayments(); // Перезавантажуємо дані
+            // 👑 ВИПРАВЛЕНО ЗГІДНО З ТЗ: використовуємо зміну статусу через букінг-ендпоінт
+            await paymentService.changePaymentStatus(bookingId, 'CONFIRMED');
+            toast.success(`Трансляцію оплати успішно підтверджено! 💳`);
+            fetchPayments();
         } catch (err) {
-            toast.error('Не вдалося змінити статус платежу.');
+            toast.error('Не вдалося оновити статус фінансової операції.');
         }
     };
-    const filteredPayments = payments.filter(p => {
-        const matchesStatus = statusFilter === 'ALL' || p.status === statusFilter;
-        const matchesDate = !dateFilter || p.paymentDate.includes(dateFilter);
-        return matchesStatus && matchesDate;
-    });
+
+    const filteredPayments = payments.filter(p => statusFilter === 'ALL' || p.status === statusFilter);
 
     return (
         <div className={styles.container}>
             <h1 className={styles.title}>💳 Фінансовий моніторинг транзакцій</h1>
             <div className={styles.filterBar}>
-                <div className={styles.filterGroup}>
-                    <label>Статус оплати:</label>
-                    <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className={styles.select}>
-                        <option value="ALL">Всі транзакції</option>
-                        <option value="PAID">PAID (Оплачено)</option>
-                        <option value="PENDING">PENDING (Очікує)</option>
-                        <option value="FAILED">FAILED (Помилка)</option>
-                    </select>
-                </div>
-
-                <div className={styles.filterGroup}>
-                    <label>Дата транзакції:</label>
-                    <input
-                        type="date"
-                        value={dateFilter}
-                        onChange={(e) => setDateFilter(e.target.value)}
-                        className={styles.dateInput}
-                    />
-                </div>
-
-                {dateFilter || statusFilter !== 'ALL' ? (
-                    <button onClick={() => { setStatusFilter('ALL'); setDateFilter(''); }} className={styles.clearBtn}>
-                        Скинути фільтри
-                    </button>
-                ) : null}
+                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className={styles.select}>
+                    <option value="ALL">Всі транзакції</option>
+                    <option value="PAID">PAID</option>
+                    <option value="PENDING">PENDING</option>
+                    <option value="FAILED">FAILED</option>
+                </select>
             </div>
 
             {loading ? (
@@ -92,52 +61,30 @@ const PaymentManagement = () => {
                             <th>ID Транзакції</th>
                             <th>ID Бронювання</th>
                             <th>Сума</th>
-                            <th>Метод оплати</th>
-                            <th>Дата</th>
+                            <th>Метод</th>
                             <th>Статус</th>
                             <th>Адмін-дії</th>
                         </tr>
                         </thead>
                         <tbody>
-                        {filteredPayments.length === 0 ? (
-                            <tr>
-                                <td colSpan="7" style={{ textAlign: 'center', padding: '30px', color: '#64748b' }}>
-                                    Транзакцій за вказаними фільтрами не знайдено.
+                        {filteredPayments.map((p) => (
+                            <tr key={p.id}>
+                                <td>#TX-{p.id}</td>
+                                <td>#BK-{p.bookingId}</td>
+                                <td><strong>{p.amount} {p.currency}</strong></td>
+                                <td>{p.method}</td>
+                                <td><span className={`${styles.statusBadge} ${styles[p.status?.toLowerCase() || 'pending']}`}>{p.status}</span></td>
+                                <td>
+                                    {p.status !== 'PAID' && p.status !== 'CONFIRMED' ? (
+                                        <button onClick={() => handleMarkAsPaid(p.bookingId)} className={styles.actionBtn}>
+                                            ✅ Mark as Paid
+                                        </button>
+                                    ) : (
+                                        <span style={{ fontSize: '13px', color: '#94a3b8', fontStyle: 'italic' }}>Проведено</span>
+                                    )}
                                 </td>
                             </tr>
-                        ) : (
-                            filteredPayments.map((p) => (
-                                <tr key={p.id}>
-                                    <td>#TX-{p.id}</td>
-                                    <td>#BK-{p.bookingId}</td>
-                                    <td><strong className={styles.amountText}>{p.amount.toFixed(2)} {p.currency}</strong></td>
-                                    <td>
-                                            <span className={styles.methodIcon}>
-                                                {p.method === 'CARD' ? '💳' : p.method === 'GOOGLE_PAY' ? '📱' : '🍎'}
-                                            </span>{' '}
-                                        {p.method}
-                                    </td>
-                                    <td>{p.paymentDate ? p.paymentDate.split('T')[0] : 'Не вказано'}</td>
-                                    <td>
-                                            <span className={`${styles.statusBadge} ${styles[p.status.toLowerCase()]}`}>
-                                                {p.status}
-                                            </span>
-                                    </td>
-                                    <td>
-                                        {p.status === 'PENDING' || p.status === 'FAILED' ? (
-                                            <button
-                                                onClick={() => handleMarkAsPaid(p.id)}
-                                                className={styles.actionBtn}
-                                            >
-                                                ✅ Mark as Paid
-                                            </button>
-                                        ) : (
-                                            <span style={{ fontSize: '13px', color: '#94a3b8', fontStyle: 'italic' }}>Завершено</span>
-                                        )}
-                                    </td>
-                                </tr>
-                            ))
-                        )}
+                        ))}
                         </tbody>
                     </table>
                 </div>

@@ -78,7 +78,6 @@ public class CarApplicationService {
         existingCar.setYear(updatedCar.getYear());
         existingCar.setCarClass(updatedCar.getCarClass());
         existingCar.setPricePerDay(updatedCar.getPricePerDay());
-        existingCar.setImageUrl(updatedCar.getImageUrl());
 
         existingCar.setStatus(CarStatus.UNCONFIRMED);
 
@@ -200,5 +199,42 @@ public class CarApplicationService {
         car.completeMaintenance();
 
         return carRepository.save(car);
+    }
+
+    @Transactional
+    public void changeStatus(Long carId, CarStatus newStatus) {
+        Car car = getCarById(carId);
+
+        car.changeStatus(newStatus);
+
+        carRepository.save(car);
+    }
+
+    @Transactional
+    public void confirmCar(Long carId) {
+        Car car = getCarById(carId);
+
+        car.confirmCar();
+
+        carRepository.save(car);
+    }
+
+    @Transactional
+    public void cancelCar(Long carId) {
+        Car car = getCarById(carId);
+
+        car.cancelCar();
+
+        carRepository.save(car);
+    }
+
+    public long countCarsByOwnerId(Long ownerId) {
+        log.debug("Counting cars for ownerId: {}", ownerId);
+
+        if (ownerId == null || ownerId <= 0) {
+            throw new IllegalArgumentException("Valid owner ID is required");
+        }
+
+        return carRepository.countByOwnerId(ownerId);
     }
 }

@@ -54,12 +54,6 @@ public class CarSpecification {
             if (filter.getStatus() != null && !filter.getStatus().isEmpty()) {
                 predicates.add(criteriaBuilder.equal(root.get("status"), filter.getStatus()));
             }
-
-            if (filter.getLocationCity() != null && !filter.getLocationCity().isBlank()) {
-                predicates.add(
-                        criteriaBuilder.equal(root.get("locationCity"), filter.getLocationCity()));
-            }
-
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
     }

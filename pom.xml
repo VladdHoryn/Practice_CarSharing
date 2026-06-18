@@ -23,6 +23,7 @@
     <module>backend/user-service</module>
     <module>backend/payment-service</module>
     <module>backend/api-gateway</module>
+    <module>backend/analytics-service</module>
   </modules>
 
   <properties>
@@ -32,12 +33,22 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <lombok.version>1.18.34</lombok.version>
-
     <spotless.version>2.43.0</spotless.version>
     <checkstyle.version>3.3.1</checkstyle.version>
     <spotbugs.version>4.8.3.0</spotbugs.version>
     <jacoco.version>0.8.11</jacoco.version>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-dependencies</artifactId>
+        <version>2025.0.0</version> <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
     <dependency>

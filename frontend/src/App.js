@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import axios from 'axios'; // Імпортуємо axios для первинного рефрешу
 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -30,21 +31,61 @@ import PaymentManagement from './pages/admin/PaymentManagement';
 import KycManagement from './pages/admin/KycManagement';
 import CarModeration from './pages/admin/CarModeration';
 
-const UserLayout = () => (
-    <div className="app-container">
-        <Header />
-        <main className="main-content">
-            <Outlet />
-        </main>
-        <Footer />
-    </div>
-);
+const UserLayout = () => {
+    const userStr = localStorage.getItem('user');
+    const user = userStr ? JSON.parse(userStr) : null;
+
+    if (user && user.role === 'ADMINISTRATOR') {
+        return <Navigate to="/admin/dashboard" replace />;
+    }
+
+    return (
+        <div className="app-container">
+            <Header />
+            <main className="main-content">
+                <Outlet />
+            </main>
+            <Footer />
+        </div>
+    );
+};
 
 function App() {
+
+    useEffect(() => {
+        const authDataStr = localStorage.getItem('auth_tokens');
+        if (authDataStr) {
+            try {
+                const { refresh_token } = JSON.parse(authDataStr);
+
+                const params = new URLSearchParams();
+                params.append('grant_type', 'refresh_token');
+                params.append('client_id', 'carsharing-client');
+                params.append('refresh_token', refresh_token);
+
+
+                const secret = process.env.REACT_APP_KEYCLOAK_SECRET || '**********';
+                params.append('client_secret', secret);
+
+                axios.post('http://localhost:8100/realms/carsharing-realm/protocol/openid-connect/token', params, {
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+                })
+                .then(response => {
+                    localStorage.setItem('auth_tokens', JSON.stringify(response.data));
+                })
+                .catch(() => {
+                    localStorage.removeItem('auth_tokens');
+                    localStorage.removeItem('user');
+                });
+            } catch (e) {
+                console.error("Помилка парсингу токенів при старті:", e);
+            }
+        }
+    }, []);
+
     return (
         <Router>
             <Routes>
-                {}
                 <Route element={<UserLayout />}>
                     <Route path="/" element={<HomePage />} />
                     <Route path="/catalog" element={<CarCatalogPage />} />
@@ -54,11 +95,11 @@ function App() {
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
 
-                 
                     <Route path="/terms" element={<RentalTermsPage />} />
                     <Route path="/about" element={<AboutAndBlogPage />} />
                     <Route path="/contacts" element={<ContactsPage />} />
-                </Route>             
+                </Route>
+
                 <Route element={<AdminRoute />}>
                     <Route element={<AdminLayout />}>
                         <Route path="/admin/dashboard" element={<AdminDashboard />} />
@@ -68,6 +109,7 @@ function App() {
                         <Route path="/admin/payments" element={<PaymentManagement />} />
                         <Route path="/admin/kyc" element={<KycManagement />} />
                         <Route path="/admin/moderation" element={<CarModeration />} />
+                        <Route path="/admin/*" element={<Navigate to="/admin/dashboard" replace />} />
                     </Route>
                 </Route>
 

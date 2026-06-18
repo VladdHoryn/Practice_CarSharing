@@ -202,6 +202,27 @@ services:
     networks:
       - car-sharing-network
 
+  analytics-service:
+    build:
+      context: ./backend/analytics-service
+      dockerfile: Dockerfile
+    container_name: analytics-service
+    restart: always
+    depends_on:
+      - car-service
+      - booking-service
+      - user-service
+      - keycloak
+    environment:
+      CAR_SERVICE_URL: http://car-service:8083
+      BOOKING_SERVICE_URL: http://booking-service:8082
+      USER_SERVICE_URL: http://user-service:8081
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak:8080/realms/carsharing
+    ports:
+      - "8085:8085"
+    networks:
+      - car-sharing-network
+
   # =====================================================
   # FRONTEND (React Application)
   # =====================================================
@@ -218,7 +239,8 @@ services:
     depends_on:
       - api-gateway
     environment:
-      - NODE_ENV=development
+      NODE_ENV: development
+      REACT_APP_KEYCLOAK_SECRET: ${REACT_APP_KEYCLOAK_SECRET}
 
   # =====================================================
   # DATABASE MANAGEMENT (pgAdmin)
@@ -244,10 +266,16 @@ services:
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HOSTNAME_URL: http://localhost:8100
     ports:
       - "8090:8080"
+    volumes:
+      - ./docker/keycloak/carsharing-realm.json:/opt/keycloak/data/import/realm.json:ro
     command:
       - start-dev
+      - --import-realm
+    networks:
+      - car-sharing-network
 
 
 # =====================================================
