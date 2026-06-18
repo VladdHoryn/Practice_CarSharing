@@ -21,6 +21,9 @@ const Icons = {
 const UserProfilePage = () => {
     const navigate = useNavigate();
 
+    // 👑 ВИПРАВЛЕНО: Тепер стейт для файлу лежить строго всередині компонента
+    const [selectedFile, setSelectedFile] = useState(null);
+
     const [user, setUser] = useState({ id: '', firstName: '', lastName: '', email: '', role: '', driverCode: '' });
     const [activeTab, setActiveTab] = useState('');
     const [bookings, setBookings] = useState([]);
@@ -56,59 +59,59 @@ const UserProfilePage = () => {
     const menuItems = user.role === 'OWNER' ? ownerMenu : renterMenu;
 
     useEffect(() => {
-            const storedUser = localStorage.getItem('user');
-            if (storedUser) {
-                const parsedUser = JSON.parse(storedUser);
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            const parsedUser = JSON.parse(storedUser);
 
-                userService.getUserByKeycloakId(parsedUser.id)
-                    .then(realUserData => {
-                        const nameParts = realUserData.fullName ? realUserData.fullName.split(' ') : [''];
-                        const fName = nameParts[0] || '';
-                        const lName = nameParts.slice(1).join(' ') || '';
-                        const serverCode = realUserData.driverCode || realUserData.driver_code;
-                        let fallbackCode = `RNT${parsedUser.dbId || 4}PL91ZX`;
-                        if (Number(parsedUser.dbId) === 4 || parsedUser.email?.includes('renter1')) {
-                            fallbackCode = 'RNT2GH68JK'; // Точний збіг з вашим SQL-сервером
-                        }
+            userService.getUserByKeycloakId(parsedUser.id)
+                .then(realUserData => {
+                    const nameParts = realUserData.fullName ? realUserData.fullName.split(' ') : [''];
+                    const fName = nameParts[0] || '';
+                    const lName = nameParts.slice(1).join(' ') || '';
+                    const serverCode = realUserData.driverCode || realUserData.driver_code;
+                    let fallbackCode = `RNT${parsedUser.dbId || 4}PL91ZX`;
+                    if (Number(parsedUser.dbId) === 4 || parsedUser.email?.includes('renter1')) {
+                        fallbackCode = 'RNT2GH68JK';
+                    }
 
-                        setUser({
-                            id: parsedUser.id,
-                            firstName: fName,
-                            lastName: lName,
-                            email: realUserData.email || parsedUser.email,
-                            role: parsedUser.role,
-                            driverCode: serverCode && serverCode.trim() !== "" ? serverCode : fallbackCode
-                        });
-                        setProfileForm({
-                            firstName: fName,
-                            lastName: lName
-                        });
-                    })
-                    .catch(() => {
-                        const nameParts = parsedUser.fullName ? parsedUser.fullName.split(' ') : [''];
-                        setUser({
-                            id: parsedUser.id,
-                            firstName: nameParts[0] || '',
-                            lastName: nameParts.slice(1).join(' ') || '',
-                            email: parsedUser.email,
-                            role: parsedUser.role,
-                            driverCode: Number(parsedUser.dbId) === 4 ? 'RNT2GH68JK' : 'RNT4PL91ZX'
-                        });
-                        setProfileForm({
-                            firstName: nameParts[0] || '',
-                            lastName: nameParts.slice(1).join(' ') || ''
-                        });
+                    setUser({
+                        id: parsedUser.id,
+                        firstName: fName,
+                        lastName: lName,
+                        email: realUserData.email || parsedUser.email,
+                        role: parsedUser.role,
+                        driverCode: serverCode && serverCode.trim() !== "" ? serverCode : fallbackCode
                     });
+                    setProfileForm({
+                        firstName: fName,
+                        lastName: lName
+                    });
+                })
+                .catch(() => {
+                    const nameParts = parsedUser.fullName ? parsedUser.fullName.split(' ') : [''];
+                    setUser({
+                        id: parsedUser.id,
+                        firstName: nameParts[0] || '',
+                        lastName: nameParts.slice(1).join(' ') || '',
+                        email: parsedUser.email,
+                        role: parsedUser.role,
+                        driverCode: Number(parsedUser.dbId) === 4 ? 'RNT2GH68JK' : 'RNT4PL91ZX'
+                    });
+                    setProfileForm({
+                        firstName: nameParts[0] || '',
+                        lastName: nameParts.slice(1).join(' ') || ''
+                    });
+                });
 
-                if (parsedUser.role === 'OWNER') {
-                    setActiveTab('fleet');
-                } else {
-                    setActiveTab('order');
-                }
+            if (parsedUser.role === 'OWNER') {
+                setActiveTab('fleet');
             } else {
-                navigate('/login');
+                setActiveTab('order');
             }
-        }, [navigate]);
+        } else {
+            navigate('/login');
+        }
+    }, [navigate]);
 
     useEffect(() => {
         if (activeTab === 'fleet' && user.role === 'OWNER') {
@@ -185,29 +188,29 @@ const UserProfilePage = () => {
     };
 
     useEffect(() => {
-            const storedUser = localStorage.getItem('user');
-            if (!storedUser) return;
-            const parsedUser = JSON.parse(storedUser);
+        const storedUser = localStorage.getItem('user');
+        if (!storedUser) return;
+        const parsedUser = JSON.parse(storedUser);
 
-            if (activeTab === 'history' && parsedUser.dbId) {
-                loadRenterHistory(parsedUser.dbId);
-            }
+        if (activeTab === 'history' && parsedUser.dbId) {
+            loadRenterHistory(parsedUser.dbId);
+        }
 
-            if (activeTab === 'invitations' && parsedUser.dbId) {
-                bookingService.getInvitationsByUserId(parsedUser.dbId)
-                    .then(data => {
-                        setIncomingInvites(data.filter(i => i.status === 'PENDING'));
-                        if (data.length > 0 && data[0].driverCode) {
-                            setUser(prev => ({ ...prev, driverCode: data[0].driverCode }));
-                        }
-                    })
-                    .catch(err => console.error(err));
-            }
+        if (activeTab === 'invitations' && parsedUser.dbId) {
+            bookingService.getInvitationsByUserId(parsedUser.dbId)
+                .then(data => {
+                    setIncomingInvites(data.filter(i => i.status === 'PENDING'));
+                    if (data.length > 0 && data[0].driverCode) {
+                        setUser(prev => ({ ...prev, driverCode: data[0].driverCode }));
+                    }
+                })
+                .catch(err => console.error(err));
+        }
 
-            if (activeTab === 'owner_bookings' && parsedUser.dbId) {
-                loadOwnerBookings(parsedUser.dbId);
-            }
-        }, [activeTab]);
+        if (activeTab === 'owner_bookings' && parsedUser.dbId) {
+            loadOwnerBookings(parsedUser.dbId);
+        }
+    }, [activeTab]);
 
     const handleInvitationResponse = async (id, action) => {
         try {
@@ -246,9 +249,25 @@ const UserProfilePage = () => {
     };
 
     const handleLogout = () => { authService.logout(); navigate('/login'); };
-    const openCreateCarModal = () => { setEditingCar(null); setCarForm({ brand: '', model: '', year: 2026, carClass: 'ECONOMY', pricePerDay: '', imageUrl: '' }); setShowCarModal(true); };
-    const openEditCarModal = (car) => { setEditingCar(car); setCarForm({ brand: car.brand, model: car.model, year: car.year, carClass: car.carClass, pricePerDay: car.pricePerDay, imageUrl: car.imageUrl || '' }); setShowCarModal(true); };
-    const handleCarFormChange = (e) => { const { name, value } = e.target; setCarForm(prev => ({ ...prev, [name]: value })); };
+
+    const openCreateCarModal = () => {
+        setEditingCar(null);
+        setCarForm({ brand: '', model: '', year: 2026, carClass: 'ECONOMY', pricePerDay: '' });
+        setSelectedFile(null);
+        setShowCarModal(true);
+    };
+
+    const openEditCarModal = (car) => {
+        setEditingCar(car);
+        setCarForm({ brand: car.brand, model: car.model, year: car.year, carClass: car.carClass, pricePerDay: car.pricePerDay, imageUrl: car.imageUrl || '' });
+        setSelectedFile(null);
+        setShowCarModal(true);
+    };
+
+    const handleCarFormChange = (e) => {
+        const { name, value } = e.target;
+        setCarForm(prev => ({ ...prev, [name]: value }));
+    };
 
     const submitCarForm = async (e) => {
         e.preventDefault();
@@ -258,22 +277,36 @@ const UserProfilePage = () => {
             const parsedUser = JSON.parse(storedUser);
 
             const payload = {
-                brand: carForm.brand, model: carForm.model, year: parseInt(carForm.year),
-                pricePerDay: parseFloat(carForm.pricePerDay), carClass: carForm.carClass.toUpperCase(),
-                imageUrl: carForm.imageUrl || null, userId: Number(parsedUser.dbId)
+                brand: carForm.brand,
+                model: carForm.model,
+                year: parseInt(carForm.year),
+                pricePerDay: parseFloat(carForm.pricePerDay),
+                carClass: carForm.carClass.toUpperCase(),
+                userId: Number(parsedUser.dbId)
             };
 
             if (editingCar) {
                 const updatedCar = await carService.updateCar(editingCar.id, payload);
+
+                if (selectedFile) {
+                    await carService.uploadCarImage(editingCar.id, selectedFile);
+                }
+
                 setOwnerCars(ownerCars.map(c => c.id === editingCar.id ? updatedCar : c));
                 toast.success('Авто успішно оновлено!');
             } else {
                 const newCar = await carService.createCar(payload);
+
+                if (selectedFile) {
+                    await carService.uploadCarImage(newCar.id, selectedFile);
+                }
+
                 setOwnerCars([...ownerCars, newCar]);
-                toast.success('Нове авто додано!');
+                toast.success('Нове авто додано разом із фотографією! 📸');
             }
             setShowCarModal(false);
         } catch (err) {
+            console.error("Помилка збереження авто:", err);
             toast.error(err.response?.data?.message || 'Помилка при збереженні авто.');
         }
     };
@@ -382,7 +415,7 @@ const UserProfilePage = () => {
                 <>
                     <h2 className={styles.tabTitle}>Замовити авто</h2>
                     <p className={styles.greeting}>Привіт, {user.firstName || 'Гість'}!</p>
-                    <p className={styles.infoText}>Спеціально для вас ми відображаємо статус доступності для всіх авто, щоб процес підбору став для вас ще швидше та зрозуміліше.</p>
+                    <p className={styles.infoText}>Спеціально для вас ми відображаємо статус доступності для всіх авто, щоб процес підбору стал для вас ще швидше та зрозуміліше.</p>
                     <p className={styles.greeting}>Ваша персональна знижка на оренду авто становить <span className={styles.discount} style={{color: '#28a745', fontWeight: 'bold'}}>0%</span></p>
                     <p className={styles.infoText}>Для замовлення авто натисніть кнопку ниже.</p>
                     <button className={styles.primaryBtn} onClick={() => navigate('/catalog')}>ЗАБРОНЮВАТИ АВТО</button>
@@ -591,9 +624,30 @@ const UserProfilePage = () => {
                                     <option value="ECONOMY">Economy</option><option value="COMFORT">Comfort</option><option value="BUSINESS">Business</option><option value="LUXURY">Luxury</option>
                                 </select>
                             </div>
-                            <div style={{marginBottom: '20px'}}>
-                                <label>URL фотографії</label>
-                                <input type="url" name="imageUrl" value={carForm.imageUrl} onChange={handleCarFormChange} placeholder="https://..." style={{width:'100%', padding:'8px'}}/>
+                            <div style={{ marginBottom: '20px' }}>
+                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Фотографія автомобіля</label>
+                                <input
+                                    type="file"
+                                    accept="image/png, image/jpeg, image/jpg"
+                                    onChange={(e) => {
+                                        if (e.target.files && e.target.files[0]) {
+                                            setSelectedFile(e.target.files[0]);
+                                        }
+                                    }}
+                                    style={{
+                                        width: '100%',
+                                        padding: '8px',
+                                        border: '1px dashed #0056b3',
+                                        borderRadius: '4px',
+                                        background: '#f8fbff',
+                                        cursor: 'pointer'
+                                    }}
+                                />
+                                {selectedFile && (
+                                    <span style={{ fontSize: '12px', color: '#28a745', display: 'block', marginTop: '4px' }}>
+                                        ✓ Обрано файл: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+                                    </span>
+                                )}
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                 <button type="button" onClick={() => setShowCarModal(false)} style={{ padding: '10px 20px', background: '#ccc', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Скасувати</button>
