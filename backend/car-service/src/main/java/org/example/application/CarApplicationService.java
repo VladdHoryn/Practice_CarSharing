@@ -78,7 +78,6 @@ public class CarApplicationService {
         existingCar.setYear(updatedCar.getYear());
         existingCar.setCarClass(updatedCar.getCarClass());
         existingCar.setPricePerDay(updatedCar.getPricePerDay());
-        existingCar.setImageUrl(updatedCar.getImageUrl());
 
         existingCar.setStatus(CarStatus.UNCONFIRMED);
 

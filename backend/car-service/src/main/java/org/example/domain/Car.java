@@ -63,10 +63,6 @@ public class Car {
     @Column(name = "status", nullable = false)
     private CarStatus status;
 
-    @Pattern(regexp = "^(https?://.*)?$", message = "Image URL must be valid URL")
-    @Column(name = "image_url")
-    private String imageUrl;
-
     @OneToMany(mappedBy = "car", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<CarImage> images = new ArrayList<>();
 

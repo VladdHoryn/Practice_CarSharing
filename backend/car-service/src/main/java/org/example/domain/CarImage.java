@@ -2,6 +2,8 @@ package org.example.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Data
 @Builder
@@ -21,7 +23,7 @@ public class CarImage {
   @JoinColumn(name = "car_id", nullable = false)
   private Car car;
 
-  @Lob
+  @JdbcTypeCode(SqlTypes.BINARY)
   @Column(name = "image_data", nullable = false)
   private byte[] imageData;
 

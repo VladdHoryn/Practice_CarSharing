@@ -34,8 +34,7 @@ public class CarController {
                 car.getCarClass().name(),
                 car.getPricePerDay(),
                 car.getUserId(),
-                car.getStatus(),
-                car.getImageUrl());
+                car.getStatus());
     }
 
     @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
@@ -47,7 +46,6 @@ public class CarController {
         car.setYear(request.year());
         car.setCarClass(CarClass.valueOf(request.carClass()));
         car.setPricePerDay(request.pricePerDay());
-        car.setImageUrl(request.imageUrl());
 
         car.setUserId(request.userId());
 
@@ -68,7 +66,6 @@ public class CarController {
         car.setYear(request.year());
         car.setCarClass(CarClass.valueOf(request.carClass()));
         car.setPricePerDay(request.pricePerDay());
-        car.setImageUrl(request.imageUrl());
 
         car.setUserId(request.userId());
 
