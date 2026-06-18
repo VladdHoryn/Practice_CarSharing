@@ -14,5 +14,4 @@ public class CarFilterDto {
     private BigDecimal minPrice;
     private BigDecimal maxPrice;
     private String status; // AVAILABLE, RENTED, MAINTENANCE
-    private String locationCity;
 }

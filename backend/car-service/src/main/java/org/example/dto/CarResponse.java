@@ -10,5 +10,4 @@ public record CarResponse(
         String carClass,
         Float pricePerDay,
         Long userId,
-        CarStatus status,
-        String imageUrl) {}
+        CarStatus status) {}

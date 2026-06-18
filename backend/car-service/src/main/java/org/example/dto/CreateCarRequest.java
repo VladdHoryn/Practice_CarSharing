@@ -8,5 +8,4 @@ public record CreateCarRequest(
         @NotNull @Min(1950) Integer year,
         @NotNull String carClass,
         @NotNull @Positive Float pricePerDay,
-        @Pattern(regexp = "^(https?://.*)?$") String imageUrl,
         @NotNull Long userId) {}

@@ -1,6 +1,9 @@
 package org.example.domain;
 
+import java.time.LocalDateTime;
 import java.time.Year;
+import java.util.ArrayList;
+import java.util.List;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
@@ -60,12 +63,28 @@ public class Car {
     @Column(name = "status", nullable = false)
     private CarStatus status;
 
-    @Pattern(regexp = "^(https?://.*)?$", message = "Image URL must be valid URL")
-    @Column(name = "image_url")
-    private String imageUrl;
+    @OneToMany(mappedBy = "car", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<CarImage> images = new ArrayList<>();
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     @PrePersist
+    protected void onCreate() {
+      createdAt = LocalDateTime.now();
+      updatedAt = LocalDateTime.now();
+      validateYear(); // Викликаємо валідацію перед збереженням
+    }
+
     @PreUpdate
+    protected void onUpdate() {
+      updatedAt = LocalDateTime.now();
+      validateYear();
+    }
+
     private void validateYear() {
         int currentYear = Year.now().getValue();
 
@@ -149,4 +168,64 @@ public class Car {
     public boolean isAvailableForRent() {
         return status == CarStatus.AVAILABLE;
     }
+
+  // =====================================================
+  // МЕТОДИ ДЛЯ РОБОТИ З ФОТО
+  // =====================================================
+
+  /**
+   * Додати фото до галереї
+   */
+  public void addImage(CarImage image) {
+    image.setCar(this);
+    this.images.add(image);
+
+    // Якщо це перше фото - робимо його головним
+    if (this.images.size() == 1) {
+      image.setMain(true);
+    }
+  }
+
+  /**
+   * Отримати головне фото (main image)
+   */
+  public CarImage getMainImage() {
+    return images.stream()
+      .filter(CarImage::isMain)
+      .findFirst()
+      .orElse(null);
+  }
+
+  /**
+   * Встановити фото як головне
+   */
+  public void setMainImage(Long imageId) {
+    images.forEach(img -> img.setMain(false));
+    images.stream()
+      .filter(img -> img.getId().equals(imageId))
+      .findFirst()
+      .ifPresent(img -> img.setMain(true));
+  }
+
+  /**
+   * Видалити фото за ID
+   */
+  public boolean removeImage(Long imageId) {
+    CarImage imageToRemove = images.stream()
+      .filter(img -> img.getId().equals(imageId))
+      .findFirst()
+      .orElse(null);
+
+    if (imageToRemove != null) {
+      // Якщо видаляємо головне фото - призначаємо нове
+      if (imageToRemove.isMain() && images.size() > 1) {
+        images.stream()
+          .filter(img -> !img.getId().equals(imageId))
+          .findFirst()
+          .ifPresent(img -> img.setMain(true));
+      }
+      return images.remove(imageToRemove);
+    }
+    return false;
+  }
 }
