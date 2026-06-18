@@ -49,6 +49,25 @@ public class CarImageController {
       .body(mainImage.getImageData());
   }
 
+
+  @GetMapping("/{imageId}")
+  public ResponseEntity<byte[]> getImageById(
+    @PathVariable Long carId,
+    @PathVariable Long imageId) {
+
+    CarImage image = carImageService.getImageById(imageId);
+
+    // Захисна перевірка, що картинка належить саме цій машині
+    if (!image.getCar().getId().equals(carId)) {
+      return ResponseEntity.badRequest().build();
+    }
+
+    return ResponseEntity.ok()
+      .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + image.getFileName() + "\"")
+      .contentType(MediaType.parseMediaType(image.getContentType()))
+      .body(image.getImageData());
+  }
+
   @GetMapping
   public ResponseEntity<List<CarImageResponse>> getAllImagesInfo(@PathVariable Long carId) {
     List<CarImageResponse> imagesInfo = carImageService.getAllImages(carId).stream()
