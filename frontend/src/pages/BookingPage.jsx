@@ -70,10 +70,10 @@ const BookingPage = () => {
     }, [dates]);
 
     const addCoDriver = () => {
-        if (coDrivers.length < 4) {
-            setCoDrivers([...coDrivers, { email: '', licenseNumber: '' }]);
+        if (coDrivers.length < 2) {
+            setCoDrivers([...coDrivers, { email: '', driverCode: '' }]);
         } else {
-            toast.warning('Досягнуто ліміт водіїв');
+            toast.warning('Максимум 2 активні запрошення для спільної оренди за раз!');
         }
     };
 
@@ -104,9 +104,9 @@ const BookingPage = () => {
         const currentUser = JSON.parse(userStr);
 
         if (!currentUser.dbId) {
-                    toast.error('Помилка авторизації в базі даних. Спробуйте перелогінитися.');
-                    return;
-                }
+            toast.error('Помилка авторизації в базі даних. Спробуйте перелогінитися.');
+            return;
+        }
 
         setIsProcessing(true);
         let createdBookingId = null;
@@ -124,7 +124,6 @@ const BookingPage = () => {
             const bookingResult = await bookingService.createBooking(bookingRequest);
             createdBookingId = bookingResult.id;
 
-
             try {
                 const paymentRequest = {
                     bookingId: createdBookingId,
@@ -136,16 +135,27 @@ const BookingPage = () => {
                 await paymentService.createPayment(paymentRequest);
             } catch (paymentErr) {
                 console.error("Помилка на етапі оплати. Запускаємо відкат бронювання...");
-
-
                 if (createdBookingId) {
                     await bookingService.cancelBooking(createdBookingId);
                 }
-
                 const realError = paymentErr.response?.data?.message || paymentErr.message;
                 throw new Error(`Оплату не виконано: ${realError}. Бронювання скасовано.`);
             }
 
+            if (coDrivers.length > 0) {
+                try {
+                    await Promise.all(coDrivers.map(driver =>
+                        bookingService.createInvitation(createdBookingId, {
+                            email: driver.email,
+                            driverCode: driver.driverCode
+                        })
+                    ));
+                    toast.success('Запрошення для співводіїв успішно розіслані! ✉️');
+                } catch (inviteErr) {
+                    console.error("Помилка відправки запрошень:", inviteErr);
+                    toast.warning("Оплата успішна, але сталася помилка надсилання інвайтів. Перевірте коди водіїв.");
+                }
+            }
 
             toast.success('Бронювання та оплата успішні! 🚗💳');
             setShowPaymentModal(false);
@@ -153,7 +163,6 @@ const BookingPage = () => {
 
         } catch (err) {
             console.error("Помилка при виконанні операції:", err);
-
             const backendMessage = err.response?.data?.message || err.message;
 
             if (backendMessage.includes("already booked") || backendMessage.includes("overlap")) {
@@ -204,11 +213,11 @@ const BookingPage = () => {
                             <div key={index} className={styles.driverRow}>
                                 <div className={styles.inputGroup}>
                                     <label>Email водія #{index + 2}</label>
-                                    <input type="email" required value={driver.email} onChange={(e) => handleCoDriverChange(index, 'email', e.target.value)} />
+                                    <input type="email" required value={driver.email} onChange={(e) => handleCoDriverChange(index, 'email', e.target.value)} placeholder="friend@carsharing.com"/>
                                 </div>
                                 <div className={styles.inputGroup}>
-                                    <label>Номер посвідчення</label>
-                                    <input type="text" required value={driver.licenseNumber} onChange={(e) => handleCoDriverChange(index, 'licenseNumber', e.target.value)} />
+                                    <label>Унікальний код водія</label>
+                                    <input type="text" required value={driver.driverCode} onChange={(e) => handleCoDriverChange(index, 'driverCode', e.target.value)} placeholder="Напр. RNT5PL91ZX"/>
                                 </div>
                                 <button type="button" className={styles.removeBtn} onClick={() => removeCoDriver(index)}>✖</button>
                             </div>
