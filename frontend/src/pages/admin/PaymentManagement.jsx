@@ -28,7 +28,6 @@ const PaymentManagement = () => {
     const handleMarkAsPaid = async (bookingId) => {
         if (!window.confirm(`Підтвердити платіж для бронювання #BK-${bookingId} як CONFIRMED вручну?`)) return;
         try {
-            // 👑 ВИПРАВЛЕНО ЗГІДНО З ТЗ: використовуємо зміну статусу через букінг-ендпоінт
             await paymentService.changePaymentStatus(bookingId, 'CONFIRMED');
             toast.success(`Трансляцію оплати успішно підтверджено! 💳`);
             fetchPayments();

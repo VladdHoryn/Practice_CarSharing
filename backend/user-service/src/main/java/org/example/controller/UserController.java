@@ -70,10 +70,6 @@ public class UserController {
         return userService.existByEmailAndDriverCode(email, driverCode);
     }
 
-    // ==========================================
-    //              ADMIN ANALYTICS
-    // ==========================================
-
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     @GetMapping("/analytics/admin/active/count")
     public ResponseEntity<Long> countActiveUsers() {

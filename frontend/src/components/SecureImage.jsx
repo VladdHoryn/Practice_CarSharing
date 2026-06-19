@@ -3,11 +3,11 @@ import apiClient from '../api/apiClient';
 
 const SecureImage = ({ src, alt, className, style }) => {
     const mockImages = [
-        "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=600&q=80", // Porsche
-        "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=600&q=80", // Chevrolet
-        "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=600&q=80", // Mustang
-        "https://images.unsplash.com/photo-1580273916550-e323be2ae537?auto=format&fit=crop&w=600&q=80", // BMW
-        "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=600&q=80"  // Toyota
+        "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=600&q=80",
+        "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=600&q=80",
+        "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=600&q=80",
+        "https://images.unsplash.com/photo-1580273916550-e323be2ae537?auto=format&fit=crop&w=600&q=80",
+        "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=600&q=80"
     ];
 
     const getDeterministicMock = (path) => {
@@ -23,11 +23,8 @@ const SecureImage = ({ src, alt, className, style }) => {
     useEffect(() => {
         if (!src) return;
 
-        // 👑 ПЕРЕВІРКА АВТОРИЗАЦІЇ ДЛЯ ГОСТЕЙ (ЗАХИСТ ВІД РЕДІРЕКТУ НА ЛОГІН)
         const storedUser = localStorage.getItem('user');
         if (!storedUser) {
-            // Якщо токена/користувача немає — ми в режимі гостя.
-            // Відразу ставимо гарне демо-фото і відключаємо лоадер, не турбуючи бекенд.
             setImgUrl(getDeterministicMock(src));
             setLoading(false);
             return;

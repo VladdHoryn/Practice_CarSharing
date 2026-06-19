@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    // 400
     @ExceptionHandler({IllegalArgumentException.class, RuntimeException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleBadRequest(IllegalArgumentException ex, HttpServletRequest request) {
@@ -27,7 +26,6 @@ public class GlobalExceptionHandler {
                 request.getRequestURI());
     }
 
-    // 500
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleServerError(Exception ex, HttpServletRequest request) {
@@ -40,7 +38,6 @@ public class GlobalExceptionHandler {
                 request.getRequestURI());
     }
 
-    // Validation
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationErrors(
             MethodArgumentNotValidException ex, HttpServletRequest request) {

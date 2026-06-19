@@ -1,8 +1,3 @@
--- =====================================================
--- Booking Service - Seed booking_drivers data
--- Version: V6
--- =====================================================
-
 INSERT INTO booking_drivers (
   booking_id,
   user_id,

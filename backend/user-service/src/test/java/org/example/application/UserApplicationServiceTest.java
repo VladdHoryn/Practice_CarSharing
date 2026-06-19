@@ -24,17 +24,14 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldReturnAllUsers() {
-        // Arrange
         User user = new User();
         user.setId(1L);
-        user.activate(); // <--- ДОДАЙ ОЦЕ (або setIsActive(true), залежить від сеттера)
+        user.activate();
 
         when(userRepository.findAll()).thenReturn(List.of(user));
 
-        // Act
         List<UserResponse> result = userApplicationService.getAllUsers();
 
-        // Assert
         assertNotNull(result);
         assertFalse(result.isEmpty());
         verify(userRepository, times(1)).findAll();
@@ -42,18 +39,16 @@ class UserApplicationServiceTest {
 
     @Test
     void shouldReturnUserById() {
-        // Arrange
+
         Long userId = 1L;
         User user = new User();
         user.setId(userId);
-        user.activate(); // <--- І ТУТ ТЕЖ
+        user.activate();
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-        // Act
         UserResponse result = userApplicationService.getUserById(userId);
 
-        // Assert
         assertNotNull(result);
         assertEquals(userId, result.getId());
         verify(userRepository, times(1)).findById(userId);

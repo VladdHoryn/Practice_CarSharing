@@ -21,7 +21,6 @@ const Icons = {
 const UserProfilePage = () => {
     const navigate = useNavigate();
 
-    // 👑 ВИПРАВЛЕНО: Тепер стейт для файлу лежить строго всередині компонента
     const [selectedFile, setSelectedFile] = useState(null);
 
     const [user, setUser] = useState({ id: '', firstName: '', lastName: '', email: '', role: '', driverCode: '' });

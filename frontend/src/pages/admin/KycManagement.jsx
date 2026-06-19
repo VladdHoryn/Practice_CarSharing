@@ -6,7 +6,6 @@ const KycManagement = () => {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        // ТЗ каже: "Верифікація буде готова пізніше", тому залишаємо тимчасовий мок
         setRequests([
             { id: 105, fullName: 'Максим Журик', email: 'maks.zh@gmail.com', documentType: 'Посвідчення водія (Категорія B)' }
         ]);

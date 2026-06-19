@@ -1,8 +1,3 @@
--- =====================================================
--- Booking Service - Create bookings table
--- Version: V1
--- =====================================================
-
 CREATE TYPE booking_status_enum AS ENUM ('CREATED', 'PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED');
 
 CREATE TABLE bookings (

@@ -16,54 +16,33 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class CarApplicationServiceTest {
 
-    @Mock private CarRepository carRepository; // Замокана база даних
+    @Mock private CarRepository carRepository;
 
-    @InjectMocks private CarApplicationService carApplicationService; // Твій сервіс
+    @InjectMocks private CarApplicationService carApplicationService;
 
     @Test
     void shouldReturnCarsFromMockedRepository() {
-        // 1. Arrange: готуємо фейкову машину та кажемо репозиторію повернути її
         Car car = new Car();
         when(carRepository.findAll()).thenReturn(List.of(car));
 
-        // 2. Act: викликаємо саме твій метод getAllCars()
         List<Car> result = carApplicationService.getAllCars();
 
-        // 3. Assert: перевіряємо, що повернулася 1 машина
         assertNotNull(result);
         assertEquals(1, result.size());
-        verify(carRepository, times(1)).findAll(); // Перевіряємо, чи був запит до БД
+        verify(carRepository, times(1)).findAll();
     }
 
     @Test
     void shouldReturnCarById() {
-        // Arrange
         Long carId = 1L;
         Car car = new Car();
         car.setId(carId);
         when(carRepository.findById(carId)).thenReturn(java.util.Optional.of(car));
 
-        // Act
         Car result = carApplicationService.getCarById(carId);
 
-        // Assert
         assertNotNull(result);
         assertEquals(carId, result.getId());
         verify(carRepository, times(1)).findById(carId);
     }
-    //  @Test
-    //  void shouldCreateCarSuccessfully() {
-    //    // Arrange
-    //    Car car = new Car();
-    //    car.setBrand("Tesla");
-    //    when(carRepository.save(any(Car.class))).thenReturn(car);
-    //
-    //    // Act
-    //    Car result = carApplicationService.createCar(car);
-    //
-    //    // Assert
-    //    assertNotNull(result);
-    //    assertEquals("Tesla", result.getBrand());
-    //    verify(carRepository, times(1)).save(car);
-    //  }
 }

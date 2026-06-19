@@ -20,7 +20,6 @@ public interface CarRepository extends JpaRepository<Car, Long>, JpaSpecificatio
     public List<Car> findCarByUserId(
             @NotNull(message = "Owner does not have any cars") Long userId);
 
-    /** 4) Кількість авто, які належать певному OWNER */
     @Query("SELECT COUNT(c) FROM Car c WHERE c.userId = :ownerId")
     long countByOwnerId(@Param("ownerId") Long ownerId);
 }

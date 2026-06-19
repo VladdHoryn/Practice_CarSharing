@@ -1,6 +1,8 @@
 package org.example.controller;
 
-import lombok.RequiredArgsConstructor;
+import java.io.IOException;
+import java.util.List;
+
 import org.example.application.CarImageApplicationService;
 import org.example.domain.CarImage;
 import org.example.dto.CarImageResponse;
@@ -11,102 +13,99 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/car/v1/{carId}/images")
 @RequiredArgsConstructor
 public class CarImageController {
 
-  private final CarImageApplicationService carImageService;
+    private final CarImageApplicationService carImageService;
 
-  @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
-  @PostMapping
-  public ResponseEntity<Void> uploadImage(
-    @PathVariable Long carId,
-    @RequestParam("file") MultipartFile file) {
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
+    @PostMapping
+    public ResponseEntity<Void> uploadImage(
+            @PathVariable Long carId, @RequestParam("file") MultipartFile file) {
 
-    try {
-      carImageService.uploadImage(carId, file);
-      return ResponseEntity.ok().build();
-    } catch (IOException e) {
-      return ResponseEntity.internalServerError().build();
-    }
-  }
-
-  @GetMapping("/main")
-  public ResponseEntity<byte[]> getMainImage(@PathVariable Long carId) {
-    CarImage mainImage = carImageService.getMainImage(carId);
-
-    if (mainImage == null) {
-      return ResponseEntity.notFound().build();
+        try {
+            carImageService.uploadImage(carId, file);
+            return ResponseEntity.ok().build();
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
-    return ResponseEntity.ok()
-      .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + mainImage.getFileName() + "\"")
-      .contentType(MediaType.parseMediaType(mainImage.getContentType()))
-      .body(mainImage.getImageData());
-  }
+    @GetMapping("/main")
+    public ResponseEntity<byte[]> getMainImage(@PathVariable Long carId) {
+        CarImage mainImage = carImageService.getMainImage(carId);
 
+        if (mainImage == null) {
+            return ResponseEntity.notFound().build();
+        }
 
-  @GetMapping("/{imageId}")
-  public ResponseEntity<byte[]> getImageById(
-    @PathVariable Long carId,
-    @PathVariable Long imageId) {
-
-    CarImage image = carImageService.getImageById(imageId);
-
-    // Захисна перевірка, що картинка належить саме цій машині
-    if (!image.getCar().getId().equals(carId)) {
-      return ResponseEntity.badRequest().build();
+        return ResponseEntity.ok()
+                .header(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        "inline; filename=\"" + mainImage.getFileName() + "\"")
+                .contentType(MediaType.parseMediaType(mainImage.getContentType()))
+                .body(mainImage.getImageData());
     }
 
-    return ResponseEntity.ok()
-      .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + image.getFileName() + "\"")
-      .contentType(MediaType.parseMediaType(image.getContentType()))
-      .body(image.getImageData());
-  }
+    @GetMapping("/{imageId}")
+    public ResponseEntity<byte[]> getImageById(
+            @PathVariable Long carId, @PathVariable Long imageId) {
 
-  @GetMapping
-  public ResponseEntity<List<CarImageResponse>> getAllImagesInfo(@PathVariable Long carId) {
-    List<CarImageResponse> imagesInfo = carImageService.getAllImages(carId).stream()
-      .map(img -> new CarImageResponse(
-        img.getId(),
-        img.getFileName(),
-        img.getContentType(),
-        img.getFileSize(),
-        img.isMain()
-      ))
-      .toList();
+        CarImage image = carImageService.getImageById(imageId);
 
-    return ResponseEntity.ok(imagesInfo);
-  }
+        if (!image.getCar().getId().equals(carId)) {
+            return ResponseEntity.badRequest().build();
+        }
 
-  @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
-  @PatchMapping("/{imageId}/main")
-  public ResponseEntity<Void> setMainImage(
-    @PathVariable Long carId,
-    @PathVariable Long imageId) {
+        return ResponseEntity.ok()
+                .header(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        "inline; filename=\"" + image.getFileName() + "\"")
+                .contentType(MediaType.parseMediaType(image.getContentType()))
+                .body(image.getImageData());
+    }
 
-    carImageService.setMainImage(carId, imageId);
-    return ResponseEntity.noContent().build();
-  }
+    @GetMapping
+    public ResponseEntity<List<CarImageResponse>> getAllImagesInfo(@PathVariable Long carId) {
+        List<CarImageResponse> imagesInfo =
+                carImageService.getAllImages(carId).stream()
+                        .map(
+                                img ->
+                                        new CarImageResponse(
+                                                img.getId(),
+                                                img.getFileName(),
+                                                img.getContentType(),
+                                                img.getFileSize(),
+                                                img.isMain()))
+                        .toList();
 
-  @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
-  @DeleteMapping("/{imageId}")
-  public ResponseEntity<Void> deleteImage(
-    @PathVariable Long carId,
-    @PathVariable Long imageId) {
+        return ResponseEntity.ok(imagesInfo);
+    }
 
-    carImageService.deleteImage(carId, imageId);
-    return ResponseEntity.noContent().build();
-  }
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
+    @PatchMapping("/{imageId}/main")
+    public ResponseEntity<Void> setMainImage(@PathVariable Long carId, @PathVariable Long imageId) {
 
-  @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
-  @DeleteMapping
-  public ResponseEntity<Void> deleteAllImages(@PathVariable Long carId) {
-    carImageService.deleteAllCarImages(carId);
-    return ResponseEntity.noContent().build();
-  }
+        carImageService.setMainImage(carId, imageId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
+    @DeleteMapping("/{imageId}")
+    public ResponseEntity<Void> deleteImage(@PathVariable Long carId, @PathVariable Long imageId) {
+
+        carImageService.deleteImage(carId, imageId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
+    @DeleteMapping
+    public ResponseEntity<Void> deleteAllImages(@PathVariable Long carId) {
+        carImageService.deleteAllCarImages(carId);
+        return ResponseEntity.noContent().build();
+    }
 }

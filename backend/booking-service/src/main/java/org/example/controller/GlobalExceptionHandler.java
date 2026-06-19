@@ -17,8 +17,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({IllegalArgumentException.class, RuntimeException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleBadRequest(
-            RuntimeException ex, HttpServletRequest request) { // <-- ЗМІНЕНО ТУТ
+    public ErrorResponse handleBadRequest(RuntimeException ex, HttpServletRequest request) {
 
         return new ErrorResponse(
                 LocalDateTime.now(),
@@ -28,7 +27,6 @@ public class GlobalExceptionHandler {
                 request.getRequestURI());
     }
 
-    // 500
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleServerError(Exception ex, HttpServletRequest request) {
@@ -41,7 +39,6 @@ public class GlobalExceptionHandler {
                 request.getRequestURI());
     }
 
-    // Validation
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationErrors(
             MethodArgumentNotValidException ex, HttpServletRequest request) {

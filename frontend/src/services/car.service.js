@@ -52,7 +52,7 @@ export const carService = {
     },
     uploadCarImage: async (carId, file) => {
         const formData = new FormData();
-        formData.append('file', file); // Ключ має бути саме "file", як чекає бек @RequestParam("file")
+        formData.append('file', file);
         const response = await apiClient.post(`/car/v1/${carId}/images`, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data'
