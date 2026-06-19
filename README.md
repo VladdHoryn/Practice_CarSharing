@@ -1,11 +1,17 @@
-# 🚗 CarLink Booking (Microservices Car Sharing System)
+<div align="center">
+  <img src="./marketing_kit/banner.png" alt="CarLink Booking Banner" width="100%" />
+  <br/><br/>
+  <img src="./marketing_kit/img.png" alt="CarLink Booking Logo" width="150" />
 
-[![Java Version](https://img.shields.io/badge/Java-21-blue.svg)](https://java.com)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.4-brightgreen.svg)](https://spring.io)
-[![React](https://img.shields.io/badge/React-18-61DAFB.svg)](https://reactjs.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-blue.svg)](https://postgresql.org)
-[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED.svg)](https://www.docker.com/)
+  # 🚗 CarLink Booking
+  **Microservices Car Sharing System**
 
+  [![Java Version](https://img.shields.io/badge/Java-21-blue.svg)](https://java.com)
+  [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.4-brightgreen.svg)](https://spring.io)
+  [![React](https://img.shields.io/badge/React-18-61DAFB.svg)](https://reactjs.org/)
+  [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-blue.svg)](https://postgresql.org)
+  [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED.svg)](https://www.docker.com/)
+</div>
 ## 📝 Опис проєкту
 
 **CarLink Booking** — це комплексна веб-платформа для швидкого та прозорого бронювання автомобілів, побудована на мікросервісній архітектурі. 
