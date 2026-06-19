@@ -39,7 +39,7 @@ Practice_CarSharing/
 │   └── keycloak/             # Файли налаштувань (Realm) для Keycloak
 ├── docker-compose.yml        # Головний файл розгортання системи
 └── .env.example              # Шаблон змінних середовища
-
+```
 ---
 
 ## 🛠 Технологічний стек
@@ -74,11 +74,18 @@ Practice_CarSharing/
 git clone https://github.com/vladdhoryn/Practice_CarSharing.git
 cd Practice_CarSharing
 
-# 2. Збірка проєкту
+#2. Налаштування змінних середовища
+cp .env.example .env
+
+# 3. Збірка проєкту
 mvn clean package
 
-# 3. Запуск Docker
+# 4. Запуск Docker
 docker-compose up --build
 
-# 6. Запуск додатку
-mvn spring-boot:run
+Доступ до сервісів
+Після успішного розгортання сервіси будуть доступні за такими адресами:
+Frontend UI: http://localhost:3000 - Основний веб-інтерфейс платформи
+API Gateway: http://localhost:8100 - Єдина точка вступу для REST API
+Keycloak Admin: http://localhost:8090 - Панель управління IAM (користувачами та ролями)
+PostgreSQL: http://localhost:5050 - База даних (Доступ через DataGrip/DBeaver)
