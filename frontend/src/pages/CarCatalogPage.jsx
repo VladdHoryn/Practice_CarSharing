@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styles from './CarCatalogPage.module.css';
 import { carService } from '../services/car.service';
+import SecureImage from '../components/SecureImage';
 
 const CarCatalogPage = () => {
     const [cars, setCars] = useState([]);
@@ -9,31 +10,32 @@ const CarCatalogPage = () => {
     const [error, setError] = useState(null);
     const navigate = useNavigate();
 
-        const [filters, setFilters] = useState(() => {
-             const saved = localStorage.getItem('carFilters');
-             return saved ? JSON.parse(saved) : { brand: 'all', maxPrice: 200 };
-        });
+    const [filters, setFilters] = useState(() => {
+         const saved = localStorage.getItem('carFilters');
+         return saved ? JSON.parse(saved) : { brand: 'all', maxPrice: 200 };
+    });
 
-        useEffect(() => {
-            const fetchCars = async () => {
-                try {
-                    setLoading(true);
-                    const data = await carService.getAvailableCars();
-                    setCars(data);
-                    setError(null);
-                } catch (err) {
-                            console.error('Помилка завантаження авто:', err);
-                            setError('Не вдалося зв\'язатися з сервером. Переконайтеся, що API Gateway запущено на порту 8100.');
-                     } finally {
-                    setLoading(false);
-                }
-            };
+    useEffect(() => {
+        const fetchCars = async () => {
+            try {
+                setLoading(true);
+                const data = await carService.getAvailableCars();
+                setCars(data);
+                setError(null);
+            } catch (err) {
+                console.error('Помилка завантаження авто:', err);
+                setError('Не вдалося зв\'язатися з сервером. Переконайтеся, що API Gateway запущено на порту 8100.');
+            } finally {
+                setLoading(false);
+            }
+        };
 
-            fetchCars();
-        }, []);
-        useEffect(() => {
-            localStorage.setItem('carFilters', JSON.stringify(filters));
-        }, [filters]);
+        fetchCars();
+    }, []);
+
+    useEffect(() => {
+        localStorage.setItem('carFilters', JSON.stringify(filters));
+    }, [filters]);
 
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
@@ -41,9 +43,8 @@ const CarCatalogPage = () => {
     };
 
     const resetFilters = () => {
-        setFilters({ brand: 'all', maxPrice: 100 });
+        setFilters({ brand: 'all', maxPrice: 200 });
     };
-
 
     const filteredCars = cars.filter(car => {
         const matchBrand = filters.brand === 'all' || car.brand.toLowerCase().includes(filters.brand.toLowerCase());
@@ -65,7 +66,6 @@ const CarCatalogPage = () => {
                 <h2 className={styles.sectionTitle}>Наш автопарк</h2>
 
                 <div className={styles.catalogLayout}>
-
                     <aside className={styles.filterSidebar}>
                         <div className={styles.filterHeader}>
                             Фільтри
@@ -102,8 +102,13 @@ const CarCatalogPage = () => {
                                     </div>
 
                                     <div className={styles.imageGallery}>
-                                        <div className={styles.mainImagePlaceholder}>
-                                            {car.imageUrl ? <img src={car.imageUrl} alt={car.brand} style={{width: '100%', height: '100%', objectFit: 'cover', borderRadius: '6px'}} /> : `[Фото ${car.brand}]`}
+                                        <div className={styles.mainImagePlaceholder} style={{ background: '#f9f9f9', height: '220px' }}>
+                                            {/* 👑 ВИПРАВЛЕНО: Передаємо відносний шлях у наш захищений медіа-компонент */}
+                                            <SecureImage
+                                                src={`/car/v1/${car.id}/images/main`}
+                                                alt={`${car.brand} ${car.model}`}
+                                                style={{ width: '100%', height: '100%', borderRadius: '6px' }}
+                                            />
                                         </div>
                                     </div>
 

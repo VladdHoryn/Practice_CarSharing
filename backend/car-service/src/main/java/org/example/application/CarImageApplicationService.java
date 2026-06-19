@@ -86,4 +86,10 @@ public class CarImageApplicationService {
     carImageRepository.deleteByCarId(carId);
     log.info("Deleted all images for car id={}", carId);
   }
+
+  @Transactional(readOnly = true)
+  public CarImage getImageById(Long imageId) {
+    return carImageRepository.findById(imageId)
+      .orElseThrow(() -> new IllegalArgumentException("Image not found with id=" + imageId));
+  }
 }

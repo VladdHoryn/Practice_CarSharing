@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styles from './CarDetailsPage.module.css';
 import { carService } from '../services/car.service';
+import SecureImage from '../components/SecureImage';
 
 const CarDetailsPage = () => {
     const { id } = useParams();
@@ -10,7 +11,11 @@ const CarDetailsPage = () => {
     const [car, setCar] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    
+
+    const [images, setImages] = useState([]);
+    const [activeImageId, setActiveImageId] = useState(null);
+    const [imagesLoading, setImagesLoading] = useState(true);
+
     const userStr = localStorage.getItem('user');
     const user = userStr ? JSON.parse(userStr) : null;
     const isOwner = user && user.role === 'OWNER';
@@ -32,6 +37,29 @@ const CarDetailsPage = () => {
 
         fetchCarDetails();
     }, [id]);
+
+    useEffect(() => {
+        if (!car) return;
+
+        const loadCarGallery = async () => {
+            try {
+                setImagesLoading(true);
+                const imageData = await carService.getCarImages(car.id);
+                setImages(imageData || []);
+
+                const mainImg = imageData.find(img => img.isMain) || imageData[0];
+                if (mainImg) {
+                    setActiveImageId(mainImg.id);
+                }
+            } catch (err) {
+                console.error("Не вдалося завантажити фото авто:", err);
+            } finally {
+                setImagesLoading(false);
+            }
+        };
+
+        loadCarGallery();
+    }, [car]);
 
     if (loading) return <div className={styles.pageContainer} style={{padding: '100px', textAlign: 'center'}}>Завантаження інформації про авто... ⏳</div>;
     if (error) return <div className={styles.pageContainer} style={{padding: '100px', textAlign: 'center', color: 'red'}}>{error}</div>;
@@ -55,17 +83,42 @@ const CarDetailsPage = () => {
                         <p className={styles.carSubtitle}>{car.year} рік, клас: {car.carClass}</p>
                     </div>
 
-                    <div className={styles.mainImagePlaceholder}>
-                        {car.imageUrl ? (
-                            <img src={car.imageUrl} alt={`${car.brand} ${car.model}`} style={{width: '100%', height: '100%', objectFit: 'cover', borderRadius: '4px'}}/>
+                    {/* Велике активне фото з безпечним стрімінгом */}
+                    <div className={styles.mainImagePlaceholder} style={{ background: '#f5f5f5', height: '380px', borderRadius: '8px', overflow: 'hidden' }}>
+                        {activeImageId ? (
+                            <SecureImage
+                                src={`/car/v1/${car.id}/images/${activeImageId}`}
+                                alt={`${car.brand} ${car.model}`}
+                                style={{ width: '100%', height: '100%' }}
+                            />
                         ) : (
-                            `[Фото авто: ${car.brand} ${car.model}]`
+                            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#666' }}>
+                                🚗 Медіафайли завантажуються...
+                            </div>
                         )}
                     </div>
 
-                    <div className={styles.thumbnailGallery}>
-                        <div className={styles.thumbnail}></div>
-                        <div className={styles.thumbnail}></div>
+                    {/* Динамічна інтерактивна стрічка мініатюр знизу */}
+                    <div className={styles.thumbnailGallery} style={{ display: 'flex', gap: '10px', marginTop: '12px', overflowX: 'auto', paddingBottom: '5px' }}>
+                        {images.map(img => (
+                            <div
+                                key={img.id}
+                                onClick={() => setActiveImageId(img.id)}
+                                style={{
+                                    width: '85px', height: '55px', flexShrink: 0, cursor: 'pointer',
+                                    borderRadius: '6px', overflow: 'hidden',
+                                    border: img.id === activeImageId ? '2.5px solid #0056b3' : '1.5px solid #ddd',
+                                    transform: img.id === activeImageId ? 'scale(0.96)' : 'none',
+                                    transition: 'all 0.15s ease-in-out'
+                                }}
+                            >
+                                <SecureImage
+                                    src={`/car/v1/${car.id}/images/${img.id}`}
+                                    alt="Thumbnail"
+                                    style={{ width: '100%', height: '100%' }}
+                                />
+                            </div>
+                        ))}
                     </div>
                 </div>
 
@@ -87,10 +140,7 @@ const CarDetailsPage = () => {
                             ⚠️ Партнерам із роллю OWNER заборонено бронювати автомобілі.
                         </div>
                     ) : (
-                        <button
-                            className={styles.bookBtn}
-                            onClick={() => navigate(`/book/${car.id}`)}
-                        >
+                        <button className={styles.bookBtn} onClick={() => navigate(`/book/${car.id}`)}>
                             <span style={{fontSize: '18px'}}>⏱</span> ЗАБРОНЮВАТИ АВТО
                         </button>
                     )}
