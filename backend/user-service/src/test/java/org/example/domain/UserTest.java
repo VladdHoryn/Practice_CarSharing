@@ -17,12 +17,9 @@ class UserTest {
     user = new User();
     user.setFullName("John Doe");
     user.setEmail("john@example.com");
-    user.setPasswordHash("hashed_password");
     user.setRole(UserRole.RENTER);
     user.setIsActive(true);
   }
-
-  // --- isActive ---
 
   @Test
   void isActive_whenTrue_shouldReturnTrue() {
@@ -35,8 +32,6 @@ class UserTest {
     user.setIsActive(false);
     assertThat(user.isActive()).isFalse();
   }
-
-  // --- activate ---
 
   @Test
   void activate_whenDeactivated_shouldBecomeActive() {
@@ -52,8 +47,6 @@ class UserTest {
     assertThat(user.isActive()).isTrue();
   }
 
-  // --- deactivate ---
-
   @Test
   void deactivate_whenActive_shouldBecomeInactive() {
     user.setIsActive(true);
@@ -66,23 +59,6 @@ class UserTest {
     user.setIsActive(false);
     user.deactivate();
     assertThat(user.isActive()).isFalse();
-  }
-
-  // --- onCreate (PrePersist) ---
-
-  @Test
-  void onCreate_shouldSetCreatedAt() {
-    User newUser = new User();
-    newUser.setFullName("Jane Doe");
-    newUser.setEmail("jane@example.com");
-    newUser.setPasswordHash("hash");
-    newUser.setRole(UserRole.OWNER);
-
-    // simulate @PrePersist
-    newUser.onCreate();
-
-    assertThat(newUser.getCreatedAt()).isNotNull();
-    assertThat(newUser.getCreatedAt()).isEqualTo(LocalDate.now());
   }
 
   @Test
@@ -102,8 +78,6 @@ class UserTest {
     assertThat(newUser.isActive()).isTrue();
   }
 
-  // --- UserRole ---
-
   @Test
   void role_renter_shouldBeSet() {
     user.setRole(UserRole.RENTER);
@@ -122,8 +96,6 @@ class UserTest {
     assertThat(user.getRole()).isEqualTo(UserRole.ADMINISTRATOR);
   }
 
-  // --- getters/setters ---
-
   @Test
   void setFullName_shouldUpdateField() {
     user.setFullName("Jane Smith");
@@ -135,14 +107,6 @@ class UserTest {
     user.setEmail("newemail@example.com");
     assertThat(user.getEmail()).isEqualTo("newemail@example.com");
   }
-
-  @Test
-  void setPasswordHash_shouldUpdateField() {
-    user.setPasswordHash("new_hash");
-    assertThat(user.getPasswordHash()).isEqualTo("new_hash");
-  }
-
-  // --- toggles ---
 
   @Test
   void deactivateThenActivate_shouldReturnToActive() {

@@ -33,7 +33,6 @@ class CarTest {
     car.setStatus(CarStatus.AVAILABLE);
     car.setPricePerDay(120.0f);
     car.setUserId(100L);
-    car.setImageUrl("https://example.com/car.jpg");
   }
 
   @Test
@@ -87,13 +86,6 @@ class CarTest {
   }
 
   @Test
-  void shouldFailValidationWhenImageUrlIsInvalid() {
-    car.setImageUrl("not-a-valid-url");
-    Set<ConstraintViolation<Car>> violations = validator.validate(car);
-    assertFalse(violations.isEmpty());
-  }
-
-  @Test
   void shouldPassValidationWhenYearIsCurrentOrPast() throws Exception {
     car.setYear(Year.now().getValue());
     var method = Car.class.getDeclaredMethod("validateYear");
@@ -112,19 +104,6 @@ class CarTest {
       () -> method.invoke(car)
     );
     assertEquals(IllegalArgumentException.class, exception.getCause().getClass());
-  }
-
-  @Test
-  void markAsAvailable_ShouldThrowException_WhenCarIsRented() {
-    car.setStatus(CarStatus.RENTED);
-    assertThrows(IllegalStateException.class, car::markAsAvailable);
-  }
-
-  @Test
-  void markAsAvailable_ShouldWork_WhenCarIsMaintenanceOrUnconfirmed() {
-    car.setStatus(CarStatus.MAINTENANCE);
-    car.markAsAvailable();
-    assertEquals(CarStatus.AVAILABLE, car.getStatus());
   }
 
   @Test

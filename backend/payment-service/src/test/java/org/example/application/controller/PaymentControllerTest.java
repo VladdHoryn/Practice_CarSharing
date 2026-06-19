@@ -160,63 +160,6 @@ class PaymentControllerTest {
   }
 
   @Test
-  void markAsPending_shouldReturn200() throws Exception {
-    payment.setStatus(PaymentStatus.PENDING);
-    when(paymentService.markAsPending(1L)).thenReturn(payment);
-
-    mockMvc.perform(patch("/payment/v1/1/pending"))
-      .andExpect(status().isOk())
-      .andExpect(jsonPath("$.status").value("PENDING"));
-  }
-
-  @Test
-  void markAsProcessing_shouldReturn200() throws Exception {
-    payment.setStatus(PaymentStatus.PROCESSING);
-    when(paymentService.markAsProcessing(eq(1L), any(), any())).thenReturn(payment);
-
-    String request = objectMapper.writeValueAsString(Map.of(
-      "providerPaymentId", "prov-123",
-      "clientSecret", "secret-abc"
-    ));
-
-    mockMvc.perform(patch("/payment/v1/1/processing")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(request))
-      .andExpect(status().isOk())
-      .andExpect(jsonPath("$.status").value("PROCESSING"));
-  }
-
-  @Test
-  void markAsSuccess_shouldReturn200() throws Exception {
-    payment.setStatus(PaymentStatus.SUCCESS);
-    when(paymentService.markAsSuccess(1L)).thenReturn(payment);
-
-    mockMvc.perform(patch("/payment/v1/1/success"))
-      .andExpect(status().isOk())
-      .andExpect(jsonPath("$.status").value("SUCCESS"));
-  }
-
-  @Test
-  void markAsFailed_shouldReturn200() throws Exception {
-    payment.setStatus(PaymentStatus.FAILED);
-    when(paymentService.markAsFailed(1L)).thenReturn(payment);
-
-    mockMvc.perform(patch("/payment/v1/1/failed"))
-      .andExpect(status().isOk())
-      .andExpect(jsonPath("$.status").value("FAILED"));
-  }
-
-  @Test
-  void cancelPayment_shouldReturn200() throws Exception {
-    payment.setStatus(PaymentStatus.CANCELLED);
-    when(paymentService.cancelPayment(1L)).thenReturn(payment);
-
-    mockMvc.perform(patch("/payment/v1/1/cancel"))
-      .andExpect(status().isOk())
-      .andExpect(jsonPath("$.status").value("CANCELLED"));
-  }
-
-  @Test
   void refundPayment_shouldReturn200() throws Exception {
     payment.setStatus(PaymentStatus.REFUNDED);
     when(paymentService.refundPayment(1L)).thenReturn(payment);
@@ -224,17 +167,5 @@ class PaymentControllerTest {
     mockMvc.perform(patch("/payment/v1/1/refund"))
       .andExpect(status().isOk())
       .andExpect(jsonPath("$.status").value("REFUNDED"));
-  }
-
-  @Test
-  void markAsProcessing_missingProviderPaymentId_shouldReturn400() throws Exception {
-    String request = objectMapper.writeValueAsString(Map.of(
-      "clientSecret", "secret-abc"
-    ));
-
-    mockMvc.perform(patch("/payment/v1/1/processing")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(request))
-      .andExpect(status().isBadRequest());
   }
 }

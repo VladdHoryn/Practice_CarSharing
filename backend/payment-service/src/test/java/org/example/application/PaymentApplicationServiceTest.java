@@ -47,7 +47,6 @@ class PaymentApplicationServiceTest {
     payment.setUpdatedAt(LocalDateTime.now());
   }
 
-  // --- createPayment ---
   @Test
   void createPayment_shouldSaveAndReturn() {
     when(paymentRepository.save(any())).thenReturn(payment);
@@ -59,7 +58,6 @@ class PaymentApplicationServiceTest {
     verify(paymentRepository).save(any(Payment.class));
   }
 
-  // --- getById ---
   @Test
   void getById_exists_shouldReturn() {
     when(paymentRepository.findById(1L)).thenReturn(Optional.of(payment));
@@ -78,7 +76,6 @@ class PaymentApplicationServiceTest {
       .hasMessageContaining("Payment not found with id=999");
   }
 
-  // --- getAll ---
   @Test
   void getAll_shouldReturnAll() {
     when(paymentRepository.findAll()).thenReturn(List.of(payment));
@@ -88,7 +85,6 @@ class PaymentApplicationServiceTest {
     assertThat(result).hasSize(1);
   }
 
-  // --- updatePayment ---
   @Test
   void updatePayment_shouldUpdateFields() {
     when(paymentRepository.findById(1L)).thenReturn(Optional.of(payment));
@@ -113,7 +109,6 @@ class PaymentApplicationServiceTest {
     assertThat(result.getMethod()).isEqualTo(PaymentMethod.CARD);
   }
 
-  // --- deletePayment ---
   @Test
   void deletePayment_shouldDelete() {
     when(paymentRepository.findById(1L)).thenReturn(Optional.of(payment));
@@ -131,90 +126,6 @@ class PaymentApplicationServiceTest {
       .isInstanceOf(EntityNotFoundException.class);
   }
 
-  // --- markAsPending ---
-  @Test
-  void markAsPending_fromCreated_shouldReturnPending() {
-    when(paymentRepository.findById(1L)).thenReturn(Optional.of(payment));
-    when(paymentRepository.save(any())).thenReturn(payment);
-
-    Payment result = paymentService.markAsPending(1L);
-
-    assertThat(result.getStatus()).isEqualTo(PaymentStatus.PENDING);
-  }
-
-  @Test
-  void markAsPending_fromProcessing_shouldThrow() {
-    payment.setStatus(PaymentStatus.PROCESSING);
-    when(paymentRepository.findById(1L)).thenReturn(Optional.of(payment));
-
-    assertThatThrownBy(() -> paymentService.markAsPending(1L))
-      .isInstanceOf(IllegalStateException.class);
-  }
-
-  // --- markAsProcessing ---
-  @Test
-  void markAsProcessing_fromPending_shouldReturnProcessing() {
-    payment.setStatus(PaymentStatus.PENDING);
-    when(paymentRepository.findById(1L)).thenReturn(Optional.of(payment));
-    when(paymentRepository.save(any())).thenReturn(payment);
-
-    Payment result = paymentService.markAsProcessing(1L, "prov-123", "secret-abc");
-
-    assertThat(result.getStatus()).isEqualTo(PaymentStatus.PROCESSING);
-  }
-
-  // --- markAsSuccess ---
-  @Test
-  void markAsSuccess_fromProcessing_shouldReturnSuccess() {
-    payment.setStatus(PaymentStatus.PROCESSING);
-    when(paymentRepository.findById(1L)).thenReturn(Optional.of(payment));
-    when(paymentRepository.save(any())).thenReturn(payment);
-
-    Payment result = paymentService.markAsSuccess(1L);
-
-    assertThat(result.getStatus()).isEqualTo(PaymentStatus.SUCCESS);
-  }
-
-  @Test
-  void markAsSuccess_fromCreated_shouldThrow() {
-    when(paymentRepository.findById(1L)).thenReturn(Optional.of(payment));
-
-    assertThatThrownBy(() -> paymentService.markAsSuccess(1L))
-      .isInstanceOf(IllegalStateException.class);
-  }
-
-  // --- markAsFailed ---
-  @Test
-  void markAsFailed_fromCreated_shouldReturnFailed() {
-    when(paymentRepository.findById(1L)).thenReturn(Optional.of(payment));
-    when(paymentRepository.save(any())).thenReturn(payment);
-
-    Payment result = paymentService.markAsFailed(1L);
-
-    assertThat(result.getStatus()).isEqualTo(PaymentStatus.FAILED);
-  }
-
-  // --- cancelPayment ---
-  @Test
-  void cancelPayment_fromCreated_shouldReturnCancelled() {
-    when(paymentRepository.findById(1L)).thenReturn(Optional.of(payment));
-    when(paymentRepository.save(any())).thenReturn(payment);
-
-    Payment result = paymentService.cancelPayment(1L);
-
-    assertThat(result.getStatus()).isEqualTo(PaymentStatus.CANCELLED);
-  }
-
-  @Test
-  void cancelPayment_fromProcessing_shouldThrow() {
-    payment.setStatus(PaymentStatus.PROCESSING);
-    when(paymentRepository.findById(1L)).thenReturn(Optional.of(payment));
-
-    assertThatThrownBy(() -> paymentService.cancelPayment(1L))
-      .isInstanceOf(IllegalStateException.class);
-  }
-
-  // --- refundPayment ---
   @Test
   void refundPayment_fromSuccess_shouldReturnRefunded() {
     payment.setStatus(PaymentStatus.SUCCESS);

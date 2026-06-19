@@ -8,6 +8,5 @@ class ApiGatewayServiceApplicationTest {
 
   @Test
   void contextLoads() {
-    // перевіряє що Spring контекст піднімається без помилок
   }
 }

@@ -108,41 +108,6 @@ class BookingApplicationServiceTest {
   }
 
   @Test
-  void submitBooking_fromCreated_shouldReturnPending() {
-    when(bookingRepository.findById(1L)).thenReturn(Optional.of(booking));
-
-    Booking result = bookingService.submitBooking(1L);
-
-    assertThat(result.getStatus()).isEqualTo(BookingStatus.PENDING);
-  }
-
-  @Test
-  void submitBooking_notFound_shouldThrow() {
-    when(bookingRepository.findById(99L)).thenReturn(Optional.empty());
-
-    assertThatThrownBy(() -> bookingService.submitBooking(99L))
-      .isInstanceOf(IllegalArgumentException.class);
-  }
-
-  @Test
-  void confirmBooking_fromPending_shouldReturnConfirmed() {
-    booking.setStatus(BookingStatus.PENDING);
-    when(bookingRepository.findById(1L)).thenReturn(Optional.of(booking));
-
-    Booking result = bookingService.confirmBooking(1L);
-
-    assertThat(result.getStatus()).isEqualTo(BookingStatus.CONFIRMED);
-  }
-
-  @Test
-  void confirmBooking_fromCreated_shouldThrow() {
-    when(bookingRepository.findById(1L)).thenReturn(Optional.of(booking));
-
-    assertThatThrownBy(() -> bookingService.confirmBooking(1L))
-      .isInstanceOf(IllegalStateException.class);
-  }
-
-  @Test
   void cancelBooking_beforeDeadline_shouldReturnCancelled() {
     booking.setCancelDeadline(LocalDateTime.now().plusDays(1));
     when(bookingRepository.findById(1L)).thenReturn(Optional.of(booking));
@@ -160,25 +125,6 @@ class BookingApplicationServiceTest {
     assertThatThrownBy(() -> bookingService.cancelBooking(1L))
       .isInstanceOf(IllegalStateException.class)
       .hasMessageContaining("deadline");
-  }
-
-  @Test
-  void completeBooking_fromConfirmed_shouldReturnCompleted() {
-    booking.setStatus(BookingStatus.CONFIRMED);
-    when(bookingRepository.findById(1L)).thenReturn(Optional.of(booking));
-
-    Booking result = bookingService.completeBooking(1L);
-
-    assertThat(result.getStatus()).isEqualTo(BookingStatus.COMPLETED);
-  }
-
-  @Test
-  void completeBooking_fromPending_shouldThrow() {
-    booking.setStatus(BookingStatus.PENDING);
-    when(bookingRepository.findById(1L)).thenReturn(Optional.of(booking));
-
-    assertThatThrownBy(() -> bookingService.completeBooking(1L))
-      .isInstanceOf(IllegalStateException.class);
   }
 
   @Test

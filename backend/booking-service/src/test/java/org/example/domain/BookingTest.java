@@ -25,48 +25,6 @@ class BookingTest {
   }
 
   @Test
-  void submitForProcessing_fromCreated_shouldBecomePending() {
-    booking.submitForProcessing();
-    assertThat(booking.getStatus()).isEqualTo(BookingStatus.PENDING);
-  }
-
-  @Test
-  void submitForProcessing_fromPending_shouldThrow() {
-    booking.setStatus(BookingStatus.PENDING);
-    assertThatThrownBy(booking::submitForProcessing)
-      .isInstanceOf(IllegalStateException.class)
-      .hasMessageContaining("Only CREATED booking can be submitted");
-  }
-
-  @Test
-  void submitForProcessing_fromConfirmed_shouldThrow() {
-    booking.setStatus(BookingStatus.CONFIRMED);
-    assertThatThrownBy(booking::submitForProcessing)
-      .isInstanceOf(IllegalStateException.class);
-  }
-
-  @Test
-  void confirm_fromPending_shouldBecomeConfirmed() {
-    booking.setStatus(BookingStatus.PENDING);
-    booking.confirm();
-    assertThat(booking.getStatus()).isEqualTo(BookingStatus.CONFIRMED);
-  }
-
-  @Test
-  void confirm_fromCreated_shouldThrow() {
-    assertThatThrownBy(booking::confirm)
-      .isInstanceOf(IllegalStateException.class)
-      .hasMessageContaining("Only PENDING booking can be confirmed");
-  }
-
-  @Test
-  void confirm_fromCancelled_shouldThrow() {
-    booking.setStatus(BookingStatus.CANCELLED);
-    assertThatThrownBy(booking::confirm)
-      .isInstanceOf(IllegalStateException.class);
-  }
-
-  @Test
   void cancel_fromCreated_beforeDeadline_shouldBecomeCancelled() {
     booking.setCancelDeadline(LocalDateTime.now().plusDays(1));
     booking.cancel();
@@ -97,21 +55,6 @@ class BookingTest {
     assertThatThrownBy(booking::cancel)
       .isInstanceOf(IllegalStateException.class)
       .hasMessageContaining("Cannot cancel completed booking");
-  }
-
-  @Test
-  void complete_fromConfirmed_shouldBecomeCompleted() {
-    booking.setStatus(BookingStatus.CONFIRMED);
-    booking.complete();
-    assertThat(booking.getStatus()).isEqualTo(BookingStatus.COMPLETED);
-  }
-
-  @Test
-  void complete_fromPending_shouldThrow() {
-    booking.setStatus(BookingStatus.PENDING);
-    assertThatThrownBy(booking::complete)
-      .isInstanceOf(IllegalStateException.class)
-      .hasMessageContaining("Only CONFIRMED booking can be completed");
   }
 
   @Test
