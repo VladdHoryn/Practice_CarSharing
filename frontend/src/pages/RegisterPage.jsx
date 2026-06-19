@@ -46,7 +46,6 @@ const RegisterPage = () => {
         email: formData.email,
         password: formData.password,
         role: formData.isOwner ? 'OWNER' : 'RENTER',
-        // 🔥 ДОДАЄМО СЮДИ UUID, ЩОБ ЗНЯТИ ПОМИЛКУ "keycloakId is required" (400 Bad Request)
         keycloakId: crypto.randomUUID()
       };
 
@@ -57,7 +56,6 @@ const RegisterPage = () => {
 
     } catch (err) {
       console.error('Помилка реєстрації:', err);
-      // Отримуємо детальну помилку від GlobalExceptionHandler, якщо вона є
       const errorMsg = err.response?.data?.message || "Помилка при реєстрації. Спробуйте ще раз.";
       setError(errorMsg);
       toast.error(errorMsg);

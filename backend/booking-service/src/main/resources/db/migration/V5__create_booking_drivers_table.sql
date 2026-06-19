@@ -1,8 +1,3 @@
--- =====================================================
--- Booking Service - Create booking_drivers table (Split Access)
--- Version: V5
--- =====================================================
-
 CREATE TYPE booking_driver_status_enum AS ENUM (
     'PENDING',
     'ACCEPTED',
@@ -38,7 +33,6 @@ CREATE TRIGGER trigger_check_max_drivers
   FOR EACH ROW
   EXECUTE FUNCTION check_max_drivers();
 
--- Індекси
 CREATE INDEX idx_booking_drivers_booking ON booking_drivers(booking_id);
 CREATE INDEX idx_booking_drivers_user ON booking_drivers(user_id);
 CREATE INDEX idx_booking_drivers_driver_code ON booking_drivers(driver_code);

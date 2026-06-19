@@ -10,7 +10,6 @@ export const paymentService = {
         return response.data;
     },
 
-    // Бекенд використовує ендпоінт букінгу для зміни статусу платежу, як вказано в ТЗ:
     changePaymentStatus: async (bookingId, newStatus) => {
         const response = await apiClient.post(`/booking/v1/${bookingId}/status/change`, { newStatus });
         return response.data;

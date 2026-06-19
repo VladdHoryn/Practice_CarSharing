@@ -96,7 +96,6 @@ public class BookingController {
                 bookingService.getUserBookings(userId).stream().map(this::toResponse).toList());
     }
 
-    // ANY → CANCELLED
     @PreAuthorize("hasAnyRole('RENTER')")
     @PostMapping("/{id}/cancel")
     public ResponseEntity<BookingResponse> cancelBooking(@PathVariable Long id) {
@@ -118,8 +117,6 @@ public class BookingController {
         bookingService.deleteBooking(id);
         return ResponseEntity.noContent().build();
     }
-
-    // OWNER ANALYTICS
 
     @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
     @GetMapping("/analytics/owners/{ownerId}/bookings")
@@ -228,9 +225,6 @@ public class BookingController {
                         .toList());
     }
 
-    //              ADMIN ANALYTICS
-
-    // 1) Загальна кількість бронювань в системі за списком статусів
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     @GetMapping("/analytics/admin/bookings/count")
     public ResponseEntity<Long> countBookingsByStatuses(
@@ -238,7 +232,6 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.countBookingsByStatuses(statuses));
     }
 
-    // 2) Дохід за визначений період (наприклад, за останні 30 днів)
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     @GetMapping("/analytics/admin/revenue/period")
     public ResponseEntity<BigDecimal> sumLastMonthRevenue(
@@ -248,7 +241,6 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.sumLastMonthRevenue(status, startDate));
     }
 
-    // 3) Кількість бронювань у процесі (майбутніх/поточних)
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     @GetMapping("/analytics/admin/bookings/upcoming")
     public ResponseEntity<Long> countUpcomingBookings(
@@ -261,7 +253,6 @@ public class BookingController {
                 bookingService.countUpcomingBookings(activeStatuses, startDate, endDate));
     }
 
-    // 4) Динаміка доходів (по місяцях) для графіка
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     @GetMapping("/analytics/admin/revenue/monthly")
     public ResponseEntity<List<Object[]>> findMonthlyRevenue(
@@ -271,7 +262,6 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.findMonthlyRevenue(status, startDate));
     }
 
-    // 5) Завантаженість автопарку по днях тижня
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     @GetMapping("/analytics/admin/load/day-of-week")
     public ResponseEntity<List<Object[]>> countBookingsByDayOfWeek(

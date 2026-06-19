@@ -69,8 +69,7 @@ public class AnalyticsController {
         if (periodStart == null) periodStart = now.minusDays(30);
         if (upcomingStart == null) upcomingStart = now;
         if (upcomingEnd == null) upcomingEnd = now.plusDays(30);
-        if (yearStart == null)
-            yearStart = now.withDayOfYear(1).withHour(0).withMinute(0); // Початок поточного року
+        if (yearStart == null) yearStart = now.withDayOfYear(1).withHour(0).withMinute(0);
 
         AdminAnalyticsSummaryResponse summary =
                 analyticsAggregatorService.getAdminAnalyticsSummary(

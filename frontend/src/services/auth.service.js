@@ -36,7 +36,6 @@ export const authService = {
            const secret = process.env.REACT_APP_KEYCLOAK_SECRET || '**********';
            params.append('client_secret', secret);
 
-           // 1. Отримуємо токен від Keycloak через Gateway
            const response = await axios.post(KEYCLOAK_TOKEN_URL, params, {
                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
            });
@@ -51,24 +50,22 @@ export const authService = {
                    if (roles.includes('ADMINISTRATOR')) determinedRole = 'ADMINISTRATOR';
                    else if (roles.includes('OWNER')) determinedRole = 'OWNER';
 
-                   // 2. Робимо запит до БД для отримання числового ID користувача
-                   const keycloakId = payload.sub; // Це UUID на кшталт "30000000-0000..."
+                   const keycloakId = payload.sub;
                    let dbId = null;
 
                    try {
-                       // Використовуємо apiClient, бо токен вже лежить в localStorage і підставиться в заголовок
+
                        const userDbResponse = await apiClient.get(`/user/v1/keycloak/${keycloakId}`);
                        if (userDbResponse.data && userDbResponse.data.id) {
-                           dbId = userDbResponse.data.id; // Отримуємо наше число (наприклад, 1)
+                           dbId = userDbResponse.data.id;
                        }
                    } catch (userErr) {
                        console.error("Не вдалося отримати числовий ID користувача з БД:", userErr);
                    }
 
-                   // 3. Зберігаємо користувача разом з його ЧИСЛОВИМ ID
                    const sessionUser = {
-                       id: keycloakId,       // UUID з Keycloak
-                       dbId: dbId,           // 🔥 НАШ НОВИЙ ЧИСЛОВИЙ ID З БАЗИ ДАНИХ
+                       id: keycloakId,
+                       dbId: dbId,
                        email: payload.email,
                        fullName: payload.name || `${payload.given_name || ''} ${payload.family_name || ''}`.trim(),
                        role: determinedRole

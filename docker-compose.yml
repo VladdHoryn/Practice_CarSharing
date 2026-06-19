@@ -1,9 +1,6 @@
 version: '3.8'
 
 services:
-  # =====================================================
-  # MESSAGE BROKER (RabbitMQ)
-  # =====================================================
   rabbitmq:
     image: rabbitmq:3-management
     container_name: car_sharing_rabbitmq
@@ -16,9 +13,6 @@ services:
     networks:
       - car-sharing-network
 
-  # =====================================================
-  # API GATEWAY (Шлюз додатку)
-  # =====================================================
   api-gateway:
     build:
       context: ./backend/api-gateway
@@ -30,9 +24,6 @@ services:
     networks:
       - car-sharing-network
 
-  # =====================================================
-  # USER SERVICE with PostgreSQL
-  # =====================================================
   user-db:
     image: postgres:15-alpine
     container_name: user-db
@@ -73,9 +64,6 @@ services:
     networks:
       - car-sharing-network
 
-  # =====================================================
-  # CAR SERVICE with PostgreSQL
-  # =====================================================
   car-db:
     image: postgres:15-alpine
     container_name: car-db
@@ -116,9 +104,6 @@ services:
     networks:
       - car-sharing-network
 
-  # =====================================================
-  # BOOKING SERVICE with PostgreSQL
-  # =====================================================
   booking-db:
     image: postgres:15-alpine
     container_name: booking-db
@@ -159,9 +144,6 @@ services:
     networks:
       - car-sharing-network
 
-  # =====================================================
-  # PAYMENT SERVICE with PostgreSQL
-  # =====================================================
   payment-db:
     image: postgres:15-alpine
     container_name: payment-db
@@ -223,9 +205,6 @@ services:
     networks:
       - car-sharing-network
 
-  # =====================================================
-  # FRONTEND (React Application)
-  # =====================================================
   frontend:
     build:
       context: ./frontend
@@ -242,9 +221,6 @@ services:
       NODE_ENV: development
       REACT_APP_KEYCLOAK_SECRET: ${REACT_APP_KEYCLOAK_SECRET}
 
-  # =====================================================
-  # DATABASE MANAGEMENT (pgAdmin)
-  # =====================================================
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: car_sharing_pgadmin
@@ -277,19 +253,12 @@ services:
     networks:
       - car-sharing-network
 
-
-# =====================================================
-# Глобальні томи (Volumes)
-# =====================================================
 volumes:
   user_postgres_data:
   car_postgres_data:
   booking_postgres_data:
   payment_postgres_data:
 
-# =====================================================
-# Глобальна мережа (Network)
-# =====================================================
 networks:
   car-sharing-network:
     driver: bridge

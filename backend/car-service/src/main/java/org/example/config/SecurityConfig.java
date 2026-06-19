@@ -36,11 +36,8 @@ public class SecurityConfig {
                         auth ->
                                 auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/error")
                                         .permitAll()
-                                        // 👑 ВИПРАВЛЕНО: Дозволяємо гостям дивитися каталог машин
                                         .requestMatchers(HttpMethod.GET, "/car/v1/available")
                                         .permitAll()
-                                        // Усі інші ендпоінти (наприклад, /unconfirmed) вимагають
-                                        // авторизації
                                         .anyRequest()
                                         .authenticated())
                 .oauth2ResourceServer(
@@ -53,7 +50,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // 🎯 ДОДАНО: Локальна валідація токенів у мережі докера
     @Bean
     public JwtDecoder jwtDecoder() {
         return NimbusJwtDecoder.withJwkSetUri(

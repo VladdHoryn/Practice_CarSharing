@@ -54,7 +54,6 @@ public class BookingApplicationService {
 
         booking.setCreatedAt(LocalDateTime.now());
 
-        // Встановлюємо дедлайн скасування за 2 дні до початку
         booking.setCancelDeadline(start.minusDays(2));
 
         Booking saved = bookingRepository.save(booking);
@@ -83,7 +82,6 @@ public class BookingApplicationService {
         booking.changeStatus(newStatus);
     }
 
-    // ANY → CANCELLED
     @Transactional
     public Booking cancelBooking(Long bookingId) {
         Booking booking = getBookingById(bookingId);
@@ -105,8 +103,6 @@ public class BookingApplicationService {
 
         bookingRepository.delete(booking);
     }
-
-    // OWNER ANALYTICS
 
     private List<Long> getCarIdsByOwner(Long ownerId) {
         log.debug("Fetching cars for ownerId={} from car-service", ownerId);
@@ -159,8 +155,6 @@ public class BookingApplicationService {
         return bookingRepository.countBookedCarsByDayForCarIds(
                 carIds, activeStatuses, startDate, endDate);
     }
-
-    // ADMIN ANALYTICS
 
     public long countBookingsByStatuses(List<BookingStatus> statuses) {
         if (statuses == null || statuses.isEmpty()) {

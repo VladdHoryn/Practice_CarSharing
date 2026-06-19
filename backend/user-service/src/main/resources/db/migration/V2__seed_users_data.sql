@@ -1,26 +1,16 @@
--- =====================================================
--- User Service - Seed users data
--- Version: V2
--- =====================================================
-
--- Password: pass123
 INSERT INTO users (keycloak_id, full_name, email, role, is_active)
 VALUES
-  -- ADMINISTRATOR
   ('10000000-0000-0000-0000-000000000001', 'System Administrator', 'admin@carsharing.com', 'ADMINISTRATOR', true),
 
-  -- OWNERS (власники авто)
   ('20000000-0000-0000-0000-000000000001', 'John Smith', 'owner1@carsharing.com', 'OWNER', true),
   ('20000000-0000-0000-0000-000000000002', 'Maria Garcia', 'owner2@carsharing.com', 'OWNER', true),
 
-  -- RENTERS (орендарі)
   ('30000000-0000-0000-0000-000000000001', 'James Wilson', 'renter1@carsharing.com', 'RENTER', true),
   ('30000000-0000-0000-0000-000000000002', 'Emily Brown', 'renter2@carsharing.com', 'RENTER', true),
   ('30000000-0000-0000-0000-000000000003', 'Michael Lee', 'renter3@carsharing.com', 'RENTER', true),
   ('30000000-0000-0000-0000-000000000004', 'Sarah Johnson', 'renter4@carsharing.com', 'RENTER', true)
   ON CONFLICT (email) DO NOTHING;
 
--- Verify
 DO
 $$
 DECLARE

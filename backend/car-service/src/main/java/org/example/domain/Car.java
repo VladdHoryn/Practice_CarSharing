@@ -63,7 +63,11 @@ public class Car {
     @Column(name = "status", nullable = false)
     private CarStatus status;
 
-    @OneToMany(mappedBy = "car", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(
+            mappedBy = "car",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY)
     private List<CarImage> images = new ArrayList<>();
 
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -74,15 +78,15 @@ public class Car {
 
     @PrePersist
     protected void onCreate() {
-      createdAt = LocalDateTime.now();
-      updatedAt = LocalDateTime.now();
-      validateYear(); // Викликаємо валідацію перед збереженням
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+        validateYear();
     }
 
     @PreUpdate
     protected void onUpdate() {
-      updatedAt = LocalDateTime.now();
-      validateYear();
+        updatedAt = LocalDateTime.now();
+        validateYear();
     }
 
     private void validateYear() {
@@ -169,63 +173,40 @@ public class Car {
         return status == CarStatus.AVAILABLE;
     }
 
-  // =====================================================
-  // МЕТОДИ ДЛЯ РОБОТИ З ФОТО
-  // =====================================================
+    public void addImage(CarImage image) {
+        image.setCar(this);
+        this.images.add(image);
 
-  /**
-   * Додати фото до галереї
-   */
-  public void addImage(CarImage image) {
-    image.setCar(this);
-    this.images.add(image);
-
-    // Якщо це перше фото - робимо його головним
-    if (this.images.size() == 1) {
-      image.setMain(true);
+        if (this.images.size() == 1) {
+            image.setMain(true);
+        }
     }
-  }
 
-  /**
-   * Отримати головне фото (main image)
-   */
-  public CarImage getMainImage() {
-    return images.stream()
-      .filter(CarImage::isMain)
-      .findFirst()
-      .orElse(null);
-  }
+    public CarImage getMainImage() {
+        return images.stream().filter(CarImage::isMain).findFirst().orElse(null);
+    }
 
-  /**
-   * Встановити фото як головне
-   */
-  public void setMainImage(Long imageId) {
-    images.forEach(img -> img.setMain(false));
-    images.stream()
-      .filter(img -> img.getId().equals(imageId))
-      .findFirst()
-      .ifPresent(img -> img.setMain(true));
-  }
-
-  /**
-   * Видалити фото за ID
-   */
-  public boolean removeImage(Long imageId) {
-    CarImage imageToRemove = images.stream()
-      .filter(img -> img.getId().equals(imageId))
-      .findFirst()
-      .orElse(null);
-
-    if (imageToRemove != null) {
-      // Якщо видаляємо головне фото - призначаємо нове
-      if (imageToRemove.isMain() && images.size() > 1) {
+    public void setMainImage(Long imageId) {
+        images.forEach(img -> img.setMain(false));
         images.stream()
-          .filter(img -> !img.getId().equals(imageId))
-          .findFirst()
-          .ifPresent(img -> img.setMain(true));
-      }
-      return images.remove(imageToRemove);
+                .filter(img -> img.getId().equals(imageId))
+                .findFirst()
+                .ifPresent(img -> img.setMain(true));
     }
-    return false;
-  }
+
+    public boolean removeImage(Long imageId) {
+        CarImage imageToRemove =
+                images.stream().filter(img -> img.getId().equals(imageId)).findFirst().orElse(null);
+
+        if (imageToRemove != null) {
+            if (imageToRemove.isMain() && images.size() > 1) {
+                images.stream()
+                        .filter(img -> !img.getId().equals(imageId))
+                        .findFirst()
+                        .ifPresent(img -> img.setMain(true));
+            }
+            return images.remove(imageToRemove);
+        }
+        return false;
+    }
 }

@@ -47,7 +47,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // 🎯 ДОДАНО: Локальна валідація токенів у мережі докера
     @Bean
     public JwtDecoder jwtDecoder() {
         return NimbusJwtDecoder.withJwkSetUri(
@@ -55,7 +54,7 @@ public class SecurityConfig {
                 .build();
     }
 
-    @Bean // 👑 ВИПРАВЛЕНО: Повернуто анотацію Біна
+    @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
         converter.setJwtGrantedAuthoritiesConverter(

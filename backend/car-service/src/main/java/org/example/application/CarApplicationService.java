@@ -23,10 +23,6 @@ public class CarApplicationService {
 
     private final CarRepository carRepository;
 
-    // =====================================================
-    // CRUD Operations
-    // =====================================================
-
     @Transactional
     public Car createCar(Car car) {
         log.info("Creating new car: brand={}, model={}", car.getBrand(), car.getModel());
@@ -109,10 +105,6 @@ public class CarApplicationService {
         carRepository.delete(car);
     }
 
-    // =====================================================
-    // Filtering Operations (from old CarService)
-    // =====================================================
-
     public Page<Car> getFilteredCars(CarFilterDto filter, Pageable pageable) {
         log.debug("Filtering cars with criteria: {}", filter);
         return carRepository.findAll(CarSpecification.filterBy(filter), pageable);
@@ -152,10 +144,6 @@ public class CarApplicationService {
         }
         return carRepository.findAll((root, query, cb) -> cb.equal(root.get("carClass"), carClass));
     }
-
-    // =====================================================
-    // Business Logic Operations
-    // =====================================================
 
     @Transactional
     public Car rentCar(Long carId, Long userId) {

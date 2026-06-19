@@ -9,7 +9,6 @@ const CarManagement = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCarId, setEditingCarId] = useState(null);
 
-    // 👑 ДОДАНО: Локальні фільтри
     const [classFilter, setClassFilter] = useState('ALL');
     const [searchBrand, setSearchBrand] = useState('');
 
@@ -83,11 +82,9 @@ const CarManagement = () => {
             };
 
             if (editingCarId) {
-                // 👑 ДОДАНО: Реальний PUT запит оновлення
                 await carService.updateCar(editingCarId, payload);
                 toast.success('Дані автомобіля успішно оновлено! ✏️');
             } else {
-                // 👑 ВИПРАВЛЕНО: Реальний POST запит під ТЗ без Multipart
                 await carService.createCar(payload);
                 toast.success('Новий автомобіль успішно додано в автопарк! 🚗');
             }
@@ -101,7 +98,6 @@ const CarManagement = () => {
         }
     };
 
-    // 👑 ДОДАНО: Локальна фільтрація
     const filteredCars = cars.filter(car => {
         const matchesClass = classFilter === 'ALL' || car.carClass === classFilter;
         const matchesBrand = car.brand?.toLowerCase().includes(searchBrand.toLowerCase());

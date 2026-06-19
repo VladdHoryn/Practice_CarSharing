@@ -3,10 +3,9 @@ import axios from 'axios';
 const KEYCLOAK_TOKEN_URL = 'http://localhost:8100/realms/carsharing-realm/protocol/openid-connect/token';
 
 const apiClient = axios.create({
-    baseURL: 'http://localhost:8100', // Наш API Gateway
+    baseURL: 'http://localhost:8100',
 });
 
-// Допоміжний прапорець, щоб уникнути нескінченного циклу оновлень токена
 let isRefreshing = false;
 let failedQueue = [];
 
@@ -28,7 +27,6 @@ apiClient.interceptors.request.use(
             try {
                 const { access_token } = JSON.parse(authTokensStr);
                 if (access_token) {
-                    // 🚨 КРИТИЧНО: Слово 'Bearer' має бути з великої літери, а після нього – ОДИН ПРОБІЛ
                     config.headers['Authorization'] = `Bearer ${access_token}`;
                 }
             } catch (e) {
@@ -66,7 +64,6 @@ apiClient.interceptors.response.use(
             originalRequest._retry = true;
             isRefreshing = true;
 
-            // Знайти блок оновлення токена всередині apiClient.interceptors.response.use:
             try {
                 const authDataStr = localStorage.getItem('auth_tokens');
                 if (!authDataStr) throw new Error("No refresh token available");
@@ -78,7 +75,6 @@ apiClient.interceptors.response.use(
                 params.append('client_id', 'carsharing-client');
                 params.append('refresh_token', refresh_token);
 
-                // 🔥 ОБОВ'ЯЗКОВО ДОДАЄМО СЕКРЕТ КЛІЄНТА СЮДИ ТЕЖ!
                 const secret = process.env.REACT_APP_KEYCLOAK_SECRET || 'твій_дефолтний_секрет';
                 params.append('client_secret', secret);
 
