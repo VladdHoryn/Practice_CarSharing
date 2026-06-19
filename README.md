@@ -1,7 +1,7 @@
 <div align="center">
-  <img src="./marketing_kit/banner.png" alt="CarLink Booking Banner" width="100%" />
+  <img src="./marketing_kit/img.png" alt="CarLink Booking Banner" width="100%" />
   <br/><br/>
-  <img src="./marketing_kit/img.png" alt="CarLink Booking Logo" width="150" />
+  <img src="./marketing_kit/banner.png" alt="CarLink Booking Logo" width="150" />
 
   # 🚗 CarLink Booking
   **Microservices Car Sharing System**
