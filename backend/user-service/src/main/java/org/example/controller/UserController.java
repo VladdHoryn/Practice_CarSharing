@@ -1,15 +1,15 @@
 package org.example.controller;
 
 import java.util.List;
+import java.util.Optional;
 
 import jakarta.validation.Valid;
 
 import org.example.application.UserApplicationService;
-import org.example.dto.AuthResponse;
-import org.example.dto.LoginRequest;
 import org.example.dto.UserRequest;
 import org.example.dto.UserResponse;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import lombok.RequiredArgsConstructor;
@@ -20,57 +20,65 @@ import lombok.RequiredArgsConstructor;
 public class UserController {
     private final UserApplicationService userService;
 
-    @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody UserRequest request) {
-
-        AuthResponse response = userService.register(request);
-
-        return ResponseEntity.ok(response);
-    }
-
-    @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-
-        AuthResponse response = userService.login(request);
-
-        return ResponseEntity.ok(response);
-    }
-
     @PostMapping
     public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserRequest request) {
         UserResponse response = userService.createUser(request);
         return ResponseEntity.ok(response);
     }
 
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @GetMapping
     public ResponseEntity<List<UserResponse>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.getUserById(id));
+    @PreAuthorize("#keycloakId == authentication.name or hasRole('ADMINISTRATOR')")
+    @GetMapping("keycloak/{keycloakId}")
+    public ResponseEntity<UserResponse> getUserByKeycloakId(@PathVariable String keycloakId) {
+        return ResponseEntity.ok(userService.getUserByKeycloakId(keycloakId));
     }
 
-    @PutMapping("/{id}")
+    @PreAuthorize("#keycloakId == authentication.name or hasRole('ADMINISTRATOR')")
+    @PutMapping("keycloak/{keycloakId}")
     public ResponseEntity<UserResponse> updateUser(
-            @PathVariable Long id, @RequestBody UserRequest request) {
-        return ResponseEntity.ok(userService.updateUser(id, request));
+            @PathVariable String keycloakId, @RequestBody UserRequest request) {
+        return ResponseEntity.ok(userService.updateUser(keycloakId, request));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        userService.deleteUser(id);
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @DeleteMapping("keycloak/{keycloakId}")
+    public ResponseEntity<Void> deleteUser(@PathVariable String keycloakId) {
+        userService.deleteUser(keycloakId);
         return ResponseEntity.noContent().build();
     }
 
-    @PatchMapping("/{id}/activate")
-    public ResponseEntity<UserResponse> activateUser(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.activateUser(id));
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @PatchMapping("keycloak/{keycloakId}/activate")
+    public ResponseEntity<UserResponse> activateUser(@PathVariable String keycloakId) {
+        return ResponseEntity.ok(userService.activateUser(keycloakId));
     }
 
-    @PatchMapping("/{id}/deactivate")
-    public ResponseEntity<UserResponse> deactivateUser(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.deactivateUser(id));
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @PatchMapping("keycloak/{keycloakId}/deactivate")
+    public ResponseEntity<UserResponse> deactivateUser(@PathVariable String keycloakId) {
+        return ResponseEntity.ok(userService.deactivateUser(keycloakId));
+    }
+
+    @GetMapping("/exist/driverCode")
+    public Optional<Long> userExistWithEmailAndDriverCode(
+            @RequestParam String email, @RequestParam String driverCode) {
+        return userService.existByEmailAndDriverCode(email, driverCode);
+    }
+
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @GetMapping("/analytics/admin/active/count")
+    public ResponseEntity<Long> countActiveUsers() {
+        return ResponseEntity.ok(userService.countActiveUsers());
+    }
+
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @GetMapping("/analytics/admin/roles/count")
+    public ResponseEntity<Long> countUsersByRole(@RequestParam org.example.domain.UserRole role) {
+        return ResponseEntity.ok(userService.countByRole(role));
     }
 }

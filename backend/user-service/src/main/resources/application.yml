@@ -23,12 +23,28 @@ spring:
     locations: classpath:db/migration
     encoding: UTF-8
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8100/realms/carsharing-realm
+          jwk-set-uri: http://keycloak:8080/realms/carsharing-realm/protocol/openid-connect/certs
+
+keycloak:
+  auth-server-url: ${KEYCLOAK_AUTH_SERVER_URL:http://keycloak:8080}
+  realm: ${KEYCLOAK_REALM:carsharing-realm}
+  resource: ${KEYCLOAK_RESOURCE:carsharing-client}
+  credentials:
+    secret: ${KEYCLOAK_CREDENTIALS_SECRET:**********}
+
 server:
   port: ${SERVER_PORT:8081}
 
 logging:
   level:
     org.example: DEBUG
-    org.springframework.web: INFO
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"

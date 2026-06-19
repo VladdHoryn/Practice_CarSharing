@@ -23,10 +23,6 @@ public class CarApplicationService {
 
     private final CarRepository carRepository;
 
-    // =====================================================
-    // CRUD Operations
-    // =====================================================
-
     @Transactional
     public Car createCar(Car car) {
         log.info("Creating new car: brand={}, model={}", car.getBrand(), car.getModel());
@@ -78,7 +74,6 @@ public class CarApplicationService {
         existingCar.setYear(updatedCar.getYear());
         existingCar.setCarClass(updatedCar.getCarClass());
         existingCar.setPricePerDay(updatedCar.getPricePerDay());
-        existingCar.setImageUrl(updatedCar.getImageUrl());
 
         existingCar.setStatus(CarStatus.UNCONFIRMED);
 
@@ -109,10 +104,6 @@ public class CarApplicationService {
         Car car = getCarById(id);
         carRepository.delete(car);
     }
-
-    // =====================================================
-    // Filtering Operations (from old CarService)
-    // =====================================================
 
     public Page<Car> getFilteredCars(CarFilterDto filter, Pageable pageable) {
         log.debug("Filtering cars with criteria: {}", filter);
@@ -153,10 +144,6 @@ public class CarApplicationService {
         }
         return carRepository.findAll((root, query, cb) -> cb.equal(root.get("carClass"), carClass));
     }
-
-    // =====================================================
-    // Business Logic Operations
-    // =====================================================
 
     @Transactional
     public Car rentCar(Long carId, Long userId) {
@@ -200,5 +187,42 @@ public class CarApplicationService {
         car.completeMaintenance();
 
         return carRepository.save(car);
+    }
+
+    @Transactional
+    public void changeStatus(Long carId, CarStatus newStatus) {
+        Car car = getCarById(carId);
+
+        car.changeStatus(newStatus);
+
+        carRepository.save(car);
+    }
+
+    @Transactional
+    public void confirmCar(Long carId) {
+        Car car = getCarById(carId);
+
+        car.confirmCar();
+
+        carRepository.save(car);
+    }
+
+    @Transactional
+    public void cancelCar(Long carId) {
+        Car car = getCarById(carId);
+
+        car.cancelCar();
+
+        carRepository.save(car);
+    }
+
+    public long countCarsByOwnerId(Long ownerId) {
+        log.debug("Counting cars for ownerId: {}", ownerId);
+
+        if (ownerId == null || ownerId <= 0) {
+            throw new IllegalArgumentException("Valid owner ID is required");
+        }
+
+        return carRepository.countByOwnerId(ownerId);
     }
 }

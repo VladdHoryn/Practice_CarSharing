@@ -29,6 +29,13 @@ spring:
     locations: classpath:db/migration
     encoding: UTF-8
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8100/realms/carsharing-realm
+          jwk-set-uri: http://keycloak:8080/realms/carsharing-realm/protocol/openid-connect/certs
+
 server:
   port: ${SERVER_PORT:8082}
 
@@ -38,3 +45,8 @@ logging:
     org.springframework.web: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+car-service:
+  car-path: ${CAR_BASE_URL:http://car-service:8083/car/v1}
+user-service:
+  user-path: ${USER_BASE_URL:http://user-service:8081/user/v1/}

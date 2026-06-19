@@ -1,16 +1,6 @@
-
--- =====================================================
--- ENUMS
--- =====================================================
-
-CREATE TYPE car_status AS ENUM ('AVAILABLE', 'RENTED', 'MAINTENANCE', 'UNCONFIRMED');
+CREATE TYPE car_status AS ENUM ('AVAILABLE', 'RENTED', 'MAINTENANCE', 'UNCONFIRMED', 'CANCELED');
 
 CREATE TYPE car_class AS ENUM ('ECONOMY', 'COMFORT', 'BUSINESS', 'LUXURY');
-
-
--- =====================================================
--- TABLE
--- =====================================================
 
 CREATE TABLE cars (
                     id BIGSERIAL PRIMARY KEY,

@@ -5,50 +5,26 @@ import styles from './BookingManagement.module.css';
 
 const BookingManagement = () => {
     const [bookings, setBookings] = useState([]);
+    const [allInvitations, setAllInvitations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedBooking, setSelectedBooking] = useState(null);
+
+    const [statusFilter, setStatusFilter] = useState('ALL');
+    const [sortBy, setSortBy] = useState('id');
 
     const fetchAllBookings = async () => {
         try {
             setLoading(true);
-            if (bookingService.getAllBookings) {
-                const data = await bookingService.getAllBookings();
-                setBookings(data);
-            } else {
-                throw new Error("API method not ready");
+            const data = await bookingService.getAllBookings();
+            setBookings(data || []);
+
+            if (bookingService.getAllInvitations) {
+                const invites = await bookingService.getAllInvitations();
+                setAllInvitations(invites || []);
             }
         } catch (err) {
             console.error('Помилка завантаження бронювань:', err);
-            setBookings([
-                {
-                    id: 11,
-                    userId: 12,
-                    userEmail: 'zhuryk@carsharing.com',
-                    carId: 1,
-                    carName: 'Toyota Yaris',
-                    startDate: '2026-05-28T12:00:00',
-                    endDate: '2026-05-29T12:00:00',
-                    totalPrice: 25,
-                    status: 'CREATED',
-                    cancelDeadline: '2026-05-26T12:00:00',
-                    coDrivers: []
-                },
-                {
-                    id: 10,
-                    userId: 101,
-                    userEmail: 'olex@gmail.com',
-                    carId: 2,
-                    carName: 'Tesla Model 3',
-                    startDate: '2026-06-01T10:00:00',
-                    endDate: '2026-06-05T10:00:00',
-                    totalPrice: 240,
-                    status: 'CONFIRMED',
-                    cancelDeadline: '2026-05-30T10:00:00',
-                    coDrivers: [
-                        { email: 'friend1@gmail.com', licenseNumber: 'BXX123456' }
-                    ]
-                }
-            ]);
+            toast.error('Не вдалося завантажити бронювання з сервера.');
         } finally {
             setLoading(false);
         }
@@ -60,22 +36,47 @@ const BookingManagement = () => {
 
     const handleForceStatusChange = async (bookingId, newStatus) => {
         try {
-            if (bookingService.updateBookingStatus) {
-                await bookingService.updateBookingStatus(bookingId, newStatus);
-            }
+            await bookingService.changeBookingStatus(bookingId, newStatus);
             toast.success(`Статус бронювання #${bookingId} примусово змінено на ${newStatus}`);
             fetchAllBookings();
+
             if (selectedBooking && selectedBooking.id === bookingId) {
                 setSelectedBooking({ ...selectedBooking, status: newStatus });
             }
         } catch (err) {
-            toast.error('Не вдалося змінити статус.');
+            console.error("Помилка зміни статусу букінгу:", err);
+            toast.error('Не вдалося оновити статус на сервері.');
         }
     };
+
+    const filteredAndSortedBookings = bookings
+        .filter(b => statusFilter === 'ALL' || b.status === statusFilter)
+        .sort((a, b) => {
+            if (sortBy === 'totalPrice') return b.totalPrice - a.totalPrice;
+            return b.id - a.id;
+        });
+
+    const currentBookingDrivers = allInvitations.filter(
+        invite => invite.bookingId === selectedBooking?.id
+    );
 
     return (
         <div className={styles.container}>
             <h1 className={styles.title}>📅 Керування сесіями оренди</h1>
+
+            <div style={{ marginBottom: '15px', display: 'flex', gap: '15px' }}>
+                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className={styles.statusSelect}>
+                    <option value="ALL">Всі статуси</option>
+                    <option value="CREATED">CREATED</option>
+                    <option value="CONFIRMED">CONFIRMED</option>
+                    <option value="CANCELLED">CANCELLED</option>
+                    <option value="COMPLETED">COMPLETED</option>
+                </select>
+                <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className={styles.statusSelect}>
+                    <option value="id">Сортувати за ID</option>
+                    <option value="totalPrice">Сортувати за ціною</option>
+                </select>
+            </div>
 
             {loading ? (
                 <div className={styles.loader}>Завантаження історії бронювань... ⏳</div>
@@ -85,8 +86,8 @@ const BookingManagement = () => {
                         <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Клієнт</th>
-                            <th>Автомобіль</th>
+                            <th>Клієнт (ID)</th>
+                            <th>Автомобіль (ID)</th>
                             <th>Період оренди</th>
                             <th>Сума</th>
                             <th>Статус</th>
@@ -94,19 +95,19 @@ const BookingManagement = () => {
                         </tr>
                         </thead>
                         <tbody>
-                        {bookings.map((b) => (
+                        {filteredAndSortedBookings.map((b) => (
                             <tr key={b.id} className={styles.tableRow} onClick={() => setSelectedBooking(b)}>
                                 <td>#{b.id}</td>
-                                <td>{b.userEmail}</td>
-                                <td><strong>{b.carName}</strong></td>
+                                <td>{b.userId}</td>
+                                <td><strong>Авто #{b.carId}</strong></td>
                                 <td>
-                                    {b.startDate.split('T')[0]} — {b.endDate.split('T')[0]}
+                                    {b.startDate?.split('T')[0]} — {b.endDate?.split('T')[0]}
                                 </td>
                                 <td><strong>{b.totalPrice}€</strong></td>
                                 <td>
-                                        <span className={`${styles.statusBadge} ${styles[b.status.toLowerCase()]}`}>
-                                            {b.status}
-                                        </span>
+                                    <span className={`${styles.statusBadge} ${styles[b.status?.toLowerCase() || 'created']}`}>
+                                        {b.status}
+                                    </span>
                                 </td>
                                 <td onClick={(e) => e.stopPropagation()}>
                                     <select
@@ -114,10 +115,10 @@ const BookingManagement = () => {
                                         onChange={(e) => handleForceStatusChange(b.id, e.target.value)}
                                         className={styles.statusSelect}
                                     >
-                                        <option value="CREATED">CREATED (Створено)</option>
-                                        <option value="CONFIRMED">CONFIRMED (Підтверджено)</option>
-                                        <option value="CANCELLED">CANCELLED (Скасовано)</option>
-                                        <option value="COMPLETED">COMPLETED (Завершено)</option>
+                                        <option value="CREATED">CREATED</option>
+                                        <option value="CONFIRMED">CONFIRMED</option>
+                                        <option value="CANCELLED">CANCELLED</option>
+                                        <option value="COMPLETED">COMPLETED</option>
                                     </select>
                                 </td>
                             </tr>
@@ -134,49 +135,37 @@ const BookingManagement = () => {
                             <h2>Деталі замовлення #{selectedBooking.id}</h2>
                             <button className={styles.closeBtn} onClick={() => setSelectedBooking(null)}>✖</button>
                         </div>
-
                         <div className={styles.drawerContent}>
-                            <div className={styles.infoGroup}>
-                                <label>Користувач системи (ID: {selectedBooking.userId})</label>
-                                <p>{selectedBooking.userEmail}</p>
-                            </div>
-
-                            <div className={styles.infoGroup}>
-                                <label>Обраний транспорт (ID: {selectedBooking.carId})</label>
-                                <p>{selectedBooking.carName}</p>
-                            </div>
-
+                            <div className={styles.infoGroup}><label>Головний користувач системи (ID)</label><p>{selectedBooking.userId}</p></div>
+                            <div className={styles.infoGroup}><label>Обраний транспорт (ID)</label><p>{selectedBooking.carId}</p></div>
                             <div className={styles.infoGroup}>
                                 <label>Терміни активності</label>
-                                <p>З: {selectedBooking.startDate.replace('T', ' ')}</p>
-                                <p>По: {selectedBooking.endDate.replace('T', ' ')}</p>
+                                <p>З: {selectedBooking.startDate?.replace('T', ' ')}</p>
+                                <p>По: {selectedBooking.endDate?.replace('T', ' ')}</p>
                             </div>
+                            <div className={styles.infoGroup}><label>Фінансова частина</label><span className={styles.drawerPrice}>{selectedBooking.totalPrice} €</span></div>
 
-                            <div className={`${styles.infoGroup} ${styles.placeholderGroup}`}>
-                                <label>⏳ Граничний термін скасування (Cancel Deadline)</label>
-                                <p>{selectedBooking.cancelDeadline ? selectedBooking.cancelDeadline.replace('T', ' ') : 'Не встановлено'}</p>
-                                <small>Дозволяє системі автоматично блокувати чи дозволяти метод /cancel</small>
-                            </div>
-
-                            <div className={`${styles.infoGroup} ${styles.placeholderGroup}`}>
-                                <label>👥 Спільний доступ (Split Access Co-Drivers)</label>
-                                {selectedBooking.coDrivers && selectedBooking.coDrivers.length > 0 ? (
-                                    <ul className={styles.driversList}>
-                                        {selectedBooking.coDrivers.map((driver, index) => (
-                                            <li key={index}>
-                                                📧 {driver.email} (Права: <code>{driver.licenseNumber}</code>)
-                                            </li>
-                                        ))}
-                                    </ul>
+                            <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #eee' }}>
+                                <h3 style={{ fontSize: '16px', marginBottom: '10px' }}>👥 Зареєстровані водії за договором:</h3>
+                                <div style={{ fontSize: '14px', marginBottom: '8px' }}>
+                                    • <span style={{ fontWeight: 'bold' }}>ID #{selectedBooking.userId}</span> (Головний водій / Орендар)
+                                </div>
+                                {currentBookingDrivers.length > 0 ? (
+                                    currentBookingDrivers.map((driver) => (
+                                        <div key={driver.id} style={{ fontSize: '14px', padding: '6px 0', borderBottom: '1px dashed #f0f0f0' }}>
+                                            • {driver.email} [Код: <code>{driver.driverCode}</code>] —
+                                            <span style={{
+                                                marginLeft: '6px',
+                                                fontWeight: 'bold',
+                                                color: driver.status === 'ACCEPTED' ? '#28a745' : (driver.status === 'PENDING' ? '#f39c12' : '#dc3545')
+                                            }}>
+                                                {driver.status}
+                                            </span>
+                                        </div>
+                                    ))
                                 ) : (
-                                    <p className={styles.noDrivers}>Додаткових водіїв не зареєстровано.</p>
+                                    <p style={{ fontSize: '12px', color: '#888', fontStyle: 'italic' }}>Додаткових співводіїв не запрошено.</p>
                                 )}
-                                <small>Відображає права третіх осіб на керування за даним договором</small>
-                            </div>
-
-                            <div className={styles.infoGroup}>
-                                <label>Фінансова частина</label>
-                                <span className={styles.drawerPrice}>{selectedBooking.totalPrice} €</span>
                             </div>
                         </div>
                     </div>

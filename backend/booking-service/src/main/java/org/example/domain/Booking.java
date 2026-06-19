@@ -7,6 +7,9 @@ import java.time.LocalDateTime;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -19,144 +22,114 @@ import lombok.extern.slf4j.Slf4j;
 @NoArgsConstructor
 @Slf4j
 public class Booking {
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-  @NotNull(message = "User ID is required")
-  @Column(name = "user_id", nullable = false)
-  private Long userId;
+    @NotNull(message = "User ID is required")
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
 
-  @NotNull(message = "Car ID is required")
-  @Column(name = "car_id", nullable = false)
-  private Long carId;
+    @NotNull(message = "Car ID is required")
+    @Column(name = "car_id", nullable = false)
+    private Long carId;
 
-  @NotNull(message = "Start date is required")
-  @Column(name = "start_date", nullable = false)
-  private LocalDateTime startDate;
+    @NotNull(message = "Start date is required")
+    @Column(name = "start_date", nullable = false)
+    private LocalDateTime startDate;
 
-  @NotNull(message = "End date is required")
-  @Column(name = "end_date", nullable = false)
-  private LocalDateTime endDate;
+    @NotNull(message = "End date is required")
+    @Column(name = "end_date", nullable = false)
+    private LocalDateTime endDate;
 
-  @NotNull(message = "Status is required")
-  @Enumerated(EnumType.STRING)
-  @Column(name = "status", nullable = false)
-  private BookingStatus status;
+    @NotNull(message = "Status is required")
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "status", nullable = false)
+    private BookingStatus status;
 
-  @NotNull(message = "Total price is required")
-  @Positive(message = "Total price must be positive")
-  @Digits(integer = 10, fraction = 2)
-  @Column(name = "total_price", nullable = false, precision = 10, scale = 2)
-  private BigDecimal totalPrice;
+    @NotNull(message = "Total price is required")
+    @Positive(message = "Total price must be positive")
+    @Digits(integer = 10, fraction = 2)
+    @Column(name = "total_price", nullable = false, precision = 10, scale = 2)
+    private BigDecimal totalPrice;
 
-  @Column(name = "cancel_deadline", nullable = false)
-  private LocalDateTime cancelDeadline;
+    @Column(name = "cancel_deadline", nullable = false)
+    private LocalDateTime cancelDeadline;
 
-  @Column(name = "created_at", nullable = false, updatable = false)
-  private LocalDateTime createdAt;
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
-  @Column(name = "updated_at", nullable = false)
-  private LocalDateTime updatedAt;
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 
-  @PrePersist
-  protected void onCreate() {
-    this.createdAt = LocalDateTime.now();
-    this.updatedAt = LocalDateTime.now();
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
 
-    if (this.status == null) {
-      this.status = BookingStatus.CREATED;
+        if (this.status == null) {
+            this.status = BookingStatus.CREATED;
+        }
+
+        validateDates();
     }
 
-    validateDates();
-  }
-
-  @PreUpdate
-  protected void onUpdate() {
-    validateDates();
-  }
-
-  private void validateDates() {
-    if (startDate != null && endDate != null && !endDate.isAfter(startDate)) {
-      throw new IllegalArgumentException("End date must be after start date");
-    }
-  }
-
-  private void validateCanModify() {
-    if (status == BookingStatus.CANCELLED || status == BookingStatus.COMPLETED) {
-      throw new IllegalStateException("Cannot modify finished booking");
-    }
-  }
-
-  public void submitForProcessing() {
-    log.info("Booking id={} -> PENDING", id);
-
-    if (status != BookingStatus.CREATED) {
-      throw new IllegalStateException("Only CREATED booking can be submitted");
+    @PreUpdate
+    protected void onUpdate() {
+        validateDates();
     }
 
-    this.status = BookingStatus.PENDING;
-  }
-
-  public void confirm() {
-    log.info("Booking id={} -> CONFIRMED", id);
-
-    if (status != BookingStatus.PENDING) {
-      throw new IllegalStateException("Only PENDING booking can be confirmed");
+    private void validateDates() {
+        if (startDate != null && endDate != null && !endDate.isAfter(startDate)) {
+            throw new IllegalArgumentException("End date must be after start date");
+        }
     }
 
-    this.status = BookingStatus.CONFIRMED;
-  }
+    public void cancel() {
+        log.info("Booking id={} -> CANCELLED", id);
 
-  public void cancel() {
-    log.info("Booking id={} -> CANCELLED", id);
+        if (status == BookingStatus.COMPLETED) {
+            throw new IllegalStateException("Cannot cancel completed booking");
+        }
 
-    if (status == BookingStatus.COMPLETED) {
-      throw new IllegalStateException("Cannot cancel completed booking");
+        if (status == BookingStatus.CANCELLED) {
+            throw new IllegalStateException("Booking is already cancelled");
+        }
+
+        if (LocalDateTime.now().isAfter(cancelDeadline)) {
+            throw new IllegalStateException(
+                    "Cancellation deadline has expired. Cancel was allowed until: "
+                            + cancelDeadline);
+        }
+
+        this.status = BookingStatus.CANCELLED;
     }
 
-    if (status == BookingStatus.CANCELLED) {
-      throw new IllegalStateException("Booking is already cancelled");
+    public void changeStatus(BookingStatus newStatus) {
+        log.info("Booking id={} changes status from {} to {}", id, this.status, newStatus);
+
+        this.status = newStatus;
     }
 
-    if (LocalDateTime.now().isAfter(cancelDeadline)) {
-      throw new IllegalStateException(
-        "Cancellation deadline has expired. Cancel was allowed until: "
-          + cancelDeadline);
+    public void calculateTotalPrice(BigDecimal pricePerDay) {
+        long days = Duration.between(startDate, endDate).toDays();
+
+        if (days <= 0) {
+            throw new IllegalStateException("Booking must be at least 1 day");
+        }
+
+        this.totalPrice = pricePerDay.multiply(BigDecimal.valueOf(days));
     }
 
-    this.status = BookingStatus.CANCELLED;
-  }
-
-  public void complete() {
-    log.info("Booking id={} -> COMPLETED", id);
-
-    if (status != BookingStatus.CONFIRMED) {
-      throw new IllegalStateException("Only CONFIRMED booking can be completed");
+    public boolean isActive() {
+        return status == BookingStatus.CONFIRMED;
     }
 
-    this.status = BookingStatus.COMPLETED;
-  }
-
-  public void calculateTotalPrice(BigDecimal pricePerDay) {
-    long days = Duration.between(startDate, endDate).toDays();
-
-    if (days <= 0) {
-      throw new IllegalStateException("Booking must be at least 1 day");
+    public boolean isPending() {
+        return status == BookingStatus.PENDING;
     }
 
-    this.totalPrice = pricePerDay.multiply(BigDecimal.valueOf(days));
-  }
-
-  public boolean isActive() {
-    return status == BookingStatus.CONFIRMED;
-  }
-
-  public boolean isPending() {
-    return status == BookingStatus.PENDING;
-  }
-
-  public boolean isFinished() {
-    return status == BookingStatus.CANCELLED || status == BookingStatus.COMPLETED;
-  }
+    public boolean isFinished() {
+        return status == BookingStatus.CANCELLED || status == BookingStatus.COMPLETED;
+    }
 }
