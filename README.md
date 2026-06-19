@@ -1,22 +1,44 @@
-# Car Sharing System
+# 🚗 CarLink Booking (Microservices Car Sharing System)
 
 [![Java Version](https://img.shields.io/badge/Java-21-blue.svg)](https://java.com)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.4-brightgreen.svg)](https://spring.io)
+[![React](https://img.shields.io/badge/React-18-61DAFB.svg)](https://reactjs.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-blue.svg)](https://postgresql.org)
-[![Code Style](https://img.shields.io/badge/code%20style-Google%20Java%20Format-000000.svg)](https://google.github.io/styleguide/javaguide.html)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED.svg)](https://www.docker.com/)
 
 ## 📝 Опис проєкту
 
-Система для оренди автомобілів з унікальною функцією **Split Access** – спільною орендою одним автомобілем кількома водіями.
+**CarLink Booking** — це комплексна веб-платформа для швидкого та прозорого бронювання автомобілів, побудована на мікросервісній архітектурі. 
 
-### Ключові можливості
+🔥 **Killer Feature проєкту: Split Access**. Унікальна система спільної оренди одним автомобілем кількома водіями. Вона дозволяє генерувати `Driver Code`, додавати співводіїв до одного бронювання та прозоро розподіляти фінансову відповідальність між ними.
 
-- 🔐 Реєстрація та автентифікація (JWT)
-- 🔍 Пошук та фільтрація автомобілів
-- 📅 Бронювання авто на вибрані дати
-- 💳 Оплата через Stripe
-- 👥 **Split Access** – додавання спів-водіїв до бронювання
-- ⭐ Відгуки та рейтинги
+### Ключові можливості (MVP)
+- 👥 **Split Access** – додавання співводіїв до бронювання через унікальні токени.
+- 🔐 Рольова автентифікація через Keycloak (Admin, Owner, Customer).
+- 🔍 Smart-пошук та фільтрація автомобілів.
+- 📊 **Dual Dashboard** – окремі кабінети для користувачів та прокатних компаній (з аналітикою доходів).
+- 💳 Імітація онлайн-оплати (Stripe-ready архітектура).
+
+---
+
+## 📂 Структура репозиторію
+
+Проєкт складається з незалежних модулів (мікросервісів) та фронтенду:
+
+```text
+Practice_CarSharing/
+├── backend/                  # Бекенд (Spring Boot мікросервіси)
+│   ├── api-gateway/          # Точка входу, маршрутизація запитів (Port: 8080)
+│   ├── user-service/         # Управління користувачами, генерація Driver Code
+│   ├── car-service/          # Каталог авто та Business логіка автопарку
+│   ├── booking-service/      # Ядро системи: бронювання та Split Access
+│   ├── payment-service/      # Обробка транзакцій
+│   └── analytics-service/    # Агрегація даних для B2B дашбордів
+├── frontend/                 # Клієнтська частина (React SPA)
+├── docker/                   # Конфігурації для інфраструктури
+│   └── keycloak/             # Файли налаштувань (Realm) для Keycloak
+├── docker-compose.yml        # Головний файл розгортання системи
+└── .env.example              # Шаблон змінних середовища
 
 ## 🛠 Технологічний стек
 
@@ -50,24 +72,11 @@
 git clone https://github.com/vladdhoryn/Practice_CarSharing.git
 cd Practice_CarSharing
 
-# 2. Запуск PostgreSQL (Docker)
-docker run -d \
-  --name car-sharing-db \
-  -e POSTGRES_DB=car_sharing_db \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=postgres \
-  -p 5432:5432 \
-  postgres:14
+# 2. Збірка проєкту
+mvn clean package
 
-# 3. Налаштування змінних оточення
-cp .env.example .env
-# Відредагуйте .env з вашими значеннями
-
-# 4. Збірка проєкту
-mvn clean compile
-
-# 5. Запуск тестів
-mvn test
+# 3. Запуск Docker
+docker-compose up --build
 
 # 6. Запуск додатку
 mvn spring-boot:run
