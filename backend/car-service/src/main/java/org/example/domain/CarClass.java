@@ -4,5 +4,6 @@ public enum CarClass {
     ECONOMY,
     COMFORT,
     BUSINESS,
-    LUXURY
+    LUXURY,
+    STANDARD
 }

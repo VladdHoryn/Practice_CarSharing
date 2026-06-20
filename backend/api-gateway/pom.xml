@@ -2,11 +2,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+  <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.example</groupId>
-    <artifactId>api-gateway</artifactId>
-    <version>1.0-SNAPSHOT</version>
+  <groupId>org.example</groupId>
+  <artifactId>api-gateway</artifactId>
+  <version>1.0-SNAPSHOT</version>
 
   <parent>
     <groupId>com.carsharing</groupId>
@@ -15,12 +15,12 @@
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
-    <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-      <lombok.version>1.18.34</lombok.version>
-    </properties>
+  <properties>
+    <maven.compiler.source>21</maven.compiler.source>
+    <maven.compiler.target>21</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <lombok.version>1.18.34</lombok.version>
+  </properties>
 
   <dependencyManagement>
     <dependencies>
@@ -35,10 +35,34 @@
   </dependencyManagement>
 
   <dependencies>
+    <!-- існуюча залежність -->
     <dependency>
       <groupId>org.springframework.cloud</groupId>
       <artifactId>spring-cloud-starter-gateway</artifactId>
     </dependency>
-  </dependencies>
 
+    <!-- ====== ТЕСТОВІ ЗАЛЕЖНОСТІ (НОВЕ) ====== -->
+
+    <!-- JUnit5 + Mockito + AssertJ + Spring Boot Test (WebTestClient, @SpringBootTest) -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- reactor-test: StepVerifier для тестування Mono/Flux у WebFilter-ах -->
+    <dependency>
+      <groupId>io.projectreactor</groupId>
+      <artifactId>reactor-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- WireMock: фейкові HTTP-сервери замість user-service/car-service/etc -->
+    <dependency>
+      <groupId>org.wiremock</groupId>
+      <artifactId>wiremock-standalone</artifactId>
+      <version>3.9.1</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 </project>
