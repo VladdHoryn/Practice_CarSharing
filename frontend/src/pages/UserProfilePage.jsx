@@ -492,7 +492,7 @@ const UserProfilePage = () => {
                                         <td><strong>Бронювання #{invite.bookingId}</strong></td>
                                         <td><code>{invite.driverCode}</code></td>
                                         <td>
-                                            <button onClick={() => handleInvitationResponse(invite.id, 'accept')} style={{padding: '5px 10px', marginRight: '10px', backgroundColor: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer'}}>Прийняти 👍</button>
+                                            <button onClick={() => handleInvitationResponse(invite.id, 'accept')} style={{padding: '5px 10px', marginRight: '10px', backgroundColor: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer'}}>Прийняти </button>
                                             <button onClick={() => handleInvitationResponse(invite.id, 'decline')} style={{padding: '5px 10px', backgroundColor: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer'}}>Відхилити</button>
                                         </td>
                                     </tr>
