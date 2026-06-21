@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import jakarta.transaction.Transactional;
 
@@ -54,7 +55,6 @@ public class BookingApplicationService {
 
         booking.setCreatedAt(LocalDateTime.now());
 
-        // Встановлюємо дедлайн скасування за 2 дні до початку
         booking.setCancelDeadline(start.minusDays(2));
 
         Booking saved = bookingRepository.save(booking);
@@ -83,7 +83,6 @@ public class BookingApplicationService {
         booking.changeStatus(newStatus);
     }
 
-    // ANY → CANCELLED
     @Transactional
     public Booking cancelBooking(Long bookingId) {
         Booking booking = getBookingById(bookingId);
@@ -105,8 +104,6 @@ public class BookingApplicationService {
 
         bookingRepository.delete(booking);
     }
-
-    // OWNER ANALYTICS
 
     private List<Long> getCarIdsByOwner(Long ownerId) {
         log.debug("Fetching cars for ownerId={} from car-service", ownerId);
@@ -160,8 +157,6 @@ public class BookingApplicationService {
                 carIds, activeStatuses, startDate, endDate);
     }
 
-    // ADMIN ANALYTICS
-
     public long countBookingsByStatuses(List<BookingStatus> statuses) {
         if (statuses == null || statuses.isEmpty()) {
             return 0L;
@@ -184,5 +179,36 @@ public class BookingApplicationService {
 
     public List<Object[]> countBookingsByDayOfWeek(List<BookingStatus> activeStatuses) {
         return bookingRepository.countBookingsByDayOfWeek(activeStatuses);
+    }
+
+    public List<Booking> getActiveBookingsByCarIdFromToday(Long carId) {
+        log.info("Fetching future active bookings for car id={}", carId);
+
+        return bookingRepository.findAllByCarIdAndStatusNotAndEndDateAfterOrderByStartDateAsc(
+                carId, BookingStatus.CANCELLED, LocalDateTime.now());
+    }
+
+    public List<Long> getAvailableCarIds(LocalDateTime startDate, LocalDateTime endDate) {
+        log.info("Searching for available cars from {} to {}", startDate, endDate);
+
+        LocalDateTime now = LocalDateTime.now();
+
+        if (startDate.isBefore(now)) {
+            throw new IllegalArgumentException("Start date cannot be in the past");
+        }
+        if (endDate.isBefore(startDate) || endDate.isEqual(startDate)) {
+            throw new IllegalArgumentException("End date must be strictly after start date");
+        }
+
+        List<Long> allCarIds = carServiceClient.getCarIds();
+        if (allCarIds == null || allCarIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> bookedCarIds = bookingRepository.findBookedCarIdsForPeriod(startDate, endDate);
+
+        Set<Long> bookedCarIdsSet = Set.copyOf(bookedCarIds);
+
+        return allCarIds.stream().filter(carId -> !bookedCarIdsSet.contains(carId)).toList();
     }
 }

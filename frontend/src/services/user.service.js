@@ -21,13 +21,11 @@ export const userService = {
         return response.data;
     },
 
-    // 👑 ОНОВЛЕНО ЗГІДНО З НОВИМ ЛОГОМ: Текст PATCH запиту на активацію
     activateUserByKeycloak: async (keycloakId) => {
         const response = await apiClient.patch(`/user/v1/${keycloakId}/activate`);
         return response.data;
     },
 
-    // 👑 ОНОВЛЕНО ЗГІДНО З НОВИМ ЛОГОМ: Текст PATCH запиту на деактивацію
     deactivateUserByKeycloak: async (keycloakId) => {
         const response = await apiClient.patch(`/user/v1/${keycloakId}/deactivate`);
         return response.data;

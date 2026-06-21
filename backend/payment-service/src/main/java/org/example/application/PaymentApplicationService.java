@@ -90,7 +90,6 @@ public class PaymentApplicationService {
             payment.setCurrency(currency);
         }
 
-        // updatedAt handled by @PreUpdate
         return paymentRepository.save(payment);
     }
 

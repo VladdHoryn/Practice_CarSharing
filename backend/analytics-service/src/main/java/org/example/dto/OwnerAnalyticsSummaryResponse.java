@@ -9,10 +9,8 @@ import lombok.Data;
 @Data
 @Builder
 public class OwnerAnalyticsSummaryResponse {
-    // Дані з car-service
     private Long totalCars;
 
-    // Дані з booking-service
     private Long totalBookings;
     private Long completedBookings;
     private BigDecimal totalRevenue;

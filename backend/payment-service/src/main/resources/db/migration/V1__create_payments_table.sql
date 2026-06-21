@@ -1,8 +1,3 @@
--- =====================================================
--- Payment Service - Create payments table
--- Version: V1
--- =====================================================
-
 CREATE TYPE payment_method_enum AS ENUM (
     'CARD',
     'GOOGLE_PAY',

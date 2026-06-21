@@ -36,22 +36,33 @@ export const carService = {
         return response.data;
     },
 
+  getCarImages: async (carId) => {
+    const response = await apiClient.get(`/car/v1/${carId}/images`);
+    return response.data;
+  },
 
-    // Отримати всі непідтверджені авто для черги модерації
     getUnconfirmedCars: async () => {
         const response = await apiClient.get('/car/v1/unconfirmed');
         return response.data;
     },
 
-    // 👑 ОНОВЛЕНО ЗГІДНО З НОВИМ ТЗ: Додано сегмент /moderation/
     confirmModeration: async (id) => {
         const response = await apiClient.post(`/car/v1/${id}/moderation/confirm`);
         return response.data;
     },
-
-    // 👑 ОНОВЛЕНО ЗГІДНО З НОВИМ ТЗ: Додано сегмент /moderation/
+    uploadCarImage: async (carId, file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await apiClient.post(`/car/v1/${carId}/images`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        return response.data;
+    },
     cancelModeration: async (id) => {
         const response = await apiClient.post(`/car/v1/${id}/moderation/cancel`);
         return response.data;
     }
+
 };

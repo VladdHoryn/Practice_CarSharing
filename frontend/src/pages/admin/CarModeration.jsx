@@ -11,7 +11,6 @@ const CarModeration = () => {
     const fetchModerationQueue = async () => {
         try {
             setLoading(true);
-            // 👑 ВИПРАВЛЕНО: Реальний запит черги модерації непідтверджених авто
             const data = await carService.getUnconfirmedCars();
             setQueue(data || []);
         } catch (err) {
@@ -28,7 +27,6 @@ const CarModeration = () => {
 
     const handleApproveCar = async (carId) => {
         try {
-            // 👑 ВИПРАВЛЕНО: Виклик нашого виправленого сервісу confirmModeration
             await carService.confirmModeration(carId);
             toast.success('Автомобіль успішно прийнято в автопарк! 🚗✨');
             setQueue(prev => prev.filter(car => car.id !== carId));
@@ -40,7 +38,6 @@ const CarModeration = () => {
     const handleRejectSubmit = async (carId) => {
         if (!window.confirm("Скасувати публікацію цього ТЗ?")) return;
         try {
-            // 👑 ВИПРАВЛЕНО: Виклик нашого виправленого сервісу cancelModeration
             await carService.cancelModeration(carId);
             toast.info(`Заявку на додавання авто відхилено.`);
             setQueue(prev => prev.filter(car => car.id !== carId));

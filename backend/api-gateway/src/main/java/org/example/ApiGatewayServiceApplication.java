@@ -19,21 +19,21 @@ public class ApiGatewayServiceApplication {
     }
 
     @Bean
-        public CorsWebFilter corsWebFilter() {
-            CorsConfiguration corsConfig = new CorsConfiguration();
-            corsConfig.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
-            corsConfig.setMaxAge(3600L);
+    public CorsWebFilter corsWebFilter() {
+        CorsConfiguration corsConfig = new CorsConfiguration();
+        corsConfig.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+        corsConfig.setMaxAge(3600L);
 
-            corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 
-            corsConfig.setAllowedHeaders(List.of("Content-Type", "Authorization", "X-Requested-With"));
-            corsConfig.setAllowCredentials(true);
+        corsConfig.setAllowedHeaders(List.of("Content-Type", "Authorization", "X-Requested-With"));
+        corsConfig.setAllowCredentials(true);
 
-            UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-            source.registerCorsConfiguration("/**", corsConfig);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", corsConfig);
 
-            return new CorsWebFilter(source);
-        }
+        return new CorsWebFilter(source);
+    }
 
     @Bean
     public WebFilter corsDeduplicationFilter() {
@@ -43,7 +43,6 @@ public class ApiGatewayServiceApplication {
                             () -> {
                                 HttpHeaders headers = exchange.getResponse().getHeaders();
 
-                                // Перевіряємо заголовок Origin
                                 List<String> origins =
                                         headers.get(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN);
                                 if (origins != null && origins.size() > 1) {
@@ -52,7 +51,6 @@ public class ApiGatewayServiceApplication {
                                             HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, firstOrigin);
                                 }
 
-                                // Перевіряємо заголовок Credentials
                                 List<String> credentials =
                                         headers.get(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS);
                                 if (credentials != null && credentials.size() > 1) {

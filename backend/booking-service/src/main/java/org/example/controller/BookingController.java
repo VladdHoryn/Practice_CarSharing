@@ -96,7 +96,6 @@ public class BookingController {
                 bookingService.getUserBookings(userId).stream().map(this::toResponse).toList());
     }
 
-    // ANY → CANCELLED
     @PreAuthorize("hasAnyRole('RENTER')")
     @PostMapping("/{id}/cancel")
     public ResponseEntity<BookingResponse> cancelBooking(@PathVariable Long id) {
@@ -118,8 +117,6 @@ public class BookingController {
         bookingService.deleteBooking(id);
         return ResponseEntity.noContent().build();
     }
-
-    // OWNER ANALYTICS
 
     @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
     @GetMapping("/analytics/owners/{ownerId}/bookings")
@@ -228,9 +225,19 @@ public class BookingController {
                         .toList());
     }
 
-    //              ADMIN ANALYTICS
+    @PreAuthorize("hasAnyRole('RENTER', 'OWNER', 'ADMINISTRATOR')")
+    @GetMapping("/drivers/{bookingId}/active")
+    public ResponseEntity<List<BookingDriverResponse>> getActiveDriversForBooking(
+            @PathVariable Long bookingId) {
 
-    // 1) Загальна кількість бронювань в системі за списком статусів
+        List<BookingDriverResponse> responses =
+                bookingDriverService.getActiveDriversByBookingId(bookingId).stream()
+                        .map(this::bookingDriverToResponse)
+                        .toList();
+
+        return ResponseEntity.ok(responses);
+    }
+
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     @GetMapping("/analytics/admin/bookings/count")
     public ResponseEntity<Long> countBookingsByStatuses(
@@ -238,7 +245,6 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.countBookingsByStatuses(statuses));
     }
 
-    // 2) Дохід за визначений період (наприклад, за останні 30 днів)
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     @GetMapping("/analytics/admin/revenue/period")
     public ResponseEntity<BigDecimal> sumLastMonthRevenue(
@@ -248,7 +254,6 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.sumLastMonthRevenue(status, startDate));
     }
 
-    // 3) Кількість бронювань у процесі (майбутніх/поточних)
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     @GetMapping("/analytics/admin/bookings/upcoming")
     public ResponseEntity<Long> countUpcomingBookings(
@@ -261,7 +266,6 @@ public class BookingController {
                 bookingService.countUpcomingBookings(activeStatuses, startDate, endDate));
     }
 
-    // 4) Динаміка доходів (по місяцях) для графіка
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     @GetMapping("/analytics/admin/revenue/monthly")
     public ResponseEntity<List<Object[]>> findMonthlyRevenue(
@@ -271,11 +275,40 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.findMonthlyRevenue(status, startDate));
     }
 
-    // 5) Завантаженість автопарку по днях тижня
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     @GetMapping("/analytics/admin/load/day-of-week")
     public ResponseEntity<List<Object[]>> countBookingsByDayOfWeek(
             @RequestParam List<BookingStatus> activeStatuses) {
         return ResponseEntity.ok(bookingService.countBookingsByDayOfWeek(activeStatuses));
+    }
+
+    @PreAuthorize("hasAnyRole('RENTER', 'OWNER', 'ADMINISTRATOR')")
+    @GetMapping("/car/{carId}")
+    public ResponseEntity<List<CarAvailabilityResponse>> getCarBookings(@PathVariable Long carId) {
+        LocalDateTime now = LocalDateTime.now();
+
+        List<CarAvailabilityResponse> responses =
+                bookingService.getActiveBookingsByCarIdFromToday(carId).stream()
+                        .map(this::toCarAvailabilityResponse)
+                        .toList();
+
+        return ResponseEntity.ok(responses);
+    }
+
+    private CarAvailabilityResponse toCarAvailabilityResponse(Booking booking) {
+        return new CarAvailabilityResponse(booking.getStartDate(), booking.getEndDate());
+    }
+
+    @PreAuthorize("hasAnyRole('RENTER', 'ADMINISTRATOR')")
+    @GetMapping("/cars/available")
+    public ResponseEntity<List<Long>> getAvailableCars(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+                    LocalDateTime startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+                    LocalDateTime endDate) {
+
+        List<Long> availableCarIds = bookingService.getAvailableCarIds(startDate, endDate);
+
+        return ResponseEntity.ok(availableCarIds);
     }
 }

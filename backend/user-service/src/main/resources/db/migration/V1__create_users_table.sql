@@ -1,13 +1,5 @@
--- =====================================================
--- User Service - Create users table
--- Version: V1
--- Based on: User.java, UserRole.java
--- =====================================================
-
--- Create ENUM type for user roles (matches UserRole.java)
 CREATE TYPE user_role_enum AS ENUM ('RENTER', 'OWNER', 'ADMINISTRATOR');
 
--- Create users table
 CREATE TABLE users (
     id BIGSERIAL PRIMARY KEY,
     keycloak_id VARCHAR(36) NOT NULL,
@@ -24,12 +16,10 @@ ALTER TABLE users
 
 CREATE INDEX idx_users_keycloak_id ON users (keycloak_id);
 
--- Create indexes for performance
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_role ON users(role);
 CREATE INDEX idx_users_is_active ON users(is_active);
 
--- Create function for auto-updating updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -38,13 +28,11 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
--- Create trigger for users
 CREATE TRIGGER update_users_updated_at
     BEFORE UPDATE ON users
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
--- Add table comments
 COMMENT ON TABLE users IS 'System users with authentication and role-based access';
 COMMENT ON COLUMN users.id IS 'Auto-increment primary key (BIGSERIAL)';
 COMMENT ON COLUMN users.full_name IS 'User full name (2-100 characters)';

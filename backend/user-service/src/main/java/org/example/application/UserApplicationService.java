@@ -40,7 +40,6 @@ public class UserApplicationService {
     @Value("${keycloak.realm}")
     private String realm;
 
-    // CREATE
     @Transactional
     public UserResponse createUser(UserRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -123,14 +122,12 @@ public class UserApplicationService {
         }
     }
 
-    // READ ALL
     public List<UserResponse> getAllUsers() {
         return userRepository.findAll().stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
-    // READ BY ID
     public UserResponse getUserById(Long id) {
         User user =
                 userRepository
@@ -148,7 +145,6 @@ public class UserApplicationService {
         return mapToResponse(user);
     }
 
-    // UPDATE
     public UserResponse updateUser(String keycloakId, UserRequest request) {
         User user =
                 userRepository
@@ -165,12 +161,10 @@ public class UserApplicationService {
         return mapToResponse(userRepository.save(user));
     }
 
-    // DELETE (soft delete через deactivate)
     public void deleteUser(String keycloakId) {
         userRepository.deleteByKeycloakId(keycloakId);
     }
 
-    // ACTIVATE USER
     public UserResponse activateUser(String keycloakId) {
         User user =
                 userRepository
@@ -181,7 +175,6 @@ public class UserApplicationService {
         return mapToResponse(userRepository.save(user));
     }
 
-    // DEACTIVATE USER
     public UserResponse deactivateUser(String keycloakId) {
         User user =
                 userRepository
@@ -193,7 +186,6 @@ public class UserApplicationService {
         return mapToResponse(userRepository.save(user));
     }
 
-    // MAPPER
     private UserResponse mapToResponse(User user) {
         return UserResponse.builder()
                 .id(user.getId())
@@ -221,17 +213,13 @@ public class UserApplicationService {
         return userRepository.findIdByEmailAndDriverCode(email, driverCode);
     }
 
-    // ==========================================
-    //              ADMIN ANALYTICS
-    // ==========================================
-
     public long countActiveUsers() {
         return userRepository.countActiveUsers();
     }
 
     public long countByRole(UserRole role) {
         if (role == null) {
-            return 0L; // Повертаємо 0, якщо роль не передана, щоб уникнути NullPointerException
+            return 0L;
         }
         return userRepository.countByRole(role);
     }

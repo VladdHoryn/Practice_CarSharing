@@ -8,7 +8,6 @@ const UserManagement = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
 
-    // 👑 ДОДАНО: Локальне сортування та фільтрація
     const [filterStatus, setFilterStatus] = useState('ALL');
     const [sortKey, setSortByKey] = useState('fullName');
 
@@ -47,7 +46,6 @@ const UserManagement = () => {
         }
     };
 
-    // 👑 ДОДАНО: Обробка пошуку, фільтрації за статусом та сортування на фронті
     const processedUsers = users
         .filter(user => {
             const matchesSearch = user.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
