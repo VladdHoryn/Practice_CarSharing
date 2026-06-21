@@ -213,15 +213,15 @@ public class BookingApplicationService {
     }
 
     public List<Booking> getBookingsByOwnerId(Long ownerId) {
-      log.info("Fetching all bookings for cars owned by ownerId={}", ownerId);
+        log.info("Fetching all bookings for cars owned by ownerId={}", ownerId);
 
-      List<Long> carIds = getCarIdsByOwner(ownerId);
+        List<Long> carIds = getCarIdsByOwner(ownerId);
 
-      if (carIds.isEmpty()) {
-        log.debug("Owner id={} has no cars or cars not found", ownerId);
-        return Collections.emptyList();
-      }
+        if (carIds.isEmpty()) {
+            log.debug("Owner id={} has no cars or cars not found", ownerId);
+            return Collections.emptyList();
+        }
 
-      return bookingRepository.findAllByCarIdInOrderByCreatedAtDesc(carIds);
+        return bookingRepository.findAllByCarIdInOrderByCreatedAtDesc(carIds);
     }
 }

@@ -49,16 +49,16 @@ public class BookingController {
     }
 
     private BookingForOwner toResponseForOwner(Booking booking) {
-      return new BookingForOwner(
-        booking.getId(),
-        booking.getCarId(),
-        booking.getStartDate(),
-        booking.getEndDate(),
-        booking.getStatus(),
-        booking.getTotalPrice(),
-        booking.getCancelDeadline(),
-        booking.getCreatedAt(),
-        booking.getUpdatedAt());
+        return new BookingForOwner(
+                booking.getId(),
+                booking.getCarId(),
+                booking.getStartDate(),
+                booking.getEndDate(),
+                booking.getStatus(),
+                booking.getTotalPrice(),
+                booking.getCancelDeadline(),
+                booking.getCreatedAt(),
+                booking.getUpdatedAt());
     }
 
     private BookingDriverResponse bookingDriverToResponse(BookingDriver bookingDriver) {
@@ -135,12 +135,12 @@ public class BookingController {
     @GetMapping("/owners/{ownerId}/bookings")
     public ResponseEntity<List<BookingForOwner>> getBookingsByOwner(@PathVariable Long ownerId) {
 
-      List<BookingForOwner> responses = bookingService.getBookingsByOwnerId(ownerId)
-        .stream()
-        .map(this::toResponseForOwner)
-        .toList();
+        List<BookingForOwner> responses =
+                bookingService.getBookingsByOwnerId(ownerId).stream()
+                        .map(this::toResponseForOwner)
+                        .toList();
 
-      return ResponseEntity.ok(responses);
+        return ResponseEntity.ok(responses);
     }
 
     @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
