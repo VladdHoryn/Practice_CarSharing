@@ -285,4 +285,15 @@ public class BookingController {
     private CarAvailabilityResponse toCarAvailabilityResponse(Booking booking){
       return new CarAvailabilityResponse(booking.getStartDate(), booking.getEndDate());
     }
+
+  @PreAuthorize("hasAnyRole('RENTER', 'ADMINISTRATOR')")
+  @GetMapping("/cars/available")
+  public ResponseEntity<List<Long>> getAvailableCars(
+    @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+    @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+
+    List<Long> availableCarIds = bookingService.getAvailableCarIds(startDate, endDate);
+
+    return ResponseEntity.ok(availableCarIds);
+  }
 }
