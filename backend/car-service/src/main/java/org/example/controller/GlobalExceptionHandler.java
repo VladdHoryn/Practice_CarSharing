@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.example.dto.ErrorResponse;
+import org.example.exception.ImageNotProvidedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -14,9 +15,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    @ExceptionHandler({IllegalArgumentException.class, RuntimeException.class})
+    @ExceptionHandler({IllegalArgumentException.class, ImageNotProvidedException.class, RuntimeException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleBadRequest(IllegalArgumentException ex, HttpServletRequest request) {
+    public ErrorResponse handleBadRequest(RuntimeException ex, HttpServletRequest request) {
 
         return new ErrorResponse(
                 LocalDateTime.now(),

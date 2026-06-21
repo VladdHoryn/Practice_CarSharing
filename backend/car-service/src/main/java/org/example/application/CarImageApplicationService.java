@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.example.domain.Car;
 import org.example.domain.CarImage;
+import org.example.exception.ImageNotProvidedException;
 import org.example.repository.CarImageRepository;
 import org.example.repository.CarRepository;
 import org.springframework.stereotype.Service;
@@ -24,7 +25,12 @@ public class CarImageApplicationService {
 
     @Transactional
     public void uploadImage(Long carId, MultipartFile file) throws IOException {
-        Car car =
+      if (file == null || file.isEmpty()) {
+        log.warn("Image upload failed for car id={}: file is null or empty", carId);
+        throw new ImageNotProvidedException("Image file was not provided. Please upload image");
+      }
+
+      Car car =
                 carRepository
                         .findById(carId)
                         .orElseThrow(() -> new IllegalArgumentException("Car not found"));
