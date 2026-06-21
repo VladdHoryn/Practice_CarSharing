@@ -98,4 +98,19 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
         """)
     List<Object[]> countBookingsByDayOfWeek(
             @Param("activeStatuses") List<BookingStatus> activeStatuses);
+
+  List<Booking> findAllByCarIdAndStatusNotAndEndDateAfterOrderByStartDateAsc(
+    Long carId,
+    BookingStatus status,
+    LocalDateTime date
+  );
+
+  @Query("SELECT DISTINCT b.carId FROM Booking b " +
+    "WHERE b.status != 'CANCELLED' " +
+    "AND b.startDate < :endDate " +
+    "AND b.endDate > :startDate")
+  List<Long> findBookedCarIdsForPeriod(
+    @Param("startDate") LocalDateTime startDate,
+    @Param("endDate") LocalDateTime endDate
+  );
 }

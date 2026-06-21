@@ -55,4 +55,14 @@ public class CarServiceClient {
                 .retrieve()
                 .body(new ParameterizedTypeReference<List<CarDto>>() {});
     }
+
+  public List<Long> getCarIds() {
+    log.info("Request all carIds");
+
+    return restClient
+      .get()
+      .uri("/ids")
+      .retrieve()
+      .body(new ParameterizedTypeReference<List<Long>>() {});
+  }
 }
