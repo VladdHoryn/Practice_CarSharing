@@ -16,4 +16,6 @@ public interface BookingDriverRepository extends JpaRepository<BookingDriver, Lo
     boolean existsByBookingIdAndUserId(Long bookingId, Long userId);
 
     Optional<List<BookingDriver>> findByUserId(Long userId);
+
+    List<BookingDriver> findAllByBookingIdAndStatusIn(Long bookingId, List<BookingDriverStatus> statuses);
 }

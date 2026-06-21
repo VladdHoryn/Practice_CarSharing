@@ -225,6 +225,18 @@ public class BookingController {
                         .toList());
     }
 
+    @PreAuthorize("hasAnyRole('RENTER', 'OWNER', 'ADMINISTRATOR')")
+    @GetMapping("/drivers/{bookingId}/active")
+    public ResponseEntity<List<BookingDriverResponse>> getActiveDriversForBooking(@PathVariable Long bookingId) {
+
+      List<BookingDriverResponse> responses = bookingDriverService.getActiveDriversByBookingId(bookingId)
+        .stream()
+        .map(this::bookingDriverToResponse)
+        .toList();
+
+      return ResponseEntity.ok(responses);
+    }
+
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     @GetMapping("/analytics/admin/bookings/count")
     public ResponseEntity<Long> countBookingsByStatuses(
