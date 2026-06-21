@@ -98,4 +98,10 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
         """)
     List<Object[]> countBookingsByDayOfWeek(
             @Param("activeStatuses") List<BookingStatus> activeStatuses);
+
+  List<Booking> findAllByCarIdAndStatusNotAndEndDateAfterOrderByStartDateAsc(
+    Long carId,
+    BookingStatus status,
+    LocalDateTime date
+  );
 }

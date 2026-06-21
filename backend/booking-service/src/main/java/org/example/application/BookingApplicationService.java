@@ -179,4 +179,14 @@ public class BookingApplicationService {
     public List<Object[]> countBookingsByDayOfWeek(List<BookingStatus> activeStatuses) {
         return bookingRepository.countBookingsByDayOfWeek(activeStatuses);
     }
+
+  public List<Booking> getActiveBookingsByCarIdFromToday(Long carId) {
+    log.info("Fetching future active bookings for car id={}", carId);
+
+    return bookingRepository.findAllByCarIdAndStatusNotAndEndDateAfterOrderByStartDateAsc(
+      carId,
+      BookingStatus.CANCELLED,
+      LocalDateTime.now()
+    );
+  }
 }

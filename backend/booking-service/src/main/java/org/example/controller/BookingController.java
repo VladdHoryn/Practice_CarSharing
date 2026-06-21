@@ -268,4 +268,21 @@ public class BookingController {
             @RequestParam List<BookingStatus> activeStatuses) {
         return ResponseEntity.ok(bookingService.countBookingsByDayOfWeek(activeStatuses));
     }
+
+    @PreAuthorize("hasAnyRole('RENTER', 'OWNER', 'ADMINISTRATOR')")
+    @GetMapping("/car/{carId}")
+    public ResponseEntity<List<CarAvailabilityResponse>> getCarBookings(@PathVariable Long carId) {
+      LocalDateTime now = LocalDateTime.now();
+
+      List<CarAvailabilityResponse> responses = bookingService.getActiveBookingsByCarIdFromToday(carId)
+        .stream()
+        .map(this::toCarAvailabilityResponse)
+        .toList();
+
+      return ResponseEntity.ok(responses);
+    }
+
+    private CarAvailabilityResponse toCarAvailabilityResponse(Booking booking){
+      return new CarAvailabilityResponse(booking.getStartDate(), booking.getEndDate());
+    }
 }
