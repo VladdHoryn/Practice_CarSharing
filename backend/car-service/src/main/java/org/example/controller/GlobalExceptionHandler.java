@@ -15,7 +15,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    @ExceptionHandler({IllegalArgumentException.class, ImageNotProvidedException.class, RuntimeException.class})
+    @ExceptionHandler({
+        IllegalArgumentException.class,
+        ImageNotProvidedException.class,
+        RuntimeException.class
+    })
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleBadRequest(RuntimeException ex, HttpServletRequest request) {
 

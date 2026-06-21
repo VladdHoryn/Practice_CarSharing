@@ -25,12 +25,12 @@ public class CarImageApplicationService {
 
     @Transactional
     public void uploadImage(Long carId, MultipartFile file) throws IOException {
-      if (file == null || file.isEmpty()) {
-        log.warn("Image upload failed for car id={}: file is null or empty", carId);
-        throw new ImageNotProvidedException("Image file was not provided. Please upload image");
-      }
+        if (file == null || file.isEmpty()) {
+            log.warn("Image upload failed for car id={}: file is null or empty", carId);
+            throw new ImageNotProvidedException("Image file was not provided. Please upload image");
+        }
 
-      Car car =
+        Car car =
                 carRepository
                         .findById(carId)
                         .orElseThrow(() -> new IllegalArgumentException("Car not found"));
