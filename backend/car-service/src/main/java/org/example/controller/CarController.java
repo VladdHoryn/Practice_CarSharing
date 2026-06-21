@@ -86,7 +86,7 @@ public class CarController {
 
     @GetMapping("/ids")
     public ResponseEntity<List<Long>> getAllCarIds() {
-      return ResponseEntity.ok(carService.getAllCars().stream().map(car -> car.getId()).toList());
+        return ResponseEntity.ok(carService.getAllCars().stream().map(car -> car.getId()).toList());
     }
 
     @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")

@@ -181,39 +181,34 @@ public class BookingApplicationService {
         return bookingRepository.countBookingsByDayOfWeek(activeStatuses);
     }
 
-  public List<Booking> getActiveBookingsByCarIdFromToday(Long carId) {
-    log.info("Fetching future active bookings for car id={}", carId);
+    public List<Booking> getActiveBookingsByCarIdFromToday(Long carId) {
+        log.info("Fetching future active bookings for car id={}", carId);
 
-    return bookingRepository.findAllByCarIdAndStatusNotAndEndDateAfterOrderByStartDateAsc(
-      carId,
-      BookingStatus.CANCELLED,
-      LocalDateTime.now()
-    );
-  }
-
-  public List<Long> getAvailableCarIds(LocalDateTime startDate, LocalDateTime endDate) {
-    log.info("Searching for available cars from {} to {}", startDate, endDate);
-
-    LocalDateTime now = LocalDateTime.now();
-
-    if (startDate.isBefore(now)) {
-      throw new IllegalArgumentException("Start date cannot be in the past");
-    }
-    if (endDate.isBefore(startDate) || endDate.isEqual(startDate)) {
-      throw new IllegalArgumentException("End date must be strictly after start date");
+        return bookingRepository.findAllByCarIdAndStatusNotAndEndDateAfterOrderByStartDateAsc(
+                carId, BookingStatus.CANCELLED, LocalDateTime.now());
     }
 
-    List<Long> allCarIds = carServiceClient.getCarIds();
-    if (allCarIds == null || allCarIds.isEmpty()) {
-      return List.of();
+    public List<Long> getAvailableCarIds(LocalDateTime startDate, LocalDateTime endDate) {
+        log.info("Searching for available cars from {} to {}", startDate, endDate);
+
+        LocalDateTime now = LocalDateTime.now();
+
+        if (startDate.isBefore(now)) {
+            throw new IllegalArgumentException("Start date cannot be in the past");
+        }
+        if (endDate.isBefore(startDate) || endDate.isEqual(startDate)) {
+            throw new IllegalArgumentException("End date must be strictly after start date");
+        }
+
+        List<Long> allCarIds = carServiceClient.getCarIds();
+        if (allCarIds == null || allCarIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> bookedCarIds = bookingRepository.findBookedCarIdsForPeriod(startDate, endDate);
+
+        Set<Long> bookedCarIdsSet = Set.copyOf(bookedCarIds);
+
+        return allCarIds.stream().filter(carId -> !bookedCarIdsSet.contains(carId)).toList();
     }
-
-    List<Long> bookedCarIds = bookingRepository.findBookedCarIdsForPeriod(startDate, endDate);
-
-    Set<Long> bookedCarIdsSet = Set.copyOf(bookedCarIds);
-
-    return allCarIds.stream()
-      .filter(carId -> !bookedCarIdsSet.contains(carId))
-      .toList();
-  }
 }

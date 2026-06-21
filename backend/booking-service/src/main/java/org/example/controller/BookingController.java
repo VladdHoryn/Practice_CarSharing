@@ -227,14 +227,15 @@ public class BookingController {
 
     @PreAuthorize("hasAnyRole('RENTER', 'OWNER', 'ADMINISTRATOR')")
     @GetMapping("/drivers/{bookingId}/active")
-    public ResponseEntity<List<BookingDriverResponse>> getActiveDriversForBooking(@PathVariable Long bookingId) {
+    public ResponseEntity<List<BookingDriverResponse>> getActiveDriversForBooking(
+            @PathVariable Long bookingId) {
 
-      List<BookingDriverResponse> responses = bookingDriverService.getActiveDriversByBookingId(bookingId)
-        .stream()
-        .map(this::bookingDriverToResponse)
-        .toList();
+        List<BookingDriverResponse> responses =
+                bookingDriverService.getActiveDriversByBookingId(bookingId).stream()
+                        .map(this::bookingDriverToResponse)
+                        .toList();
 
-      return ResponseEntity.ok(responses);
+        return ResponseEntity.ok(responses);
     }
 
     @PreAuthorize("hasRole('ADMINISTRATOR')")
@@ -284,28 +285,30 @@ public class BookingController {
     @PreAuthorize("hasAnyRole('RENTER', 'OWNER', 'ADMINISTRATOR')")
     @GetMapping("/car/{carId}")
     public ResponseEntity<List<CarAvailabilityResponse>> getCarBookings(@PathVariable Long carId) {
-      LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
 
-      List<CarAvailabilityResponse> responses = bookingService.getActiveBookingsByCarIdFromToday(carId)
-        .stream()
-        .map(this::toCarAvailabilityResponse)
-        .toList();
+        List<CarAvailabilityResponse> responses =
+                bookingService.getActiveBookingsByCarIdFromToday(carId).stream()
+                        .map(this::toCarAvailabilityResponse)
+                        .toList();
 
-      return ResponseEntity.ok(responses);
+        return ResponseEntity.ok(responses);
     }
 
-    private CarAvailabilityResponse toCarAvailabilityResponse(Booking booking){
-      return new CarAvailabilityResponse(booking.getStartDate(), booking.getEndDate());
+    private CarAvailabilityResponse toCarAvailabilityResponse(Booking booking) {
+        return new CarAvailabilityResponse(booking.getStartDate(), booking.getEndDate());
     }
 
-  @PreAuthorize("hasAnyRole('RENTER', 'ADMINISTRATOR')")
-  @GetMapping("/cars/available")
-  public ResponseEntity<List<Long>> getAvailableCars(
-    @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-    @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+    @PreAuthorize("hasAnyRole('RENTER', 'ADMINISTRATOR')")
+    @GetMapping("/cars/available")
+    public ResponseEntity<List<Long>> getAvailableCars(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+                    LocalDateTime startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+                    LocalDateTime endDate) {
 
-    List<Long> availableCarIds = bookingService.getAvailableCarIds(startDate, endDate);
+        List<Long> availableCarIds = bookingService.getAvailableCarIds(startDate, endDate);
 
-    return ResponseEntity.ok(availableCarIds);
-  }
+        return ResponseEntity.ok(availableCarIds);
+    }
 }

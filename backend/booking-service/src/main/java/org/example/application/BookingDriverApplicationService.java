@@ -2,7 +2,6 @@ package org.example.application;
 
 import java.util.List;
 
-import lombok.extern.slf4j.Slf4j;
 import org.example.domain.BookingDriver;
 import org.example.domain.BookingDriverStatus;
 import org.example.repository.BookingDriverRepository;
@@ -10,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
@@ -101,13 +101,11 @@ public class BookingDriverApplicationService {
 
     @Transactional(readOnly = true)
     public List<BookingDriver> getActiveDriversByBookingId(Long bookingId) {
-      log.info("Fetching active (PENDING/ACCEPTED) drivers for booking id={}", bookingId);
+        log.info("Fetching active (PENDING/ACCEPTED) drivers for booking id={}", bookingId);
 
-      List<BookingDriverStatus> activeStatuses = List.of(
-        BookingDriverStatus.PENDING,
-        BookingDriverStatus.ACCEPTED
-      );
+        List<BookingDriverStatus> activeStatuses =
+                List.of(BookingDriverStatus.PENDING, BookingDriverStatus.ACCEPTED);
 
-      return bookingDriverRepository.findAllByBookingIdAndStatusIn(bookingId, activeStatuses);
+        return bookingDriverRepository.findAllByBookingIdAndStatusIn(bookingId, activeStatuses);
     }
 }
