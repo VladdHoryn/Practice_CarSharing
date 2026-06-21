@@ -211,4 +211,17 @@ public class BookingApplicationService {
 
         return allCarIds.stream().filter(carId -> !bookedCarIdsSet.contains(carId)).toList();
     }
+
+    public List<Booking> getBookingsByOwnerId(Long ownerId) {
+      log.info("Fetching all bookings for cars owned by ownerId={}", ownerId);
+
+      List<Long> carIds = getCarIdsByOwner(ownerId);
+
+      if (carIds.isEmpty()) {
+        log.debug("Owner id={} has no cars or cars not found", ownerId);
+        return Collections.emptyList();
+      }
+
+      return bookingRepository.findAllByCarIdInOrderByCreatedAtDesc(carIds);
+    }
 }

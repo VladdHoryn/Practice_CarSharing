@@ -109,4 +109,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                     + "AND b.endDate > :startDate")
     List<Long> findBookedCarIdsForPeriod(
             @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+
+  List<Booking> findAllByCarIdInOrderByCreatedAtDesc(List<Long> carIds);
 }
