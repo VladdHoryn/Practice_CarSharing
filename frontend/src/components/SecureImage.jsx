@@ -30,7 +30,6 @@ const SecureImage = ({ src, alt, className, style }) => {
                   setLoading(true);
                   const response = await apiClient.get(src, { responseType: 'blob' });
 
-
                   const blob = response.data;
                   if (!blob || blob.size === 0 || !blob.type.startsWith('image/')) {
                       throw new Error("Бекенд повернув порожній потік або помилку замість фотографії");
