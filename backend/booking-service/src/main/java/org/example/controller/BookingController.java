@@ -24,11 +24,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/booking/v1")
 @RequiredArgsConstructor
+@Tag(name = "Bookings", description = "Booking management and analytics endpoints")
+@SecurityRequirement(name = "bearerAuth")
 public class BookingController {
     private final BookingApplicationService bookingService;
     private final BookingDriverApplicationService bookingDriverService;
@@ -73,6 +80,12 @@ public class BookingController {
                 bookingDriver.getUpdatedAt());
     }
 
+    @Operation(summary = "Create booking", description = "Creates a new booking. Accessible by RENTER or ADMINISTRATOR.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Booking created"),
+        @ApiResponse(responseCode = "400", description = "Car already booked for selected dates"),
+        @ApiResponse(responseCode = "403", description = "Access denied")
+    })
     @PreAuthorize("hasAnyRole('RENTER', 'ADMINISTRATOR')")
     @PostMapping
     public ResponseEntity<BookingResponse> createBooking(
@@ -90,11 +103,21 @@ public class BookingController {
                 .body(toResponse(booking));
     }
 
+    @Operation(summary = "Get booking by ID")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Booking found"),
+        @ApiResponse(responseCode = "400", description = "Booking not found")
+    })
     @GetMapping("/{id}")
     public ResponseEntity<BookingResponse> getBookingById(@PathVariable Long id) {
         return ResponseEntity.ok(toResponse(bookingService.getBookingById(id)));
     }
 
+    @Operation(summary = "Get all bookings", description = "Returns all bookings. Accessible by ADMINISTRATOR only.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "List of bookings returned"),
+        @ApiResponse(responseCode = "403", description = "Access denied")
+    })
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     @GetMapping
     public ResponseEntity<List<BookingResponse>> getAllBookings() {
@@ -102,6 +125,8 @@ public class BookingController {
                 bookingService.getAllBookings().stream().map(this::toResponse).toList());
     }
 
+    @Operation(summary = "Get bookings by user ID", description = "Returns all bookings for the specified user. Accessible by RENTER or ADMINISTRATOR.")
+    @ApiResponse(responseCode = "200", description = "User bookings returned")
     @PreAuthorize("hasAnyRole('RENTER', 'ADMINISTRATOR')")
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<BookingResponse>> getUserBookings(@PathVariable Long userId) {
@@ -109,12 +134,23 @@ public class BookingController {
                 bookingService.getUserBookings(userId).stream().map(this::toResponse).toList());
     }
 
+    @Operation(summary = "Cancel booking", description = "Cancels the booking if within the cancellation deadline. Accessible by RENTER.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Booking cancelled"),
+        @ApiResponse(responseCode = "400", description = "Cancellation not allowed"),
+        @ApiResponse(responseCode = "403", description = "Access denied")
+    })
     @PreAuthorize("hasAnyRole('RENTER')")
     @PostMapping("/{id}/cancel")
     public ResponseEntity<BookingResponse> cancelBooking(@PathVariable Long id) {
         return ResponseEntity.ok(toResponse(bookingService.cancelBooking(id)));
     }
 
+    @Operation(summary = "Change booking status", description = "Changes the status of a booking. Accessible by ADMINISTRATOR only.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Status changed"),
+        @ApiResponse(responseCode = "403", description = "Access denied")
+    })
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PostMapping("/{id}/status/change")
     public ResponseEntity<Void> changeBookingStatus(
@@ -124,6 +160,12 @@ public class BookingController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Delete booking", description = "Deletes a finished booking. Accessible by ADMINISTRATOR only.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Booking deleted"),
+        @ApiResponse(responseCode = "400", description = "Cannot delete active booking"),
+        @ApiResponse(responseCode = "403", description = "Access denied")
+    })
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBooking(@PathVariable Long id) {
@@ -131,6 +173,8 @@ public class BookingController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Get bookings by owner", description = "Returns all bookings for cars owned by the specified owner. Accessible by OWNER or ADMINISTRATOR.")
+    @ApiResponse(responseCode = "200", description = "Owner bookings returned")
     @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
     @GetMapping("/owners/{ownerId}/bookings")
     public ResponseEntity<List<BookingForOwner>> getBookingsByOwner(@PathVariable Long ownerId) {
@@ -143,12 +187,16 @@ public class BookingController {
         return ResponseEntity.ok(responses);
     }
 
+    @Operation(summary = "Count bookings by owner")
+    @ApiResponse(responseCode = "200", description = "Count returned")
     @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
     @GetMapping("/analytics/owners/{ownerId}/bookings")
     public ResponseEntity<Long> countBookingsByOwnerId(@PathVariable Long ownerId) {
         return ResponseEntity.ok(bookingService.countBookingsByOwnerId(ownerId));
     }
 
+    @Operation(summary = "Count completed bookings by owner")
+    @ApiResponse(responseCode = "200", description = "Count returned")
     @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
     @GetMapping("/analytics/owners/{ownerId}/bookings/whole")
     public ResponseEntity<Long> countCompletedBookingsByOwnerId(
@@ -156,6 +204,8 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.countCompletedBookingsByOwnerId(ownerId, status));
     }
 
+    @Operation(summary = "Get total revenue by owner")
+    @ApiResponse(responseCode = "200", description = "Total revenue returned")
     @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
     @GetMapping("/analytics/owners/{ownerId}/revenue")
     public ResponseEntity<BigDecimal> sumTotalPriceByOwnerIdAndStatus(
@@ -163,6 +213,8 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.sumTotalPriceByOwnerIdAndStatus(ownerId, status));
     }
 
+    @Operation(summary = "Get monthly revenue by owner")
+    @ApiResponse(responseCode = "200", description = "Monthly revenue data returned")
     @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
     @GetMapping("/analytics/owners/{ownerId}/revenue/year")
     public ResponseEntity<List<Object[]>> findMonthlyRevenueByOwnerId(
@@ -174,6 +226,8 @@ public class BookingController {
                 bookingService.findMonthlyRevenueByOwnerId(ownerId, status, startDate));
     }
 
+    @Operation(summary = "Get weekly load by owner")
+    @ApiResponse(responseCode = "200", description = "Weekly load data returned")
     @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
     @GetMapping("/analytics/owners/{ownerId}/load/week")
     public ResponseEntity<List<Object[]>> countBookedCarsByDayForOwner(
@@ -188,6 +242,12 @@ public class BookingController {
                         ownerId, activeStatuses, startDate, endDate));
     }
 
+    @Operation(summary = "Invite additional driver", description = "Sends an invitation to add an additional driver to the booking. Accessible by RENTER.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Invitation created"),
+        @ApiResponse(responseCode = "400", description = "User not found or max drivers reached"),
+        @ApiResponse(responseCode = "403", description = "Access denied")
+    })
     @PreAuthorize("hasAnyRole('RENTER')")
     @PostMapping("/{bookingId}/drivers")
     public ResponseEntity<BookingDriverResponse> createInvitation(
@@ -215,6 +275,11 @@ public class BookingController {
                 .body(this.bookingDriverToResponse(bookingDriver));
     }
 
+    @Operation(summary = "Accept driver invitation", description = "Accepts a pending driver invitation. Accessible by RENTER.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Invitation accepted"),
+        @ApiResponse(responseCode = "400", description = "Invitation already processed or not found")
+    })
     @PreAuthorize("hasAnyRole('RENTER')")
     @PostMapping("/drivers/{invitationId}/accept")
     public ResponseEntity<BookingDriverResponse> acceptInvitation(@PathVariable Long invitationId) {
@@ -223,6 +288,11 @@ public class BookingController {
                 bookingDriverToResponse(bookingDriverService.acceptInvitation(invitationId)));
     }
 
+    @Operation(summary = "Decline driver invitation", description = "Declines a pending driver invitation. Accessible by RENTER.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Invitation declined"),
+        @ApiResponse(responseCode = "400", description = "Invitation already processed or not found")
+    })
     @PreAuthorize("hasAnyRole('RENTER')")
     @PostMapping("/drivers/{invitationId}/decline")
     public ResponseEntity<BookingDriverResponse> declineInvitation(
@@ -232,6 +302,8 @@ public class BookingController {
                 bookingDriverToResponse(bookingDriverService.declineInvitation(invitationId)));
     }
 
+    @Operation(summary = "Get driver invitations by user ID")
+    @ApiResponse(responseCode = "200", description = "Invitations returned")
     @GetMapping("/drivers/{userId}")
     public ResponseEntity<List<BookingDriverResponse>> getInvitationsByUserId(
             @PathVariable Long userId) {
@@ -242,6 +314,8 @@ public class BookingController {
                         .toList());
     }
 
+    @Operation(summary = "Get all driver invitations")
+    @ApiResponse(responseCode = "200", description = "All invitations returned")
     @GetMapping("/drivers")
     public ResponseEntity<List<BookingDriverResponse>> getAllInvitations() {
         return ResponseEntity.ok(
@@ -250,6 +324,8 @@ public class BookingController {
                         .toList());
     }
 
+    @Operation(summary = "Get active drivers for booking", description = "Returns accepted/pending drivers for a specific booking.")
+    @ApiResponse(responseCode = "200", description = "Active drivers returned")
     @PreAuthorize("hasAnyRole('RENTER', 'OWNER', 'ADMINISTRATOR')")
     @GetMapping("/drivers/{bookingId}/active")
     public ResponseEntity<List<BookingDriverResponse>> getActiveDriversForBooking(
@@ -263,6 +339,8 @@ public class BookingController {
         return ResponseEntity.ok(responses);
     }
 
+    @Operation(summary = "Count bookings by statuses (admin)")
+    @ApiResponse(responseCode = "200", description = "Count returned")
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     @GetMapping("/analytics/admin/bookings/count")
     public ResponseEntity<Long> countBookingsByStatuses(
@@ -270,6 +348,8 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.countBookingsByStatuses(statuses));
     }
 
+    @Operation(summary = "Get revenue for period (admin)")
+    @ApiResponse(responseCode = "200", description = "Revenue returned")
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     @GetMapping("/analytics/admin/revenue/period")
     public ResponseEntity<BigDecimal> sumLastMonthRevenue(
@@ -279,6 +359,8 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.sumLastMonthRevenue(status, startDate));
     }
 
+    @Operation(summary = "Count upcoming bookings (admin)")
+    @ApiResponse(responseCode = "200", description = "Count returned")
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     @GetMapping("/analytics/admin/bookings/upcoming")
     public ResponseEntity<Long> countUpcomingBookings(
@@ -291,6 +373,8 @@ public class BookingController {
                 bookingService.countUpcomingBookings(activeStatuses, startDate, endDate));
     }
 
+    @Operation(summary = "Get monthly revenue (admin)")
+    @ApiResponse(responseCode = "200", description = "Monthly revenue data returned")
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     @GetMapping("/analytics/admin/revenue/monthly")
     public ResponseEntity<List<Object[]>> findMonthlyRevenue(
@@ -300,6 +384,8 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.findMonthlyRevenue(status, startDate));
     }
 
+    @Operation(summary = "Get bookings by day of week (admin)")
+    @ApiResponse(responseCode = "200", description = "Load data returned")
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     @GetMapping("/analytics/admin/load/day-of-week")
     public ResponseEntity<List<Object[]>> countBookingsByDayOfWeek(
@@ -307,6 +393,8 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.countBookingsByDayOfWeek(activeStatuses));
     }
 
+    @Operation(summary = "Get car availability", description = "Returns active bookings for a car from today onwards.")
+    @ApiResponse(responseCode = "200", description = "Car booking dates returned")
     @PreAuthorize("hasAnyRole('RENTER', 'OWNER', 'ADMINISTRATOR')")
     @GetMapping("/car/{carId}")
     public ResponseEntity<List<CarAvailabilityResponse>> getCarBookings(@PathVariable Long carId) {
@@ -324,6 +412,8 @@ public class BookingController {
         return new CarAvailabilityResponse(booking.getStartDate(), booking.getEndDate());
     }
 
+    @Operation(summary = "Get available car IDs", description = "Returns IDs of cars with no bookings in the given date range.")
+    @ApiResponse(responseCode = "200", description = "Available car IDs returned")
     @PreAuthorize("hasAnyRole('RENTER', 'ADMINISTRATOR')")
     @GetMapping("/cars/available")
     public ResponseEntity<List<Long>> getAvailableCars(
