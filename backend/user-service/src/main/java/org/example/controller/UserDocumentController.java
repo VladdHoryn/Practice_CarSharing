@@ -27,13 +27,8 @@ public class UserDocumentController {
 
   private final UserDocumentApplicationService documentService;
 
-  /**
-   * Завантаження нового документа. Використовує form-data.
-   */
-  // Якщо ти ідентифікуєш користувача через Keycloak ID, тут можна змінити Long userId на String keycloakId
-  // і шукати внутрішній ID всередині сервісу (як у твоєму UserController).
   @PostMapping(value = "/user/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('RENTER')") // Налаштуй під свої політики
+  @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('RENTER')")
   public ResponseEntity<UserDocumentResponse> uploadDocument(
     @PathVariable Long userId,
     @RequestParam("documentType") DocumentType documentType,
@@ -53,9 +48,6 @@ public class UserDocumentController {
     }
   }
 
-  /**
-   * Отримання списку завантажених документів (лише метадані, без самих файлів).
-   */
   @GetMapping("/user/{userId}")
   @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('RENTER')")
   public ResponseEntity<List<UserDocumentResponse>> getUserDocumentsInfo(@PathVariable Long userId) {
@@ -67,10 +59,6 @@ public class UserDocumentController {
     return ResponseEntity.ok(responses);
   }
 
-  /**
-   * Завантаження самого файлу (Download).
-   * Повертає байти файлу з відповідними заголовками для відображення в браузері/завантаження.
-   */
   @GetMapping("/{documentId}/download")
   @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('RENTER')")
   public ResponseEntity<byte[]> downloadDocument(@PathVariable Long documentId) {
@@ -82,9 +70,6 @@ public class UserDocumentController {
       .body(document.getFileData());
   }
 
-  /**
-   * Перевірка: чи всі необхідні документи присутні та верифіковані.
-   */
   @GetMapping("/user/{userId}/status")
   @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('RENTER')")
   public ResponseEntity<Boolean> checkAllDocumentsVerified(@PathVariable Long userId) {
@@ -92,9 +77,6 @@ public class UserDocumentController {
     return ResponseEntity.ok(status);
   }
 
-  /**
-   * Адміністративна дія: верифікація конкретного документа.
-   */
   @PatchMapping("/{documentId}/verify")
   @PreAuthorize("hasRole('ADMINISTRATOR')")
   public ResponseEntity<Void> verifyDocument(@PathVariable Long documentId) {
@@ -102,7 +84,6 @@ public class UserDocumentController {
     return ResponseEntity.noContent().build();
   }
 
-  // Допоміжний метод-мапер (у реальному проєкті це часто роблять через MapStruct)
   private UserDocumentResponse mapToResponse(UserDocument document) {
     return UserDocumentResponse.builder()
       .id(document.getId())
