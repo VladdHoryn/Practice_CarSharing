@@ -84,6 +84,11 @@ public class CarController {
         return ResponseEntity.ok(carService.getAllCars().stream().map(this::toResponse).toList());
     }
 
+    @GetMapping("/ids")
+    public ResponseEntity<List<Long>> getAllCarIds() {
+        return ResponseEntity.ok(carService.getAllCars().stream().map(car -> car.getId()).toList());
+    }
+
     @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
     @GetMapping("/unconfirmed")
     public ResponseEntity<List<CarResponse>> getAllUnconfirmedCars() {

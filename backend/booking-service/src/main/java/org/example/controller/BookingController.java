@@ -48,6 +48,19 @@ public class BookingController {
                 booking.getUpdatedAt());
     }
 
+    private BookingForOwner toResponseForOwner(Booking booking) {
+        return new BookingForOwner(
+                booking.getId(),
+                booking.getCarId(),
+                booking.getStartDate(),
+                booking.getEndDate(),
+                booking.getStatus(),
+                booking.getTotalPrice(),
+                booking.getCancelDeadline(),
+                booking.getCreatedAt(),
+                booking.getUpdatedAt());
+    }
+
     private BookingDriverResponse bookingDriverToResponse(BookingDriver bookingDriver) {
         return new BookingDriverResponse(
                 bookingDriver.getId(),
@@ -116,6 +129,18 @@ public class BookingController {
     public ResponseEntity<Void> deleteBooking(@PathVariable Long id) {
         bookingService.deleteBooking(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
+    @GetMapping("/owners/{ownerId}/bookings")
+    public ResponseEntity<List<BookingForOwner>> getBookingsByOwner(@PathVariable Long ownerId) {
+
+        List<BookingForOwner> responses =
+                bookingService.getBookingsByOwnerId(ownerId).stream()
+                        .map(this::toResponseForOwner)
+                        .toList();
+
+        return ResponseEntity.ok(responses);
     }
 
     @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
@@ -225,6 +250,19 @@ public class BookingController {
                         .toList());
     }
 
+    @PreAuthorize("hasAnyRole('RENTER', 'OWNER', 'ADMINISTRATOR')")
+    @GetMapping("/drivers/{bookingId}/active")
+    public ResponseEntity<List<BookingDriverResponse>> getActiveDriversForBooking(
+            @PathVariable Long bookingId) {
+
+        List<BookingDriverResponse> responses =
+                bookingDriverService.getActiveDriversByBookingId(bookingId).stream()
+                        .map(this::bookingDriverToResponse)
+                        .toList();
+
+        return ResponseEntity.ok(responses);
+    }
+
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     @GetMapping("/analytics/admin/bookings/count")
     public ResponseEntity<Long> countBookingsByStatuses(
@@ -267,5 +305,35 @@ public class BookingController {
     public ResponseEntity<List<Object[]>> countBookingsByDayOfWeek(
             @RequestParam List<BookingStatus> activeStatuses) {
         return ResponseEntity.ok(bookingService.countBookingsByDayOfWeek(activeStatuses));
+    }
+
+    @PreAuthorize("hasAnyRole('RENTER', 'OWNER', 'ADMINISTRATOR')")
+    @GetMapping("/car/{carId}")
+    public ResponseEntity<List<CarAvailabilityResponse>> getCarBookings(@PathVariable Long carId) {
+        LocalDateTime now = LocalDateTime.now();
+
+        List<CarAvailabilityResponse> responses =
+                bookingService.getActiveBookingsByCarIdFromToday(carId).stream()
+                        .map(this::toCarAvailabilityResponse)
+                        .toList();
+
+        return ResponseEntity.ok(responses);
+    }
+
+    private CarAvailabilityResponse toCarAvailabilityResponse(Booking booking) {
+        return new CarAvailabilityResponse(booking.getStartDate(), booking.getEndDate());
+    }
+
+    @PreAuthorize("hasAnyRole('RENTER', 'ADMINISTRATOR')")
+    @GetMapping("/cars/available")
+    public ResponseEntity<List<Long>> getAvailableCars(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+                    LocalDateTime startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+                    LocalDateTime endDate) {
+
+        List<Long> availableCarIds = bookingService.getAvailableCarIds(startDate, endDate);
+
+        return ResponseEntity.ok(availableCarIds);
     }
 }

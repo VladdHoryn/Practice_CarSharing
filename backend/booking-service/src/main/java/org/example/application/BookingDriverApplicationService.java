@@ -9,10 +9,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class BookingDriverApplicationService {
 
     private static final int MAX_ADDITIONAL_DRIVERS = 2;
@@ -95,5 +97,15 @@ public class BookingDriverApplicationService {
     @Transactional(readOnly = true)
     public List<BookingDriver> getAll() {
         return bookingDriverRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public List<BookingDriver> getActiveDriversByBookingId(Long bookingId) {
+        log.info("Fetching active (PENDING/ACCEPTED) drivers for booking id={}", bookingId);
+
+        List<BookingDriverStatus> activeStatuses =
+                List.of(BookingDriverStatus.PENDING, BookingDriverStatus.ACCEPTED);
+
+        return bookingDriverRepository.findAllByBookingIdAndStatusIn(bookingId, activeStatuses);
     }
 }

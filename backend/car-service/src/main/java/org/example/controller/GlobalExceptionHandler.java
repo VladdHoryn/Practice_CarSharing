@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.example.dto.ErrorResponse;
+import org.example.exception.ImageNotProvidedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -26,10 +27,14 @@ public class GlobalExceptionHandler {
                 ex.getMessage(),
                 request.getRequestURI());
     }
-
-    @ExceptionHandler(IllegalArgumentException.class)
+  
+    @ExceptionHandler({
+        IllegalArgumentException.class,
+        ImageNotProvidedException.class,
+        RuntimeException.class
+    })
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleBadRequest(IllegalArgumentException ex, HttpServletRequest request) {
+    public ErrorResponse handleBadRequest(RuntimeException ex, HttpServletRequest request) {
 
         return new ErrorResponse(
                 LocalDateTime.now(),
