@@ -19,4 +19,5 @@ public class UserResponse {
     private Boolean isActive;
     private LocalDate createdAt;
     private LocalDateTime updatedAt;
+    private String driverCode;
 }
