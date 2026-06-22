@@ -66,5 +66,10 @@ export const bookingService = {
             params: { startDate, endDate }
         });
         return response.data; // Повертає масив ID: [1, 3, 5]
+    },
+
+    getActiveCoDriversByBookingId: async (bookingId) => {
+        const response = await apiClient.get(`/booking/v1/drivers/${bookingId}/active`);
+        return response.data;
     }
 };

@@ -201,14 +201,21 @@ const BookingPage = () => {
                 throw new Error(`Оплату не виконано. Бронювання скасовано.`);
             }
 
-            if (coDrivers.length > 0) {
-                await Promise.all(coDrivers.map(driver =>
-                    bookingService.createInvitation(createdBookingId, {
-                        email: driver.email,
-                        driverCode: driver.driverCode
-                    })
-                ));
-            }
+           if (coDrivers.length > 0) {
+               try {
+                   await Promise.all(coDrivers.map(driver =>
+                       bookingService.createInvitation(createdBookingId, {
+                           email: driver.email,
+                           driverCode: driver.driverCode
+                       })
+                   ));
+                   toast.success('Запрошення для співводіїв успішно розіслані! ✉️');
+               } catch (inviteErr) {
+                   console.error("Помилка відправки запрошень:", inviteErr);
+                   // Замість падіння всього додатка просто виводимо попередження
+                   toast.warning("Оплата успішна, але сталася помилка надсилання інвайтів. Перевірте коди водіїв.");
+               }
+           }
 
             toast.success('Бронювання та оплата успішні! 🚗💳');
             setShowPaymentModal(false);

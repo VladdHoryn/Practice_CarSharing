@@ -6,6 +6,7 @@ import { userService } from '../services/user.service';
 import { bookingService } from '../services/booking.service';
 import { carService } from '../services/car.service';
 import { toast } from 'react-toastify';
+import SecureImage from '../components/SecureImage';
 
 const Icons = {
     order: <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>,
@@ -40,6 +41,10 @@ const UserProfilePage = () => {
     const [carForm, setCarForm] = useState({ brand: '', model: '', year: 2026, carClass: 'ECONOMY', pricePerDay: '', imageUrl: '' });
     const [profileForm, setProfileForm] = useState({ firstName: '', lastName: '' });
 
+    const [expandedBookingId, setExpandedBookingId] = useState(null);
+    const [bookingCoDrivers, setBookingCoDrivers] = useState([]);
+    const [coDriversLoading, setCoDriversLoading] = useState(false);
+
     const renterMenu = [
         { id: 'order', label: 'Замовити авто', icon: Icons.order },
         { id: 'history', label: 'Історія замовлень', icon: Icons.history },
@@ -67,11 +72,7 @@ const UserProfilePage = () => {
                     const nameParts = realUserData.fullName ? realUserData.fullName.split(' ') : [''];
                     const fName = nameParts[0] || '';
                     const lName = nameParts.slice(1).join(' ') || '';
-                    const serverCode = realUserData.driverCode || realUserData.driver_code;
-                    let fallbackCode = `RNT${parsedUser.dbId || 4}PL91ZX`;
-                    if (Number(parsedUser.dbId) === 4 || parsedUser.email?.includes('renter1')) {
-                        fallbackCode = 'RNT2GH68JK';
-                    }
+
 
                     setUser({
                         id: parsedUser.id,
@@ -79,7 +80,8 @@ const UserProfilePage = () => {
                         lastName: lName,
                         email: realUserData.email || parsedUser.email,
                         role: parsedUser.role,
-                        driverCode: serverCode && serverCode.trim() !== "" ? serverCode : fallbackCode
+                        // Беремо реальний код з бази даних без жодних штучних генерацій на фронті
+                        driverCode: realUserData.driverCode || realUserData.driver_code || 'Генерується...'
                     });
                     setProfileForm({
                         firstName: fName,
@@ -94,7 +96,8 @@ const UserProfilePage = () => {
                         lastName: nameParts.slice(1).join(' ') || '',
                         email: parsedUser.email,
                         role: parsedUser.role,
-                        driverCode: Number(parsedUser.dbId) === 4 ? 'RNT2GH68JK' : 'RNT4PL91ZX'
+
+                        driverCode: parsedUser.driverCode || 'Немає зв\'язку'
                     });
                     setProfileForm({
                         firstName: nameParts[0] || '',
@@ -157,8 +160,13 @@ const UserProfilePage = () => {
                     return { ...booking, carName: `Транспорт #${booking.carId}` };
                 }
             }));
+        const uniqueBookings = enriched.filter((value, index, self) =>
+            self.findIndex(b => b.id === value.id) === index
+        );
 
-            setBookings(enriched.sort((a, b) => b.id - a.id));
+        setBookings(uniqueBookings.sort((a, b) => b.id - a.id));
+
+
         } catch (err) {
             console.error("Помилка побудови історії:", err);
         }
@@ -199,9 +207,6 @@ const UserProfilePage = () => {
             bookingService.getInvitationsByUserId(parsedUser.dbId)
                 .then(data => {
                     setIncomingInvites(data.filter(i => i.status === 'PENDING'));
-                    if (data.length > 0 && data[0].driverCode) {
-                        setUser(prev => ({ ...prev, driverCode: data[0].driverCode }));
-                    }
                 })
                 .catch(err => console.error(err));
         }
@@ -244,6 +249,25 @@ const UserProfilePage = () => {
             setShowInviteModal(false);
         } catch (err) {
             toast.error(err.response?.data?.message || 'Помилка (Макс. 2 активних запити за раз)');
+        }
+    };
+    const toggleCoDriversDropdown = async (bookingId) => {
+        if (expandedBookingId === bookingId) {
+            setExpandedBookingId(null);
+            setBookingCoDrivers([]);
+            return;
+        }
+
+        try {
+            setCoDriversLoading(true);
+            setExpandedBookingId(bookingId);
+            const drivers = await bookingService.getActiveCoDriversByBookingId(bookingId);
+            setBookingCoDrivers(drivers || []);
+        } catch (err) {
+            console.error("Помилка завантаження статусів співводіїв:", err);
+            toast.error("Не вдалося завантажити статуси додаткових водіїв.");
+        } finally {
+            setCoDriversLoading(false);
         }
     };
 
@@ -353,7 +377,13 @@ const UserProfilePage = () => {
                         {ownerCars.length > 0 ? (
                             ownerCars.map(car => (
                                 <tr key={car.id}>
-                                    <td>{car.imageUrl ? <img src={car.imageUrl} alt="car" className={styles.carThumb} style={{width: '60px', height: '40px', objectFit: 'cover', borderRadius: '4px'}}/> : <div style={{width: '60px', height: '40px', backgroundColor: '#eee', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px'}}>Фото</div>}</td>
+                                    <td>
+                                        <SecureImage
+                                            src={`/car/v1/${car.id}/images/main`}
+                                            alt={`${car.brand} ${car.model}`}
+                                            style={{ width: '60px', height: '40px', borderRadius: '4px' }}
+                                        />
+                                    </td>
                                     <td><strong>{car.brand} {car.model}</strong></td><td>{car.year}</td><td>{car.carClass}</td><td><span style={{color: '#f39c12', fontWeight: 'bold'}}>{car.status || 'UNCONFIRMED'}</span></td><td>{car.pricePerDay}€</td>
                                     <td><div className={styles.actionsWrapper}><span style={{color: '#3ba4f6', cursor:'pointer', marginRight: '10px'}} onClick={() => openEditCarModal(car)}>Редаг.</span><span style={{color: '#dc3545', cursor:'pointer'}} onClick={() => deleteCar(car.id)}>Видалити</span></div></td>
                                 </tr>
@@ -433,29 +463,99 @@ const UserProfilePage = () => {
                         <tbody>
                         {bookings.length > 0 ? (
                             bookings.map(order => (
-                                <tr key={order.id}>
-                                    <td>#{order.id}</td>
-                                    <td>
-                                        {order.isCoDriver ?
-                                            <span style={{backgroundColor: '#e2f1fe', color: '#0056b3', padding: '3px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold'}}>Співводій</span>
-                                            : <span style={{color: '#666', fontSize: '11px'}}>Основний</span>
-                                        }
-                                    </td>
-                                    <td><strong>{order.carName}</strong></td>
-                                    <td>{order.startDate.split('T')[0]} — {order.endDate.split('T')[0]}</td>
-                                    <td><strong>{order.totalPrice}€</strong></td>
-                                    <td><span className={styles.statusBadge}>{order.status}</span></td>
-                                    <td>
-                                        {!order.isCoDriver && (order.status === 'CREATED' || order.status === 'CONFIRMED') && (
-                                            <button onClick={() => handleOpenInviteModal(order.id)} style={{ padding: '4px 8px', backgroundColor: '#0056b3', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>
-                                                + Водій
+                                <React.Fragment key={order.id}>
+                                    <tr>
+                                        <td>#{order.id}</td>
+                                        <td>
+                                            {order.isCoDriver ?
+                                                <span style={{backgroundColor: '#e2f1fe', color: '#0056b3', padding: '3px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold'}}>Співводій</span>
+                                                : <span style={{color: '#666', fontSize: '11px'}}>Основний</span>
+                                            }
+                                        </td>
+                                        <td><strong>{order.carName}</strong></td>
+                                        <td>{order.startDate.split('T')[0]} — {order.endDate.split('T')[0]}</td>
+                                        <td><strong>{order.totalPrice}€</strong></td>
+                                        <td><span className={styles.statusBadge}>{order.status}</span></td>
+                                        <td>
+                                            {!order.isCoDriver && (order.status === 'CREATED' || order.status === 'CONFIRMED') && (
+                                                <button onClick={() => handleOpenInviteModal(order.id)} style={{ padding: '4px 8px', backgroundColor: '#0056b3', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>
+                                                    + Водій
+                                                </button>
+                                            )}
+
+
+                                            <button
+                                                type="button"
+                                                onClick={() => toggleCoDriversDropdown(order.id)}
+                                                style={{ padding: '4px 8px', backgroundColor: '#6c757d', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', marginLeft: '6px' }}
+                                            >
+                                                {expandedBookingId === order.id ? '🔼 Сховати' : '👥 Водії'}
                                             </button>
-                                        )}
-                                        {!order.isCoDriver && (order.status === 'CREATED' || order.status === 'PENDING') && (
-                                            <span style={{color: '#dc3545', cursor:'pointer', fontWeight: 'bold', marginLeft: '10px'}} onClick={() => cancelBooking(order.id)}>Скасувати</span>
-                                        )}
-                                    </td>
-                                </tr>
+
+                                            {!order.isCoDriver && (order.status === 'CREATED' || order.status === 'PENDING') && (
+                                                <span style={{color: '#dc3545', cursor:'pointer', fontWeight: 'bold', marginLeft: '10px'}} onClick={() => cancelBooking(order.id)}>Скасувати</span>
+                                            )}
+                                        </td>
+                                    </tr>
+
+
+
+                                    {expandedBookingId === order.id && (
+                                        <tr style={{ backgroundColor: '#fdfdfd' }}>
+                                            <td colSpan="7" style={{ padding: '12px 20px', borderTop: 'none', borderBottom: '1px solid #dee2e6' }}>
+                                                <div style={{ fontSize: '13px', color: '#333' }}>
+                                                    <div style={{ fontWeight: 'bold', color: '#0056b3', marginBottom: '8px' }}>👥 Учасники цієї сесії оренди:</div>
+
+
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px', background: '#f8f9fa', padding: '8px 12px', borderRadius: '6px', border: '1px solid #e3e6f0', width: 'fit-content', minWidth: '450px', marginBottom: '8px' }}>
+                                                        <span>🔑 <strong>Основний водій (Орендатор):</strong></span>
+                                                        <span style={{ fontSize: '12px', color: '#666' }}>ID Користувача: #{order.userId} {order.isCoDriver ? '' : '(Це ви)'}</span>
+                                                        <span style={{
+                                                            fontSize: '11px',
+                                                            fontWeight: 'bold',
+                                                            padding: '3px 8px',
+                                                            borderRadius: '4px',
+                                                            marginLeft: 'auto',
+                                                            backgroundColor: '#e2f1fe',
+                                                            color: '#0056b3'
+                                                        }}>
+                                                            ОРЕНДАТОР
+                                                        </span>
+                                                    </div>
+
+                                                    {coDriversLoading ? (
+                                                        <div style={{ color: '#666', fontStyle: 'italic' }}>Очікування відповіді від Booking Service... ⏳</div>
+                                                    ) : bookingCoDrivers.length > 0 ? (
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '8px' }}>
+                                                            <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#555', marginBottom: '4px' }}>📋 Допущені співводії:</div>
+                                                            {bookingCoDrivers.map(driver => (
+                                                                <div key={driver.id} style={{ display: 'flex', alignItems: 'center', gap: '15px', background: '#fff', padding: '6px 12px', borderRadius: '6px', border: '1px solid #e3e6f0', width: 'fit-content', minWidth: '450px' }}>
+                                                                    <span style={{ minWidth: '180px' }}>📧 <strong>{driver.email}</strong> {driver.userId === Number(JSON.parse(localStorage.getItem('user'))?.dbId) ? '(Ви)' : ''}</span>
+                                                                    <span style={{ fontSize: '11px', color: '#555', fontFamily: 'monospace', background: '#f1f1f4', padding: '2px 6px', borderRadius: '4px' }}>
+                                                                        Код: {driver.driverCode}
+                                                                    </span>
+                                                                    <span style={{
+                                                                        fontSize: '11px',
+                                                                        fontWeight: 'bold',
+                                                                        padding: '3px 8px',
+                                                                        borderRadius: '4px',
+                                                                        marginLeft: 'auto',
+                                                                        backgroundColor: driver.status === 'ACCEPTED' ? '#d4edda' : (driver.status === 'PENDING' ? '#fff3cd' : '#f8d7da'),
+                                                                        color: driver.status === 'ACCEPTED' ? '#155724' : (driver.status === 'PENDING' ? '#856404' : '#721c24')
+                                                                    }}>
+                                                                        {driver.status}
+                                                                    </span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <div style={{ color: '#777', fontStyle: 'italic', fontSize: '12px', marginTop: '4px' }}>До цієї поїздки ще не додано жодного стороннього водія.</div>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </React.Fragment>
                             ))
                         ) : (<tr><td colSpan="7" className={styles.emptyState}>У вас ще немає замовлень.</td></tr>)}
                         </tbody>
