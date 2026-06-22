@@ -54,20 +54,18 @@ public class CarImageApplicationService {
 
     @Transactional(readOnly = true)
     public List<CarImage> getMainImagesByUserId(Long userId) {
-      log.info("Fetching main images for all cars owned by userId={}", userId);
+        log.info("Fetching main images for all cars owned by userId={}", userId);
 
-      List<Car> userCars = carApplicationService.getCarsByUserId(userId);
+        List<Car> userCars = carApplicationService.getCarsByUserId(userId);
 
-      if (userCars == null || userCars.isEmpty()) {
-        log.debug("User id={} has no cars", userId);
-        return Collections.emptyList();
-      }
+        if (userCars == null || userCars.isEmpty()) {
+            log.debug("User id={} has no cars", userId);
+            return Collections.emptyList();
+        }
 
-      List<Long> carIds = userCars.stream()
-        .map(Car::getId)
-        .toList();
+        List<Long> carIds = userCars.stream().map(Car::getId).toList();
 
-      return carImageRepository.findByCarIdInAndIsMainTrue(carIds);
+        return carImageRepository.findByCarIdInAndIsMainTrue(carIds);
     }
 
     @Transactional(readOnly = true)

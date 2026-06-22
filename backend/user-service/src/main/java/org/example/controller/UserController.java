@@ -27,7 +27,9 @@ import lombok.RequiredArgsConstructor;
 public class UserController {
     private final UserApplicationService userService;
 
-    @Operation(summary = "Register user", description = "Creates a new user in the system and Keycloak. Open endpoint.")
+    @Operation(
+            summary = "Register user",
+            description = "Creates a new user in the system and Keycloak. Open endpoint.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "User created"),
         @ApiResponse(responseCode = "400", description = "Email already exists or invalid data")
@@ -38,7 +40,9 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "Get all users", description = "Returns all registered users. Accessible by ADMINISTRATOR only.")
+    @Operation(
+            summary = "Get all users",
+            description = "Returns all registered users. Accessible by ADMINISTRATOR only.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "List of users returned"),
         @ApiResponse(responseCode = "403", description = "Access denied")
@@ -49,7 +53,9 @@ public class UserController {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
-    @Operation(summary = "Get user by Keycloak ID", description = "Accessible by the user themselves or ADMINISTRATOR.")
+    @Operation(
+            summary = "Get user by Keycloak ID",
+            description = "Accessible by the user themselves or ADMINISTRATOR.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "User found"),
         @ApiResponse(responseCode = "403", description = "Access denied"),
@@ -61,7 +67,10 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserByKeycloakId(keycloakId));
     }
 
-    @Operation(summary = "Update user", description = "Updates user profile. Accessible by the user themselves or ADMINISTRATOR.")
+    @Operation(
+            summary = "Update user",
+            description =
+                    "Updates user profile. Accessible by the user themselves or ADMINISTRATOR.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "User updated"),
         @ApiResponse(responseCode = "403", description = "Access denied"),
@@ -74,7 +83,9 @@ public class UserController {
         return ResponseEntity.ok(userService.updateUser(keycloakId, request));
     }
 
-    @Operation(summary = "Delete user", description = "Deletes a user by Keycloak ID. Accessible by ADMINISTRATOR only.")
+    @Operation(
+            summary = "Delete user",
+            description = "Deletes a user by Keycloak ID. Accessible by ADMINISTRATOR only.")
     @ApiResponses({
         @ApiResponse(responseCode = "204", description = "User deleted"),
         @ApiResponse(responseCode = "403", description = "Access denied")
@@ -86,24 +97,29 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Change user password", description = "Updates user's password in Keycloak. Accessible by the user themselves or ADMINISTRATOR.")
+    @Operation(
+            summary = "Change user password",
+            description =
+                    "Updates user's password in Keycloak. Accessible by the user themselves or ADMINISTRATOR.")
     @ApiResponses({
-      @ApiResponse(responseCode = "204", description = "Password successfully changed"),
-      @ApiResponse(responseCode = "400", description = "Invalid password format"),
-      @ApiResponse(responseCode = "403", description = "Access denied"),
-      @ApiResponse(responseCode = "404", description = "User not found")
+        @ApiResponse(responseCode = "204", description = "Password successfully changed"),
+        @ApiResponse(responseCode = "400", description = "Invalid password format"),
+        @ApiResponse(responseCode = "403", description = "Access denied"),
+        @ApiResponse(responseCode = "404", description = "User not found")
     })
     @PreAuthorize("#keycloakId == authentication.name or hasRole('ADMINISTRATOR')")
     @PutMapping("keycloak/{keycloakId}/password")
     public ResponseEntity<Void> changePassword(
-      @PathVariable String keycloakId,
-      @Valid @RequestBody org.example.dto.PasswordChangeRequest request) {
+            @PathVariable String keycloakId,
+            @Valid @RequestBody org.example.dto.PasswordChangeRequest request) {
 
-      userService.changePassword(keycloakId, request.getNewPassword());
-      return ResponseEntity.noContent().build();
+        userService.changePassword(keycloakId, request.getNewPassword());
+        return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Activate user", description = "Activates a deactivated user account. Accessible by ADMINISTRATOR only.")
+    @Operation(
+            summary = "Activate user",
+            description = "Activates a deactivated user account. Accessible by ADMINISTRATOR only.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "User activated"),
         @ApiResponse(responseCode = "403", description = "Access denied"),
@@ -115,7 +131,9 @@ public class UserController {
         return ResponseEntity.ok(userService.activateUser(keycloakId));
     }
 
-    @Operation(summary = "Deactivate user", description = "Deactivates a user account. Accessible by ADMINISTRATOR only.")
+    @Operation(
+            summary = "Deactivate user",
+            description = "Deactivates a user account. Accessible by ADMINISTRATOR only.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "User deactivated"),
         @ApiResponse(responseCode = "403", description = "Access denied"),
@@ -127,7 +145,10 @@ public class UserController {
         return ResponseEntity.ok(userService.deactivateUser(keycloakId));
     }
 
-    @Operation(summary = "Check user by email and driver code", description = "Returns user ID if a user with the given email and driver code exists. Used internally by booking-service.")
+    @Operation(
+            summary = "Check user by email and driver code",
+            description =
+                    "Returns user ID if a user with the given email and driver code exists. Used internally by booking-service.")
     @ApiResponse(responseCode = "200", description = "User ID returned or empty if not found")
     @GetMapping("/exist/driverCode")
     public Optional<Long> userExistWithEmailAndDriverCode(

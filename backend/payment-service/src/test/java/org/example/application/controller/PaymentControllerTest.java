@@ -41,7 +41,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @WebMvcTest(controllers = PaymentController.class)
 @Import(TestSecurityConfig.class)
-@ImportAutoConfiguration({SecurityAutoConfiguration.class, UserDetailsServiceAutoConfiguration.class}) // Додано
+@ImportAutoConfiguration({
+    SecurityAutoConfiguration.class,
+    UserDetailsServiceAutoConfiguration.class
+}) // Додано
 class PaymentControllerTest {
 
     @MockitoBean private JwtDecoder jwtDecoder;

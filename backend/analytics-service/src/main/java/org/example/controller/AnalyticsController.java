@@ -22,13 +22,18 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/v1/analytics")
 @RequiredArgsConstructor
-@Tag(name = "Analytics", description = "Analytics aggregation endpoints for owners and administrators")
+@Tag(
+        name = "Analytics",
+        description = "Analytics aggregation endpoints for owners and administrators")
 @SecurityRequirement(name = "bearerAuth")
 public class AnalyticsController {
 
     private final AnalyticsAggregatorApplicationService analyticsAggregatorService;
 
-    @Operation(summary = "Get owner analytics summary", description = "Returns aggregated analytics for a specific owner. Accessible by OWNER or ADMINISTRATOR.")
+    @Operation(
+            summary = "Get owner analytics summary",
+            description =
+                    "Returns aggregated analytics for a specific owner. Accessible by OWNER or ADMINISTRATOR.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Analytics summary returned successfully"),
         @ApiResponse(responseCode = "403", description = "Access denied")
@@ -60,9 +65,14 @@ public class AnalyticsController {
         return ResponseEntity.ok(summary);
     }
 
-    @Operation(summary = "Get admin analytics summary", description = "Returns platform-wide aggregated analytics. Accessible by ADMINISTRATOR only.")
+    @Operation(
+            summary = "Get admin analytics summary",
+            description =
+                    "Returns platform-wide aggregated analytics. Accessible by ADMINISTRATOR only.")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Admin analytics summary returned successfully"),
+        @ApiResponse(
+                responseCode = "200",
+                description = "Admin analytics summary returned successfully"),
         @ApiResponse(responseCode = "403", description = "Access denied")
     })
     @PreAuthorize("hasRole('ADMINISTRATOR')")

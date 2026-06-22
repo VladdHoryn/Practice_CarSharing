@@ -80,7 +80,9 @@ public class BookingController {
                 bookingDriver.getUpdatedAt());
     }
 
-    @Operation(summary = "Create booking", description = "Creates a new booking. Accessible by RENTER or ADMINISTRATOR.")
+    @Operation(
+            summary = "Create booking",
+            description = "Creates a new booking. Accessible by RENTER or ADMINISTRATOR.")
     @ApiResponses({
         @ApiResponse(responseCode = "201", description = "Booking created"),
         @ApiResponse(responseCode = "400", description = "Car already booked for selected dates"),
@@ -113,7 +115,9 @@ public class BookingController {
         return ResponseEntity.ok(toResponse(bookingService.getBookingById(id)));
     }
 
-    @Operation(summary = "Get all bookings", description = "Returns all bookings. Accessible by ADMINISTRATOR only.")
+    @Operation(
+            summary = "Get all bookings",
+            description = "Returns all bookings. Accessible by ADMINISTRATOR only.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "List of bookings returned"),
         @ApiResponse(responseCode = "403", description = "Access denied")
@@ -125,7 +129,10 @@ public class BookingController {
                 bookingService.getAllBookings().stream().map(this::toResponse).toList());
     }
 
-    @Operation(summary = "Get bookings by user ID", description = "Returns all bookings for the specified user. Accessible by RENTER or ADMINISTRATOR.")
+    @Operation(
+            summary = "Get bookings by user ID",
+            description =
+                    "Returns all bookings for the specified user. Accessible by RENTER or ADMINISTRATOR.")
     @ApiResponse(responseCode = "200", description = "User bookings returned")
     @PreAuthorize("hasAnyRole('RENTER', 'ADMINISTRATOR')")
     @GetMapping("/user/{userId}")
@@ -134,7 +141,10 @@ public class BookingController {
                 bookingService.getUserBookings(userId).stream().map(this::toResponse).toList());
     }
 
-    @Operation(summary = "Cancel booking", description = "Cancels the booking if within the cancellation deadline. Accessible by RENTER.")
+    @Operation(
+            summary = "Cancel booking",
+            description =
+                    "Cancels the booking if within the cancellation deadline. Accessible by RENTER.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Booking cancelled"),
         @ApiResponse(responseCode = "400", description = "Cancellation not allowed"),
@@ -146,7 +156,9 @@ public class BookingController {
         return ResponseEntity.ok(toResponse(bookingService.cancelBooking(id)));
     }
 
-    @Operation(summary = "Change booking status", description = "Changes the status of a booking. Accessible by ADMINISTRATOR only.")
+    @Operation(
+            summary = "Change booking status",
+            description = "Changes the status of a booking. Accessible by ADMINISTRATOR only.")
     @ApiResponses({
         @ApiResponse(responseCode = "204", description = "Status changed"),
         @ApiResponse(responseCode = "403", description = "Access denied")
@@ -160,7 +172,9 @@ public class BookingController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Delete booking", description = "Deletes a finished booking. Accessible by ADMINISTRATOR only.")
+    @Operation(
+            summary = "Delete booking",
+            description = "Deletes a finished booking. Accessible by ADMINISTRATOR only.")
     @ApiResponses({
         @ApiResponse(responseCode = "204", description = "Booking deleted"),
         @ApiResponse(responseCode = "400", description = "Cannot delete active booking"),
@@ -173,7 +187,10 @@ public class BookingController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Get bookings by owner", description = "Returns all bookings for cars owned by the specified owner. Accessible by OWNER or ADMINISTRATOR.")
+    @Operation(
+            summary = "Get bookings by owner",
+            description =
+                    "Returns all bookings for cars owned by the specified owner. Accessible by OWNER or ADMINISTRATOR.")
     @ApiResponse(responseCode = "200", description = "Owner bookings returned")
     @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
     @GetMapping("/owners/{ownerId}/bookings")
@@ -242,7 +259,10 @@ public class BookingController {
                         ownerId, activeStatuses, startDate, endDate));
     }
 
-    @Operation(summary = "Invite additional driver", description = "Sends an invitation to add an additional driver to the booking. Accessible by RENTER.")
+    @Operation(
+            summary = "Invite additional driver",
+            description =
+                    "Sends an invitation to add an additional driver to the booking. Accessible by RENTER.")
     @ApiResponses({
         @ApiResponse(responseCode = "201", description = "Invitation created"),
         @ApiResponse(responseCode = "400", description = "User not found or max drivers reached"),
@@ -275,10 +295,14 @@ public class BookingController {
                 .body(this.bookingDriverToResponse(bookingDriver));
     }
 
-    @Operation(summary = "Accept driver invitation", description = "Accepts a pending driver invitation. Accessible by RENTER.")
+    @Operation(
+            summary = "Accept driver invitation",
+            description = "Accepts a pending driver invitation. Accessible by RENTER.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Invitation accepted"),
-        @ApiResponse(responseCode = "400", description = "Invitation already processed or not found")
+        @ApiResponse(
+                responseCode = "400",
+                description = "Invitation already processed or not found")
     })
     @PreAuthorize("hasAnyRole('RENTER')")
     @PostMapping("/drivers/{invitationId}/accept")
@@ -288,10 +312,14 @@ public class BookingController {
                 bookingDriverToResponse(bookingDriverService.acceptInvitation(invitationId)));
     }
 
-    @Operation(summary = "Decline driver invitation", description = "Declines a pending driver invitation. Accessible by RENTER.")
+    @Operation(
+            summary = "Decline driver invitation",
+            description = "Declines a pending driver invitation. Accessible by RENTER.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Invitation declined"),
-        @ApiResponse(responseCode = "400", description = "Invitation already processed or not found")
+        @ApiResponse(
+                responseCode = "400",
+                description = "Invitation already processed or not found")
     })
     @PreAuthorize("hasAnyRole('RENTER')")
     @PostMapping("/drivers/{invitationId}/decline")
@@ -324,7 +352,9 @@ public class BookingController {
                         .toList());
     }
 
-    @Operation(summary = "Get active drivers for booking", description = "Returns accepted/pending drivers for a specific booking.")
+    @Operation(
+            summary = "Get active drivers for booking",
+            description = "Returns accepted/pending drivers for a specific booking.")
     @ApiResponse(responseCode = "200", description = "Active drivers returned")
     @PreAuthorize("hasAnyRole('RENTER', 'OWNER', 'ADMINISTRATOR')")
     @GetMapping("/drivers/{bookingId}/active")
@@ -393,7 +423,9 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.countBookingsByDayOfWeek(activeStatuses));
     }
 
-    @Operation(summary = "Get car availability", description = "Returns active bookings for a car from today onwards.")
+    @Operation(
+            summary = "Get car availability",
+            description = "Returns active bookings for a car from today onwards.")
     @ApiResponse(responseCode = "200", description = "Car booking dates returned")
     @PreAuthorize("hasAnyRole('RENTER', 'OWNER', 'ADMINISTRATOR')")
     @GetMapping("/car/{carId}")
@@ -412,7 +444,9 @@ public class BookingController {
         return new CarAvailabilityResponse(booking.getStartDate(), booking.getEndDate());
     }
 
-    @Operation(summary = "Get available car IDs", description = "Returns IDs of cars with no bookings in the given date range.")
+    @Operation(
+            summary = "Get available car IDs",
+            description = "Returns IDs of cars with no bookings in the given date range.")
     @ApiResponse(responseCode = "200", description = "Available car IDs returned")
     @PreAuthorize("hasAnyRole('RENTER', 'ADMINISTRATOR')")
     @GetMapping("/cars/available")

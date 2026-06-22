@@ -33,7 +33,10 @@ public class PaymentController {
 
     private final PaymentApplicationService paymentApplicationService;
 
-    @Operation(summary = "Create payment", description = "Creates a new payment for a booking. Accessible by RENTER or ADMINISTRATOR.")
+    @Operation(
+            summary = "Create payment",
+            description =
+                    "Creates a new payment for a booking. Accessible by RENTER or ADMINISTRATOR.")
     @ApiResponses({
         @ApiResponse(responseCode = "201", description = "Payment created"),
         @ApiResponse(responseCode = "400", description = "Invalid request"),
@@ -68,7 +71,9 @@ public class PaymentController {
         return ResponseEntity.ok(paymentApplicationService.getById(id));
     }
 
-    @Operation(summary = "Get all payments", description = "Returns all payments. Accessible by ADMINISTRATOR only.")
+    @Operation(
+            summary = "Get all payments",
+            description = "Returns all payments. Accessible by ADMINISTRATOR only.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "List of payments returned"),
         @ApiResponse(responseCode = "403", description = "Access denied")
@@ -82,7 +87,10 @@ public class PaymentController {
         return ResponseEntity.ok(paymentApplicationService.getAll());
     }
 
-    @Operation(summary = "Update payment", description = "Updates payment amount, method or currency. Accessible by ADMINISTRATOR only.")
+    @Operation(
+            summary = "Update payment",
+            description =
+                    "Updates payment amount, method or currency. Accessible by ADMINISTRATOR only.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Payment updated"),
         @ApiResponse(responseCode = "404", description = "Payment not found"),
@@ -102,7 +110,9 @@ public class PaymentController {
         return ResponseEntity.ok(updatedPayment);
     }
 
-    @Operation(summary = "Delete payment", description = "Deletes a payment. Accessible by ADMINISTRATOR only.")
+    @Operation(
+            summary = "Delete payment",
+            description = "Deletes a payment. Accessible by ADMINISTRATOR only.")
     @ApiResponses({
         @ApiResponse(responseCode = "204", description = "Payment deleted"),
         @ApiResponse(responseCode = "404", description = "Payment not found"),
@@ -118,7 +128,9 @@ public class PaymentController {
         paymentApplicationService.deletePayment(id);
     }
 
-    @Operation(summary = "Refund payment", description = "Processes a refund. Accessible by RENTER or ADMINISTRATOR.")
+    @Operation(
+            summary = "Refund payment",
+            description = "Processes a refund. Accessible by RENTER or ADMINISTRATOR.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Payment refunded"),
         @ApiResponse(responseCode = "404", description = "Payment not found"),
