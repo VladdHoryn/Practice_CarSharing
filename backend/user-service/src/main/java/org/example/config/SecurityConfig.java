@@ -39,6 +39,9 @@ public class SecurityConfig {
                                         .permitAll()
                                         .requestMatchers(HttpMethod.POST, "/user/v1")
                                         .permitAll()
+                                        .requestMatchers(
+                                                HttpMethod.GET, "/user/v1/exist/driverCode")
+                                        .permitAll()
                                         .requestMatchers("/error")
                                         .permitAll()
                                         .anyRequest()

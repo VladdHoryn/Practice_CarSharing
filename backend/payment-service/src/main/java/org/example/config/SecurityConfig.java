@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -35,6 +36,20 @@ public class SecurityConfig {
                         auth ->
                                 auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/error")
                                         .permitAll()
+                                        // more specific POST pattern first
+                                        .requestMatchers(
+                                                HttpMethod.POST, "/payment/v1/*/status/change")
+                                        .hasRole("ADMINISTRATOR")
+                                        .requestMatchers(HttpMethod.POST, "/payment/v1")
+                                        .hasAnyRole("RENTER", "ADMINISTRATOR")
+                                        .requestMatchers(HttpMethod.GET, "/payment/v1")
+                                        .hasRole("ADMINISTRATOR")
+                                        .requestMatchers(HttpMethod.PUT, "/payment/v1/**")
+                                        .hasRole("ADMINISTRATOR")
+                                        .requestMatchers(HttpMethod.DELETE, "/payment/v1/**")
+                                        .hasRole("ADMINISTRATOR")
+                                        .requestMatchers(HttpMethod.PATCH, "/payment/v1/**")
+                                        .hasAnyRole("RENTER", "ADMINISTRATOR")
                                         .anyRequest()
                                         .authenticated())
                 .oauth2ResourceServer(

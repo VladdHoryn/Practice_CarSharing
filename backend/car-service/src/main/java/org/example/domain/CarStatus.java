@@ -5,5 +5,6 @@ public enum CarStatus {
     RENTED,
     MAINTENANCE,
     UNCONFIRMED,
-    CANCELED
+    CANCELED,
+    BROKEN
 }

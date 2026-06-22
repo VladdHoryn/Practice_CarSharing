@@ -25,4 +25,6 @@ public interface CarImageRepository extends JpaRepository<CarImage, Long> {
     @Modifying
     @Query("UPDATE CarImage ci SET ci.isMain = false WHERE ci.car.id = :carId")
     void clearMainFlagForCar(@Param("carId") Long carId);
+
+    List<CarImage> findByCarIdInAndIsMainTrue(List<Long> carIds);
 }
