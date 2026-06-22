@@ -183,16 +183,14 @@ class PaymentTest {
         @DisplayName("кидає IllegalStateException для вже REFUNDED платежу")
         void shouldThrowForRefundedStatus() {
             payment.setStatus(PaymentStatus.REFUNDED);
-            assertThatThrownBy(() -> payment.refund())
-                    .isInstanceOf(IllegalStateException.class);
+            assertThatThrownBy(() -> payment.refund()).isInstanceOf(IllegalStateException.class);
         }
 
         @Test
         @DisplayName("кидає IllegalStateException для FAILED платежу")
         void shouldThrowForFailedStatus() {
             payment.setStatus(PaymentStatus.FAILED);
-            assertThatThrownBy(() -> payment.refund())
-                    .isInstanceOf(IllegalStateException.class);
+            assertThatThrownBy(() -> payment.refund()).isInstanceOf(IllegalStateException.class);
         }
     }
 

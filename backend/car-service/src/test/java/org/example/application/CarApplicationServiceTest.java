@@ -1,5 +1,15 @@
 package org.example.application;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
 import org.example.domain.Car;
 import org.example.domain.CarClass;
 import org.example.domain.CarStatus;
@@ -13,24 +23,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class CarApplicationServiceTest {
 
-    @Mock
-    private CarRepository carRepository;
+    @Mock private CarRepository carRepository;
 
-    @InjectMocks
-    private CarApplicationService carApplicationService;
+    @InjectMocks private CarApplicationService carApplicationService;
 
     private Car car;
 
@@ -70,53 +68,59 @@ class CarApplicationServiceTest {
         @Test
         void shouldThrowExceptionWhenCreatingCarWithBlankBrand() {
             car.setBrand(" ");
-            assertThrows(IllegalArgumentException.class, () -> carApplicationService.createCar(car));
+            assertThrows(
+                    IllegalArgumentException.class, () -> carApplicationService.createCar(car));
             verify(carRepository, never()).save(any(Car.class));
         }
 
         @Test
         void shouldThrowExceptionWhenCreatingCarWithNullBrand() {
             car.setBrand(null);
-            assertThrows(IllegalArgumentException.class, () -> carApplicationService.createCar(car));
+            assertThrows(
+                    IllegalArgumentException.class, () -> carApplicationService.createCar(car));
             verify(carRepository, never()).save(any(Car.class));
         }
 
         @Test
         void shouldThrowExceptionWhenCreatingCarWithBlankModel() {
             car.setModel(" ");
-            assertThrows(IllegalArgumentException.class, () -> carApplicationService.createCar(car));
+            assertThrows(
+                    IllegalArgumentException.class, () -> carApplicationService.createCar(car));
             verify(carRepository, never()).save(any(Car.class));
         }
 
         @Test
         void shouldThrowExceptionWhenCreatingCarWithNullModel() {
             car.setModel(null);
-            assertThrows(IllegalArgumentException.class, () -> carApplicationService.createCar(car));
+            assertThrows(
+                    IllegalArgumentException.class, () -> carApplicationService.createCar(car));
             verify(carRepository, never()).save(any(Car.class));
         }
 
         @Test
         void shouldThrowExceptionWhenCreatingCarWithZeroPrice() {
             car.setPricePerDay(0.0f);
-            assertThrows(IllegalArgumentException.class, () -> carApplicationService.createCar(car));
+            assertThrows(
+                    IllegalArgumentException.class, () -> carApplicationService.createCar(car));
             verify(carRepository, never()).save(any(Car.class));
         }
 
         @Test
         void shouldThrowExceptionWhenCreatingCarWithNegativePrice() {
             car.setPricePerDay(-50.0f);
-            assertThrows(IllegalArgumentException.class, () -> carApplicationService.createCar(car));
+            assertThrows(
+                    IllegalArgumentException.class, () -> carApplicationService.createCar(car));
             verify(carRepository, never()).save(any(Car.class));
         }
 
         @Test
         void shouldThrowExceptionWhenCreatingCarWithNullPrice() {
             car.setPricePerDay(null);
-            assertThrows(IllegalArgumentException.class, () -> carApplicationService.createCar(car));
+            assertThrows(
+                    IllegalArgumentException.class, () -> carApplicationService.createCar(car));
             verify(carRepository, never()).save(any(Car.class));
         }
     }
-
 
     @Nested
     @DisplayName("getCarById()")
@@ -133,11 +137,11 @@ class CarApplicationServiceTest {
         @Test
         void shouldThrowExceptionWhenCarNotFoundById() {
             when(carRepository.findById(999L)).thenReturn(Optional.empty());
-            assertThrows(IllegalArgumentException.class, () -> carApplicationService.getCarById(999L));
+            assertThrows(
+                    IllegalArgumentException.class, () -> carApplicationService.getCarById(999L));
             verify(carRepository, times(1)).findById(999L);
         }
     }
-
 
     @Nested
     @DisplayName("getAllCars()")
@@ -156,7 +160,6 @@ class CarApplicationServiceTest {
             assertThat(carApplicationService.getAllCars()).isEmpty();
         }
     }
-
 
     @Nested
     @DisplayName("updateCar()")
@@ -190,7 +193,9 @@ class CarApplicationServiceTest {
             update.setPricePerDay(100.0f);
 
             when(carRepository.findById(1L)).thenReturn(Optional.of(car));
-            assertThrows(IllegalArgumentException.class, () -> carApplicationService.updateCar(1L, update));
+            assertThrows(
+                    IllegalArgumentException.class,
+                    () -> carApplicationService.updateCar(1L, update));
             verify(carRepository, never()).save(any(Car.class));
         }
 
@@ -204,10 +209,11 @@ class CarApplicationServiceTest {
             update.setPricePerDay(100.0f);
 
             when(carRepository.findById(1L)).thenReturn(Optional.of(car));
-            assertThrows(IllegalArgumentException.class, () -> carApplicationService.updateCar(1L, update));
+            assertThrows(
+                    IllegalArgumentException.class,
+                    () -> carApplicationService.updateCar(1L, update));
         }
     }
-
 
     @Nested
     @DisplayName("deleteCar()")
@@ -216,7 +222,7 @@ class CarApplicationServiceTest {
         @Test
         void shouldDeleteCarSuccessfully() {
             when(carRepository.findById(1L)).thenReturn(Optional.of(car));
-            // Use any(Car.class) to resolve ambiguity with JpaSpecificationExecutor.delete(Specification)
+
             doNothing().when(carRepository).delete(any(Car.class));
 
             carApplicationService.deleteCar(1L);
@@ -227,11 +233,11 @@ class CarApplicationServiceTest {
         @Test
         void shouldThrowWhenDeletingNonExistingCar() {
             when(carRepository.findById(99L)).thenReturn(Optional.empty());
-            assertThrows(IllegalArgumentException.class, () -> carApplicationService.deleteCar(99L));
+            assertThrows(
+                    IllegalArgumentException.class, () -> carApplicationService.deleteCar(99L));
             verify(carRepository, never()).delete(any(Car.class));
         }
     }
-
 
     @Nested
     @DisplayName("getAvailableCars()")
@@ -247,11 +253,11 @@ class CarApplicationServiceTest {
 
         @Test
         void shouldReturnEmptyListWhenNoCarsAvailable() {
-            when(carRepository.findByStatus(CarStatus.AVAILABLE)).thenReturn(Collections.emptyList());
+            when(carRepository.findByStatus(CarStatus.AVAILABLE))
+                    .thenReturn(Collections.emptyList());
             assertThat(carApplicationService.getAvailableCars()).isEmpty();
         }
     }
-
 
     @Nested
     @DisplayName("getUnconfirmedCars()")
@@ -265,7 +271,6 @@ class CarApplicationServiceTest {
             assertThat(result).hasSize(1);
         }
     }
-
 
     @Nested
     @DisplayName("getCarsByUserId()")
@@ -285,7 +290,6 @@ class CarApplicationServiceTest {
             assertThat(carApplicationService.getCarsByUserId(99L)).isEmpty();
         }
     }
-
 
     @Nested
     @DisplayName("rentCar()")
@@ -311,20 +315,22 @@ class CarApplicationServiceTest {
         @Test
         void shouldThrowWhenCarNotFound() {
             when(carRepository.findById(99L)).thenReturn(Optional.empty());
-            assertThrows(IllegalArgumentException.class, () -> carApplicationService.rentCar(99L, 5L));
+            assertThrows(
+                    IllegalArgumentException.class, () -> carApplicationService.rentCar(99L, 5L));
         }
 
         @Test
         void shouldThrowWhenUserIdIsNull() {
-            assertThrows(IllegalArgumentException.class, () -> carApplicationService.rentCar(1L, null));
+            assertThrows(
+                    IllegalArgumentException.class, () -> carApplicationService.rentCar(1L, null));
         }
 
         @Test
         void shouldThrowWhenUserIdIsZero() {
-            assertThrows(IllegalArgumentException.class, () -> carApplicationService.rentCar(1L, 0L));
+            assertThrows(
+                    IllegalArgumentException.class, () -> carApplicationService.rentCar(1L, 0L));
         }
     }
-
 
     @Nested
     @DisplayName("returnCar()")
@@ -349,10 +355,10 @@ class CarApplicationServiceTest {
         @Test
         void shouldThrowWhenCarNotFound() {
             when(carRepository.findById(99L)).thenReturn(Optional.empty());
-            assertThrows(IllegalArgumentException.class, () -> carApplicationService.returnCar(99L));
+            assertThrows(
+                    IllegalArgumentException.class, () -> carApplicationService.returnCar(99L));
         }
     }
-
 
     @Nested
     @DisplayName("sendToMaintenance()")
@@ -370,10 +376,10 @@ class CarApplicationServiceTest {
         void shouldThrowWhenSendingRentedCarToMaintenance() {
             car.setStatus(CarStatus.RENTED);
             when(carRepository.findById(1L)).thenReturn(Optional.of(car));
-            assertThrows(IllegalStateException.class, () -> carApplicationService.sendToMaintenance(1L));
+            assertThrows(
+                    IllegalStateException.class, () -> carApplicationService.sendToMaintenance(1L));
         }
     }
-
 
     @Nested
     @DisplayName("completeMaintenance()")
@@ -392,10 +398,11 @@ class CarApplicationServiceTest {
         void shouldThrowWhenCarNotInMaintenance() {
             car.setStatus(CarStatus.AVAILABLE);
             when(carRepository.findById(1L)).thenReturn(Optional.of(car));
-            assertThrows(IllegalStateException.class, () -> carApplicationService.completeMaintenance(1L));
+            assertThrows(
+                    IllegalStateException.class,
+                    () -> carApplicationService.completeMaintenance(1L));
         }
     }
-
 
     @Nested
     @DisplayName("confirmCar()")
@@ -418,7 +425,6 @@ class CarApplicationServiceTest {
         }
     }
 
-
     @Nested
     @DisplayName("cancelCar()")
     class CancelCarTests {
@@ -440,7 +446,6 @@ class CarApplicationServiceTest {
         }
     }
 
-
     @Nested
     @DisplayName("countCarsByOwnerId()")
     class CountCarsByOwnerIdTests {
@@ -459,19 +464,22 @@ class CarApplicationServiceTest {
 
         @Test
         void shouldThrowWhenOwnerIdIsNull() {
-            assertThrows(IllegalArgumentException.class,
+            assertThrows(
+                    IllegalArgumentException.class,
                     () -> carApplicationService.countCarsByOwnerId(null));
         }
 
         @Test
         void shouldThrowWhenOwnerIdIsZero() {
-            assertThrows(IllegalArgumentException.class,
+            assertThrows(
+                    IllegalArgumentException.class,
                     () -> carApplicationService.countCarsByOwnerId(0L));
         }
 
         @Test
         void shouldThrowWhenOwnerIdIsNegative() {
-            assertThrows(IllegalArgumentException.class,
+            assertThrows(
+                    IllegalArgumentException.class,
                     () -> carApplicationService.countCarsByOwnerId(-1L));
         }
     }

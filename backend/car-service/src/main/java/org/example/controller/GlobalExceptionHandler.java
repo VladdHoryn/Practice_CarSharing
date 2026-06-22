@@ -27,7 +27,7 @@ public class GlobalExceptionHandler {
                 ex.getMessage(),
                 request.getRequestURI());
     }
-  
+
     @ExceptionHandler({
         IllegalArgumentException.class,
         ImageNotProvidedException.class,

@@ -11,9 +11,11 @@ import org.hibernate.type.descriptor.jdbc.spi.JdbcTypeRegistry;
 public class TestH2Dialect extends H2Dialect {
 
     @Override
-    public void contributeTypes(TypeContributions typeContributions, ServiceRegistry serviceRegistry) {
+    public void contributeTypes(
+            TypeContributions typeContributions, ServiceRegistry serviceRegistry) {
         super.contributeTypes(typeContributions, serviceRegistry);
-        typeContributions.getTypeConfiguration()
+        typeContributions
+                .getTypeConfiguration()
                 .getJdbcTypeRegistry()
                 .addDescriptor(SqlTypes.NAMED_ENUM, VarcharJdbcType.INSTANCE);
     }
@@ -28,6 +30,7 @@ public class TestH2Dialect extends H2Dialect {
         if (jdbcTypeCode == SqlTypes.NAMED_ENUM) {
             return jdbcTypeRegistry.getDescriptor(SqlTypes.VARCHAR);
         }
-        return super.resolveSqlTypeDescriptor(columnTypeName, jdbcTypeCode, precision, scale, jdbcTypeRegistry);
+        return super.resolveSqlTypeDescriptor(
+                columnTypeName, jdbcTypeCode, precision, scale, jdbcTypeRegistry);
     }
 }

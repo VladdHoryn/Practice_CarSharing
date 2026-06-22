@@ -14,22 +14,23 @@ public class TestSecurityConfig {
     @Bean
     @Order(0)
     public SecurityFilterChain testSecurityFilterChain(HttpSecurity http) throws Exception {
-        http
-            .csrf(AbstractHttpConfigurer::disable)
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.POST, "/payment/v1/*/status/change")
-                    .hasRole("ADMINISTRATOR")
-                .requestMatchers(HttpMethod.POST, "/payment/v1")
-                    .hasAnyRole("RENTER", "ADMINISTRATOR")
-                .requestMatchers(HttpMethod.GET, "/payment/v1")
-                    .hasRole("ADMINISTRATOR")
-                .requestMatchers(HttpMethod.PUT, "/payment/v1/**")
-                    .hasRole("ADMINISTRATOR")
-                .requestMatchers(HttpMethod.DELETE, "/payment/v1/**")
-                    .hasRole("ADMINISTRATOR")
-                .requestMatchers(HttpMethod.PATCH, "/payment/v1/**")
-                    .hasAnyRole("RENTER", "ADMINISTRATOR")
-                .anyRequest().authenticated());
+        http.csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(
+                        auth ->
+                                auth.requestMatchers(HttpMethod.POST, "/payment/v1/*/status/change")
+                                        .hasRole("ADMINISTRATOR")
+                                        .requestMatchers(HttpMethod.POST, "/payment/v1")
+                                        .hasAnyRole("RENTER", "ADMINISTRATOR")
+                                        .requestMatchers(HttpMethod.GET, "/payment/v1")
+                                        .hasRole("ADMINISTRATOR")
+                                        .requestMatchers(HttpMethod.PUT, "/payment/v1/**")
+                                        .hasRole("ADMINISTRATOR")
+                                        .requestMatchers(HttpMethod.DELETE, "/payment/v1/**")
+                                        .hasRole("ADMINISTRATOR")
+                                        .requestMatchers(HttpMethod.PATCH, "/payment/v1/**")
+                                        .hasAnyRole("RENTER", "ADMINISTRATOR")
+                                        .anyRequest()
+                                        .authenticated());
         return http.build();
     }
 }

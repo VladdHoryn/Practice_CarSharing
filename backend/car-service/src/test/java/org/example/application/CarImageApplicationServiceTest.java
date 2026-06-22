@@ -1,5 +1,14 @@
 package org.example.application;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
+
 import org.example.domain.Car;
 import org.example.domain.CarClass;
 import org.example.domain.CarImage;
@@ -17,26 +26,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class CarImageApplicationServiceTest {
 
-    @Mock
-    private CarRepository carRepository;
+    @Mock private CarRepository carRepository;
 
-    @Mock
-    private CarImageRepository carImageRepository;
+    @Mock private CarImageRepository carImageRepository;
 
-    @InjectMocks
-    private CarImageApplicationService carImageApplicationService;
+    @InjectMocks private CarImageApplicationService carImageApplicationService;
 
     private Car car;
     private CarImage image;
@@ -56,12 +53,11 @@ class CarImageApplicationServiceTest {
         image.setId(10L);
         image.setFileName("test.jpg");
         image.setContentType("image/jpeg");
-        image.setImageData(new byte[]{1, 2, 3});
+        image.setImageData(new byte[] {1, 2, 3});
         image.setFileSize(3L);
         image.setMain(true);
         image.setCar(car);
     }
-
 
     @Nested
     @DisplayName("uploadImage()")
@@ -70,8 +66,8 @@ class CarImageApplicationServiceTest {
         @Test
         @DisplayName("успішно завантажує зображення")
         void shouldUploadImageSuccessfully() throws IOException {
-            MultipartFile file = new MockMultipartFile(
-                    "file", "photo.jpg", "image/jpeg", new byte[]{1, 2, 3});
+            MultipartFile file =
+                    new MockMultipartFile("file", "photo.jpg", "image/jpeg", new byte[] {1, 2, 3});
             when(carRepository.findById(1L)).thenReturn(Optional.of(car));
             when(carRepository.save(any())).thenReturn(car);
 
@@ -84,8 +80,8 @@ class CarImageApplicationServiceTest {
         @Test
         @DisplayName("кидає виняток якщо авто не знайдено")
         void shouldThrowWhenCarNotFound() {
-            MultipartFile file = new MockMultipartFile(
-                    "file", "photo.jpg", "image/jpeg", new byte[]{1, 2, 3});
+            MultipartFile file =
+                    new MockMultipartFile("file", "photo.jpg", "image/jpeg", new byte[] {1, 2, 3});
             when(carRepository.findById(99L)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> carImageApplicationService.uploadImage(99L, file))
@@ -93,7 +89,6 @@ class CarImageApplicationServiceTest {
                     .hasMessageContaining("Car not found");
         }
     }
-
 
     @Nested
     @DisplayName("getMainImage()")
@@ -116,7 +111,6 @@ class CarImageApplicationServiceTest {
         }
     }
 
-
     @Nested
     @DisplayName("getAllImages()")
     class GetAllImagesTests {
@@ -137,7 +131,6 @@ class CarImageApplicationServiceTest {
             assertThat(result).isEmpty();
         }
     }
-
 
     @Nested
     @DisplayName("setMainImage()")
@@ -179,7 +172,6 @@ class CarImageApplicationServiceTest {
         }
     }
 
-
     @Nested
     @DisplayName("deleteImage()")
     class DeleteImageTests {
@@ -206,7 +198,6 @@ class CarImageApplicationServiceTest {
         }
     }
 
-
     @Nested
     @DisplayName("deleteAllCarImages()")
     class DeleteAllCarImagesTests {
@@ -219,7 +210,6 @@ class CarImageApplicationServiceTest {
             verify(carImageRepository).deleteByCarId(1L);
         }
     }
-
 
     @Nested
     @DisplayName("getImageById()")

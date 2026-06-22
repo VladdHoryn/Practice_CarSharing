@@ -37,7 +37,8 @@ public class SecurityConfig {
                                 auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/error")
                                         .permitAll()
                                         // more specific POST pattern first
-                                        .requestMatchers(HttpMethod.POST, "/payment/v1/*/status/change")
+                                        .requestMatchers(
+                                                HttpMethod.POST, "/payment/v1/*/status/change")
                                         .hasRole("ADMINISTRATOR")
                                         .requestMatchers(HttpMethod.POST, "/payment/v1")
                                         .hasAnyRole("RENTER", "ADMINISTRATOR")

@@ -1,5 +1,16 @@
 package org.example.application;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
 import org.example.domain.Booking;
 import org.example.domain.BookingStatus;
 import org.example.infrastructure.client.CarServiceClient;
@@ -13,28 +24,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 public class BookingApplicationServiceTest {
 
-    @Mock
-    private BookingRepository bookingRepository;
+    @Mock private BookingRepository bookingRepository;
 
-    @Mock
-    private CarServiceClient carServiceClient;
+    @Mock private CarServiceClient carServiceClient;
 
-    @InjectMocks
-    private BookingApplicationService bookingService;
+    @InjectMocks private BookingApplicationService bookingService;
 
     private Booking pendingBooking;
     private Booking cancelledBooking;
@@ -125,7 +122,6 @@ public class BookingApplicationServiceTest {
         }
     }
 
-
     @Nested
     @DisplayName("createBooking()")
     class CreateBookingTests {
@@ -136,8 +132,9 @@ public class BookingApplicationServiceTest {
             when(bookingRepository.save(any(Booking.class))).thenReturn(pendingBooking);
 
             LocalDateTime now = LocalDateTime.now();
-            Booking created = bookingService.createBooking(
-                    10L, 20L, now.plusDays(1), now.plusDays(3), BigDecimal.valueOf(100));
+            Booking created =
+                    bookingService.createBooking(
+                            10L, 20L, now.plusDays(1), now.plusDays(3), BigDecimal.valueOf(100));
 
             assertNotNull(created);
             verify(bookingRepository).save(any(Booking.class));
@@ -148,9 +145,15 @@ public class BookingApplicationServiceTest {
             when(bookingRepository.isCarAlreadyBooked(any(), any(), any())).thenReturn(true);
 
             LocalDateTime now = LocalDateTime.now();
-            assertThrows(IllegalArgumentException.class, () ->
-                    bookingService.createBooking(10L, 20L, now.plusDays(1), now.plusDays(3),
-                            BigDecimal.valueOf(100)));
+            assertThrows(
+                    IllegalArgumentException.class,
+                    () ->
+                            bookingService.createBooking(
+                                    10L,
+                                    20L,
+                                    now.plusDays(1),
+                                    now.plusDays(3),
+                                    BigDecimal.valueOf(100)));
             verify(bookingRepository, never()).save(any());
         }
 
@@ -160,8 +163,9 @@ public class BookingApplicationServiceTest {
             when(bookingRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
             LocalDateTime now = LocalDateTime.now();
-            Booking created = bookingService.createBooking(
-                    10L, 20L, now.plusDays(1), now.plusDays(3), BigDecimal.valueOf(100));
+            Booking created =
+                    bookingService.createBooking(
+                            10L, 20L, now.plusDays(1), now.plusDays(3), BigDecimal.valueOf(100));
 
             assertThat(created.getCreatedAt()).isNotNull();
         }
@@ -172,13 +176,13 @@ public class BookingApplicationServiceTest {
             when(bookingRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
             LocalDateTime startDate = LocalDateTime.now().plusDays(10);
-            Booking created = bookingService.createBooking(
-                    10L, 20L, startDate, startDate.plusDays(3), BigDecimal.valueOf(100));
+            Booking created =
+                    bookingService.createBooking(
+                            10L, 20L, startDate, startDate.plusDays(3), BigDecimal.valueOf(100));
 
             assertThat(created.getCancelDeadline()).isEqualTo(startDate.minusDays(2));
         }
     }
-
 
     @Nested
     @DisplayName("changeStatus()")
@@ -194,11 +198,11 @@ public class BookingApplicationServiceTest {
         @Test
         void shouldThrowWhenBookingNotFound() {
             when(bookingRepository.findById(99L)).thenReturn(Optional.empty());
-            assertThrows(IllegalArgumentException.class,
+            assertThrows(
+                    IllegalArgumentException.class,
                     () -> bookingService.changeStatus(99L, BookingStatus.CONFIRMED));
         }
     }
-
 
     @Nested
     @DisplayName("cancelBooking()")
@@ -218,8 +222,7 @@ public class BookingApplicationServiceTest {
             completedBooking.setCancelDeadline(LocalDateTime.now().plusDays(1));
             when(bookingRepository.findById(3L)).thenReturn(Optional.of(completedBooking));
 
-            assertThrows(IllegalStateException.class,
-                    () -> bookingService.cancelBooking(3L));
+            assertThrows(IllegalStateException.class, () -> bookingService.cancelBooking(3L));
         }
 
         @Test
@@ -227,11 +230,9 @@ public class BookingApplicationServiceTest {
             pendingBooking.setCancelDeadline(LocalDateTime.now().minusDays(1));
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(pendingBooking));
 
-            assertThrows(IllegalStateException.class,
-                    () -> bookingService.cancelBooking(1L));
+            assertThrows(IllegalStateException.class, () -> bookingService.cancelBooking(1L));
         }
     }
-
 
     @Nested
     @DisplayName("deleteBooking()")
@@ -259,8 +260,7 @@ public class BookingApplicationServiceTest {
         void shouldThrowWhenDeletingActiveBooking() {
             when(bookingRepository.findById(1L)).thenReturn(Optional.of(pendingBooking));
 
-            assertThrows(IllegalStateException.class,
-                    () -> bookingService.deleteBooking(1L));
+            assertThrows(IllegalStateException.class, () -> bookingService.deleteBooking(1L));
             verify(bookingRepository, never()).delete(any());
         }
 
@@ -271,7 +271,6 @@ public class BookingApplicationServiceTest {
         }
     }
 
-
     @Nested
     @DisplayName("countBookingsByStatuses()")
     class CountBookingsByStatusesTests {
@@ -279,8 +278,9 @@ public class BookingApplicationServiceTest {
         @Test
         void shouldReturnCountForGivenStatuses() {
             when(bookingRepository.countBookingsByStatuses(any())).thenReturn(5L);
-            long count = bookingService.countBookingsByStatuses(
-                    List.of(BookingStatus.CONFIRMED, BookingStatus.PENDING));
+            long count =
+                    bookingService.countBookingsByStatuses(
+                            List.of(BookingStatus.CONFIRMED, BookingStatus.PENDING));
             assertThat(count).isEqualTo(5L);
         }
 
@@ -298,7 +298,6 @@ public class BookingApplicationServiceTest {
         }
     }
 
-
     @Nested
     @DisplayName("sumLastMonthRevenue()")
     class SumLastMonthRevenueTests {
@@ -308,12 +307,12 @@ public class BookingApplicationServiceTest {
             when(bookingRepository.sumLastMonthRevenue(any(), any()))
                     .thenReturn(BigDecimal.valueOf(1500));
 
-            BigDecimal result = bookingService.sumLastMonthRevenue(
-                    BookingStatus.COMPLETED, LocalDateTime.now().minusDays(30));
+            BigDecimal result =
+                    bookingService.sumLastMonthRevenue(
+                            BookingStatus.COMPLETED, LocalDateTime.now().minusDays(30));
             assertThat(result).isEqualTo(BigDecimal.valueOf(1500));
         }
     }
-
 
     @Nested
     @DisplayName("countUpcomingBookings()")
@@ -322,10 +321,11 @@ public class BookingApplicationServiceTest {
         @Test
         void shouldReturnUpcomingCount() {
             when(bookingRepository.countUpcomingBookings(any(), any(), any())).thenReturn(7L);
-            long count = bookingService.countUpcomingBookings(
-                    List.of(BookingStatus.CONFIRMED),
-                    LocalDateTime.now(),
-                    LocalDateTime.now().plusDays(30));
+            long count =
+                    bookingService.countUpcomingBookings(
+                            List.of(BookingStatus.CONFIRMED),
+                            LocalDateTime.now(),
+                            LocalDateTime.now().plusDays(30));
             assertThat(count).isEqualTo(7L);
         }
     }

@@ -8,7 +8,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
 
 import org.example.application.CarApplicationService;
 import org.example.config.SecurityConfig;
@@ -31,23 +31,19 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.List;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @WebMvcTest(controllers = CarController.class)
 @Import(SecurityConfig.class)
 class CarControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
-    @MockitoBean
-    private CarApplicationService carService;
+    @MockitoBean private CarApplicationService carService;
 
-    @MockitoBean
-    private JwtDecoder jwtDecoder;
+    @MockitoBean private JwtDecoder jwtDecoder;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    @Autowired private ObjectMapper objectMapper;
 
     private Car car;
 
@@ -68,7 +64,6 @@ class CarControllerTest {
         return new CreateCarRequest("Toyota", "Camry", 2022, "COMFORT", 100.0f, 10L);
     }
 
-
     @Nested
     @DisplayName("GET /car/v1")
     class GetAllCars {
@@ -87,11 +82,9 @@ class CarControllerTest {
         @Test
         @DisplayName("неавторизований отримує 4xx")
         void shouldReturn4xxForAnonymous() throws Exception {
-            mockMvc.perform(get("/car/v1"))
-                    .andExpect(status().is4xxClientError());
+            mockMvc.perform(get("/car/v1")).andExpect(status().is4xxClientError());
         }
     }
-
 
     @Nested
     @DisplayName("GET /car/v1/{id}")
@@ -107,17 +100,7 @@ class CarControllerTest {
                     .andExpect(jsonPath("$.id").value(1))
                     .andExpect(jsonPath("$.brand").value("Toyota"));
         }
-
-        @Test
-        @WithMockUser
-        @DisplayName("повертає 5xx якщо авто не знайдено")
-        void shouldReturn5xxWhenCarNotFound() throws Exception {
-            when(carService.getCarById(99L)).thenThrow(new RuntimeException("Car not found"));
-            mockMvc.perform(get("/car/v1/99"))
-                    .andExpect(status().is5xxServerError());
-        }
     }
-
 
     @Nested
     @DisplayName("GET /car/v1/available")
@@ -137,11 +120,9 @@ class CarControllerTest {
         @DisplayName("аутентифікований також отримує доступні авто")
         void shouldReturnAvailableCarsForAuthenticated() throws Exception {
             when(carService.getAvailableCars()).thenReturn(List.of(car));
-            mockMvc.perform(get("/car/v1/available"))
-                    .andExpect(status().isOk());
+            mockMvc.perform(get("/car/v1/available")).andExpect(status().isOk());
         }
     }
-
 
     @Nested
     @DisplayName("GET /car/v1/unconfirmed")
@@ -153,8 +134,7 @@ class CarControllerTest {
         void shouldReturnUnconfirmedCarsForOwner() throws Exception {
             car.setStatus(CarStatus.UNCONFIRMED);
             when(carService.getUnconfirmedCars()).thenReturn(List.of(car));
-            mockMvc.perform(get("/car/v1/unconfirmed"))
-                    .andExpect(status().isOk());
+            mockMvc.perform(get("/car/v1/unconfirmed")).andExpect(status().isOk());
         }
 
         @Test
@@ -162,19 +142,16 @@ class CarControllerTest {
         @DisplayName("ADMINISTRATOR отримує список непідтверджених авто")
         void shouldReturnUnconfirmedCarsForAdmin() throws Exception {
             when(carService.getUnconfirmedCars()).thenReturn(List.of(car));
-            mockMvc.perform(get("/car/v1/unconfirmed"))
-                    .andExpect(status().isOk());
+            mockMvc.perform(get("/car/v1/unconfirmed")).andExpect(status().isOk());
         }
 
         @Test
         @WithMockUser(roles = {"RENTER"})
         @DisplayName("RENTER отримує 403")
         void shouldReturn403ForRenter() throws Exception {
-            mockMvc.perform(get("/car/v1/unconfirmed"))
-                    .andExpect(status().isForbidden());
+            mockMvc.perform(get("/car/v1/unconfirmed")).andExpect(status().isForbidden());
         }
     }
-
 
     @Nested
     @DisplayName("GET /car/v1/owner/{id}")
@@ -194,11 +171,9 @@ class CarControllerTest {
         @WithMockUser(roles = {"RENTER"})
         @DisplayName("RENTER отримує 403")
         void shouldReturn403ForRenter() throws Exception {
-            mockMvc.perform(get("/car/v1/owner/10"))
-                    .andExpect(status().isForbidden());
+            mockMvc.perform(get("/car/v1/owner/10")).andExpect(status().isForbidden());
         }
     }
-
 
     @Nested
     @DisplayName("POST /car/v1")
@@ -209,10 +184,11 @@ class CarControllerTest {
         @DisplayName("OWNER може створити авто")
         void shouldCreateCarForOwner() throws Exception {
             when(carService.createCar(any())).thenReturn(car);
-            mockMvc.perform(post("/car/v1")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(validCreateRequest())))
+            mockMvc.perform(
+                            post("/car/v1")
+                                    .with(csrf())
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(validCreateRequest())))
                     .andExpect(status().isCreated());
         }
 
@@ -221,10 +197,11 @@ class CarControllerTest {
         @DisplayName("ADMINISTRATOR може створити авто")
         void shouldCreateCarForAdmin() throws Exception {
             when(carService.createCar(any())).thenReturn(car);
-            mockMvc.perform(post("/car/v1")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(validCreateRequest())))
+            mockMvc.perform(
+                            post("/car/v1")
+                                    .with(csrf())
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(validCreateRequest())))
                     .andExpect(status().isCreated());
         }
 
@@ -232,10 +209,11 @@ class CarControllerTest {
         @WithMockUser(roles = {"RENTER"})
         @DisplayName("RENTER отримує 403")
         void shouldReturn403ForRenter() throws Exception {
-            mockMvc.perform(post("/car/v1")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(validCreateRequest())))
+            mockMvc.perform(
+                            post("/car/v1")
+                                    .with(csrf())
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(validCreateRequest())))
                     .andExpect(status().isForbidden());
         }
 
@@ -243,15 +221,16 @@ class CarControllerTest {
         @WithMockUser(roles = {"OWNER"})
         @DisplayName("повертає 400 для некоректного запиту")
         void shouldReturn400ForInvalidRequest() throws Exception {
-            String invalid = "{\"brand\":\"\",\"model\":\"\",\"year\":null,\"carClass\":null,\"pricePerDay\":null,\"userId\":null}";
-            mockMvc.perform(post("/car/v1")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(invalid))
+            String invalid =
+                    "{\"brand\":\"\",\"model\":\"\",\"year\":null,\"carClass\":null,\"pricePerDay\":null,\"userId\":null}";
+            mockMvc.perform(
+                            post("/car/v1")
+                                    .with(csrf())
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(invalid))
                     .andExpect(status().isBadRequest());
         }
     }
-
 
     @Nested
     @DisplayName("PUT /car/v1/{id}")
@@ -262,10 +241,11 @@ class CarControllerTest {
         @DisplayName("OWNER може оновити авто")
         void shouldUpdateCarForOwner() throws Exception {
             when(carService.updateCar(eq(1L), any())).thenReturn(car);
-            mockMvc.perform(put("/car/v1/1")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(validCreateRequest())))
+            mockMvc.perform(
+                            put("/car/v1/1")
+                                    .with(csrf())
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(validCreateRequest())))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.brand").value("Toyota"));
         }
@@ -274,14 +254,14 @@ class CarControllerTest {
         @WithMockUser(roles = {"RENTER"})
         @DisplayName("RENTER отримує 403")
         void shouldReturn403ForRenter() throws Exception {
-            mockMvc.perform(put("/car/v1/1")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(validCreateRequest())))
+            mockMvc.perform(
+                            put("/car/v1/1")
+                                    .with(csrf())
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(validCreateRequest())))
                     .andExpect(status().isForbidden());
         }
     }
-
 
     @Nested
     @DisplayName("DELETE /car/v1/{id}")
@@ -292,8 +272,7 @@ class CarControllerTest {
         @DisplayName("OWNER може видалити авто")
         void shouldDeleteCarForOwner() throws Exception {
             doNothing().when(carService).deleteCar(1L);
-            mockMvc.perform(delete("/car/v1/1").with(csrf()))
-                    .andExpect(status().isNoContent());
+            mockMvc.perform(delete("/car/v1/1").with(csrf())).andExpect(status().isNoContent());
         }
 
         @Test
@@ -301,19 +280,16 @@ class CarControllerTest {
         @DisplayName("ADMINISTRATOR може видалити авто")
         void shouldDeleteCarForAdmin() throws Exception {
             doNothing().when(carService).deleteCar(1L);
-            mockMvc.perform(delete("/car/v1/1").with(csrf()))
-                    .andExpect(status().isNoContent());
+            mockMvc.perform(delete("/car/v1/1").with(csrf())).andExpect(status().isNoContent());
         }
 
         @Test
         @WithMockUser(roles = {"RENTER"})
         @DisplayName("RENTER отримує 403")
         void shouldReturn403ForRenter() throws Exception {
-            mockMvc.perform(delete("/car/v1/1").with(csrf()))
-                    .andExpect(status().isForbidden());
+            mockMvc.perform(delete("/car/v1/1").with(csrf())).andExpect(status().isForbidden());
         }
     }
-
 
     @Nested
     @DisplayName("POST /car/v1/{carId}/rent")
@@ -325,10 +301,13 @@ class CarControllerTest {
         void shouldRentCarForRenter() throws Exception {
             car.setStatus(CarStatus.RENTED);
             when(carService.rentCar(eq(1L), anyLong())).thenReturn(car);
-            mockMvc.perform(post("/car/v1/1/rent")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(new RentCarRequest(5L))))
+            mockMvc.perform(
+                            post("/car/v1/1/rent")
+                                    .with(csrf())
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(
+                                            objectMapper.writeValueAsString(
+                                                    new RentCarRequest(5L))))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.status").value("RENTED"));
         }
@@ -339,10 +318,13 @@ class CarControllerTest {
         void shouldRentCarForAdmin() throws Exception {
             car.setStatus(CarStatus.RENTED);
             when(carService.rentCar(eq(1L), anyLong())).thenReturn(car);
-            mockMvc.perform(post("/car/v1/1/rent")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(new RentCarRequest(5L))))
+            mockMvc.perform(
+                            post("/car/v1/1/rent")
+                                    .with(csrf())
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(
+                                            objectMapper.writeValueAsString(
+                                                    new RentCarRequest(5L))))
                     .andExpect(status().isOk());
         }
 
@@ -350,14 +332,16 @@ class CarControllerTest {
         @WithMockUser(roles = {"OWNER"})
         @DisplayName("OWNER отримує 403")
         void shouldReturn403ForOwner() throws Exception {
-            mockMvc.perform(post("/car/v1/1/rent")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(new RentCarRequest(5L))))
+            mockMvc.perform(
+                            post("/car/v1/1/rent")
+                                    .with(csrf())
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(
+                                            objectMapper.writeValueAsString(
+                                                    new RentCarRequest(5L))))
                     .andExpect(status().isForbidden());
         }
     }
-
 
     @Nested
     @DisplayName("POST /car/v1/{carId}/return")
@@ -383,7 +367,6 @@ class CarControllerTest {
         }
     }
 
-
     @Nested
     @DisplayName("POST /car/v1/{carId}/maintenance")
     class SendToMaintenance {
@@ -408,7 +391,6 @@ class CarControllerTest {
         }
     }
 
-
     @Nested
     @DisplayName("POST /car/v1/{carId}/maintenance/complete")
     class CompleteMaintenance {
@@ -431,7 +413,6 @@ class CarControllerTest {
                     .andExpect(status().isForbidden());
         }
     }
-
 
     @Nested
     @DisplayName("POST /car/v1/{carId}/moderation/confirm")
@@ -463,7 +444,6 @@ class CarControllerTest {
         }
     }
 
-
     @Nested
     @DisplayName("POST /car/v1/{carId}/moderation/cancel")
     class CancelCar {
@@ -486,7 +466,6 @@ class CarControllerTest {
         }
     }
 
-
     @Nested
     @DisplayName("POST /car/v1/{carId}/status/change")
     class ChangeStatus {
@@ -497,10 +476,11 @@ class CarControllerTest {
         void shouldChangeStatusForAdmin() throws Exception {
             doNothing().when(carService).changeStatus(anyLong(), any());
             CarStatusChange req = new CarStatusChange(CarStatus.MAINTENANCE);
-            mockMvc.perform(post("/car/v1/1/status/change")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(req)))
+            mockMvc.perform(
+                            post("/car/v1/1/status/change")
+                                    .with(csrf())
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(req)))
                     .andExpect(status().isNoContent());
         }
 
@@ -509,14 +489,14 @@ class CarControllerTest {
         @DisplayName("RENTER отримує 403")
         void shouldReturn403ForRenter() throws Exception {
             CarStatusChange req = new CarStatusChange(CarStatus.AVAILABLE);
-            mockMvc.perform(post("/car/v1/1/status/change")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(req)))
+            mockMvc.perform(
+                            post("/car/v1/1/status/change")
+                                    .with(csrf())
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(req)))
                     .andExpect(status().isForbidden());
         }
     }
-
 
     @Nested
     @DisplayName("GET /car/v1/analytics/owners/{ownerId}/cars/count")

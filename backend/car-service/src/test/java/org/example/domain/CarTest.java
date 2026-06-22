@@ -28,7 +28,6 @@ class CarTest {
         car.setUserId(10L);
     }
 
-
     @Test
     void shouldSetAndGetId() {
         car.setId(5L);
@@ -108,7 +107,6 @@ class CarTest {
         assertFalse(result.isEmpty());
     }
 
-
     @Nested
     @DisplayName("rent()")
     class RentTests {
@@ -135,16 +133,14 @@ class CarTest {
         @DisplayName("кидає IllegalStateException для авто в MAINTENANCE")
         void shouldThrowWhenCarInMaintenance() {
             car.setStatus(CarStatus.MAINTENANCE);
-            assertThatThrownBy(() -> car.rent(99L))
-                    .isInstanceOf(IllegalStateException.class);
+            assertThatThrownBy(() -> car.rent(99L)).isInstanceOf(IllegalStateException.class);
         }
 
         @Test
         @DisplayName("кидає IllegalStateException для UNCONFIRMED авто")
         void shouldThrowWhenCarUnconfirmed() {
             car.setStatus(CarStatus.UNCONFIRMED);
-            assertThatThrownBy(() -> car.rent(99L))
-                    .isInstanceOf(IllegalStateException.class);
+            assertThatThrownBy(() -> car.rent(99L)).isInstanceOf(IllegalStateException.class);
         }
 
         @Test
@@ -156,7 +152,6 @@ class CarTest {
                     .hasMessageContaining("Renter id cannot be null");
         }
     }
-
 
     @Nested
     @DisplayName("returnFromRent()")
@@ -189,7 +184,6 @@ class CarTest {
         }
     }
 
-
     @Nested
     @DisplayName("sendToMaintenance()")
     class SendToMaintenanceTests {
@@ -219,7 +213,6 @@ class CarTest {
                     .hasMessageContaining("Cannot send rented car to maintenance");
         }
     }
-
 
     @Nested
     @DisplayName("completeMaintenance()")
@@ -251,7 +244,6 @@ class CarTest {
         }
     }
 
-
     @Nested
     @DisplayName("confirmCar()")
     class ConfirmCarTests {
@@ -277,11 +269,9 @@ class CarTest {
         @DisplayName("кидає IllegalStateException для RENTED авто")
         void shouldThrowWhenCarIsRented() {
             car.setStatus(CarStatus.RENTED);
-            assertThatThrownBy(() -> car.confirmCar())
-                    .isInstanceOf(IllegalStateException.class);
+            assertThatThrownBy(() -> car.confirmCar()).isInstanceOf(IllegalStateException.class);
         }
     }
-
 
     @Nested
     @DisplayName("cancelCar()")
@@ -308,11 +298,9 @@ class CarTest {
         @DisplayName("кидає IllegalStateException для RENTED авто")
         void shouldThrowWhenCarIsRented() {
             car.setStatus(CarStatus.RENTED);
-            assertThatThrownBy(() -> car.cancelCar())
-                    .isInstanceOf(IllegalStateException.class);
+            assertThatThrownBy(() -> car.cancelCar()).isInstanceOf(IllegalStateException.class);
         }
     }
-
 
     @Nested
     @DisplayName("isAvailableForRent()")
@@ -354,7 +342,6 @@ class CarTest {
         }
     }
 
-
     @Nested
     @DisplayName("changeStatus()")
     class ChangeStatusTests {
@@ -384,7 +371,6 @@ class CarTest {
         }
     }
 
-
     @Nested
     @DisplayName("Управління зображеннями")
     class ImageTests {
@@ -394,7 +380,7 @@ class CarTest {
             img.setId(id);
             img.setFileName("img" + id + ".jpg");
             img.setContentType("image/jpeg");
-            img.setImageData(new byte[]{1, 2, 3});
+            img.setImageData(new byte[] {1, 2, 3});
             img.setFileSize(3L);
             img.setMain(false);
             return img;
