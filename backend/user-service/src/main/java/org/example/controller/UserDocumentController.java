@@ -33,7 +33,7 @@ public class UserDocumentController {
   // Якщо ти ідентифікуєш користувача через Keycloak ID, тут можна змінити Long userId на String keycloakId
   // і шукати внутрішній ID всередині сервісу (як у твоєму UserController).
   @PostMapping(value = "/user/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('USER')") // Налаштуй під свої політики
+  @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('RENTER')") // Налаштуй під свої політики
   public ResponseEntity<UserDocumentResponse> uploadDocument(
     @PathVariable Long userId,
     @RequestParam("documentType") DocumentType documentType,
@@ -57,7 +57,7 @@ public class UserDocumentController {
    * Отримання списку завантажених документів (лише метадані, без самих файлів).
    */
   @GetMapping("/user/{userId}")
-  @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('USER')")
+  @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('RENTER')")
   public ResponseEntity<List<UserDocumentResponse>> getUserDocumentsInfo(@PathVariable Long userId) {
     List<UserDocumentResponse> responses = documentService.getUserDocuments(userId)
       .stream()
@@ -72,7 +72,7 @@ public class UserDocumentController {
    * Повертає байти файлу з відповідними заголовками для відображення в браузері/завантаження.
    */
   @GetMapping("/{documentId}/download")
-  @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('USER')")
+  @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('RENTER')")
   public ResponseEntity<byte[]> downloadDocument(@PathVariable Long documentId) {
     UserDocument document = documentService.getDocumentById(documentId);
 
@@ -86,7 +86,7 @@ public class UserDocumentController {
    * Перевірка: чи всі необхідні документи присутні та верифіковані.
    */
   @GetMapping("/user/{userId}/status")
-  @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('USER')")
+  @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('RENTER')")
   public ResponseEntity<Boolean> checkAllDocumentsVerified(@PathVariable Long userId) {
     boolean status = documentService.areAllDocumentsVerifiedAndPresent(userId);
     return ResponseEntity.ok(status);

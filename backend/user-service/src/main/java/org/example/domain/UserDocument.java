@@ -29,7 +29,7 @@ public class UserDocument {
   @Column(name = "document_type", nullable = false)
   private DocumentType documentType;
 
-  @Column(name = "file_path", nullable = false)
+  @Column(name = "file_data", nullable = false)
   private byte[] fileData;
 
   @NotBlank(message = "Content type is required")
