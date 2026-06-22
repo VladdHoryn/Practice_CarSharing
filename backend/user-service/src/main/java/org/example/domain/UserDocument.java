@@ -16,44 +16,44 @@ import lombok.Setter;
 @NoArgsConstructor
 public class UserDocument {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "user_id", nullable = false)
-  private User user;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-  @NotNull(message = "Document type is required")
-  @Enumerated(EnumType.STRING)
-  @Column(name = "document_type", nullable = false)
-  private DocumentType documentType;
+    @NotNull(message = "Document type is required")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "document_type", nullable = false)
+    private DocumentType documentType;
 
-  @Column(name = "file_data", nullable = false)
-  private byte[] fileData;
+    @Column(name = "file_data", nullable = false)
+    private byte[] fileData;
 
-  @NotBlank(message = "Content type is required")
-  @Column(name = "content_type", nullable = false)
-  private String contentType;
+    @NotBlank(message = "Content type is required")
+    @Column(name = "content_type", nullable = false)
+    private String contentType;
 
-  @Column(name = "original_file_name")
-  private String originalFileName;
+    @Column(name = "original_file_name")
+    private String originalFileName;
 
-  @Column(name = "is_verified", nullable = false)
-  private Boolean isVerified;
+    @Column(name = "is_verified", nullable = false)
+    private Boolean isVerified;
 
-  @Column(name = "uploaded_at", nullable = false, updatable = false)
-  private LocalDateTime uploadedAt;
+    @Column(name = "uploaded_at", nullable = false, updatable = false)
+    private LocalDateTime uploadedAt;
 
-  @PrePersist
-  protected void onUpload() {
-    this.uploadedAt = LocalDateTime.now();
-    if (this.isVerified == null) {
-      this.isVerified = false;
+    @PrePersist
+    protected void onUpload() {
+        this.uploadedAt = LocalDateTime.now();
+        if (this.isVerified == null) {
+            this.isVerified = false;
+        }
     }
-  }
 
-  public void verify() {
-    this.isVerified = true;
-  }
+    public void verify() {
+        this.isVerified = true;
+    }
 }

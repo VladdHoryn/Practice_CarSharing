@@ -77,13 +77,13 @@ public class User {
         return isActive;
     }
 
-  public void addDocument(UserDocument document) {
-    documents.add(document);
-    document.setUser(this);
-  }
+    public void addDocument(UserDocument document) {
+        documents.add(document);
+        document.setUser(this);
+    }
 
-  public void removeDocument(UserDocument document) {
-    documents.remove(document);
-    document.setUser(null);
-  }
+    public void removeDocument(UserDocument document) {
+        documents.remove(document);
+        document.setUser(null);
+    }
 }

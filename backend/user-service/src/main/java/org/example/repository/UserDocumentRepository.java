@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserDocumentRepository extends JpaRepository<UserDocument, Long> {
 
-  List<UserDocument> findByUserId(Long userId);
+    List<UserDocument> findByUserId(Long userId);
 
-  Optional<UserDocument> findByUserIdAndDocumentType(Long userId, DocumentType documentType);
+    Optional<UserDocument> findByUserIdAndDocumentType(Long userId, DocumentType documentType);
 }
