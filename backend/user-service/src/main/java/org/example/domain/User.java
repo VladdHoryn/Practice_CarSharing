@@ -65,8 +65,8 @@ public class User {
         this.isActive = true;
 
         if (this.driverCode == null || this.driverCode.trim().isEmpty()) {
-        this.driverCode = DriverCodeGenerator.generate();
-      }
+            this.driverCode = DriverCodeGenerator.generate();
+        }
     }
 
     public void deactivate() {
