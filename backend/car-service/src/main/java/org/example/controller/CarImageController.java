@@ -6,6 +6,7 @@ import java.util.List;
 import org.example.application.CarImageApplicationService;
 import org.example.domain.CarImage;
 import org.example.dto.CarImageResponse;
+import org.example.dto.OwnerMainImageResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -108,4 +109,22 @@ public class CarImageController {
         carImageService.deleteAllCarImages(carId);
         return ResponseEntity.noContent().build();
     }
+
+  @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
+  @GetMapping("/owners/{userId}/images/main")
+  public ResponseEntity<List<OwnerMainImageResponse>> getOwnerMainImages(@PathVariable Long userId) {
+
+    List<OwnerMainImageResponse> responses = carImageService.getMainImagesByUserId(userId).stream()
+      .map(img -> new OwnerMainImageResponse(
+        img.getCar().getId(),
+        img.getId(),
+        img.getFileName(),
+        img.getContentType(),
+        img.getFileSize(),
+        img.isMain()
+      ))
+      .toList();
+
+    return ResponseEntity.ok(responses);
+  }
 }
