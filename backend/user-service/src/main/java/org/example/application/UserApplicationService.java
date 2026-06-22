@@ -40,6 +40,8 @@ public class UserApplicationService {
     @Value("${keycloak.realm}")
     private String realm;
 
+
+
     @Transactional
     public UserResponse createUser(UserRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -87,6 +89,7 @@ public class UserApplicationService {
         user.setDriverCode(generateUniqueDriverCode());
         user.setIsActive(true);
         user.setCreatedAt(LocalDate.now());
+        user.setDriverCode(DriverCodeGenerator.generate());
         user.setUpdatedAt(LocalDateTime.now());
 
         User savedUser = userRepository.save(user);
@@ -195,6 +198,7 @@ public class UserApplicationService {
                 .role(user.getRole())
                 .isActive(user.isActive())
                 .createdAt(user.getCreatedAt())
+                .driverCode(user.getDriverCode())
                 .build();
     }
 

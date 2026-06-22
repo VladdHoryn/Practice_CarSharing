@@ -23,8 +23,7 @@ FROM (
          (7, 7, 'renter4@carsharing.com', 'RNT1MN73QA', 'PENDING'),
          (8, 4, 'renter1@carsharing.com', 'RNT2GH68JK', 'DECLINED'),
          (9, 6, 'renter3@carsharing.com', 'RNT8CV24DF', 'ACCEPTED'),
-         (10, 4, 'renter1@carsharing.com', 'RNT2GH68JK', 'PENDING'),
-         (11, 5, 'renter2@carsharing.com', 'RNT5PL91ZX', 'ACCEPTED')
+         (10, 4, 'renter1@carsharing.com', 'RNT2GH68JK', 'PENDING')
      ) AS data(
                booking_id,
                user_id,
