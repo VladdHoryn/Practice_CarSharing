@@ -86,6 +86,23 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Change user password", description = "Updates user's password in Keycloak. Accessible by the user themselves or ADMINISTRATOR.")
+    @ApiResponses({
+      @ApiResponse(responseCode = "204", description = "Password successfully changed"),
+      @ApiResponse(responseCode = "400", description = "Invalid password format"),
+      @ApiResponse(responseCode = "403", description = "Access denied"),
+      @ApiResponse(responseCode = "404", description = "User not found")
+    })
+    @PreAuthorize("#keycloakId == authentication.name or hasRole('ADMINISTRATOR')")
+    @PutMapping("keycloak/{keycloakId}/password")
+    public ResponseEntity<Void> changePassword(
+      @PathVariable String keycloakId,
+      @Valid @RequestBody org.example.dto.PasswordChangeRequest request) {
+
+      userService.changePassword(keycloakId, request.getNewPassword());
+      return ResponseEntity.noContent().build();
+    }
+
     @Operation(summary = "Activate user", description = "Activates a deactivated user account. Accessible by ADMINISTRATOR only.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "User activated"),
