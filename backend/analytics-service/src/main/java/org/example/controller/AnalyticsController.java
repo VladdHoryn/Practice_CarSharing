@@ -12,15 +12,27 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/v1/analytics")
 @RequiredArgsConstructor
+@Tag(name = "Analytics", description = "Analytics aggregation endpoints for owners and administrators")
+@SecurityRequirement(name = "bearerAuth")
 public class AnalyticsController {
 
     private final AnalyticsAggregatorApplicationService analyticsAggregatorService;
 
+    @Operation(summary = "Get owner analytics summary", description = "Returns aggregated analytics for a specific owner. Accessible by OWNER or ADMINISTRATOR.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Analytics summary returned successfully"),
+        @ApiResponse(responseCode = "403", description = "Access denied")
+    })
     @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
     @GetMapping("/owners/{ownerId}/summary")
     public ResponseEntity<OwnerAnalyticsSummaryResponse> getSummary(
@@ -48,6 +60,11 @@ public class AnalyticsController {
         return ResponseEntity.ok(summary);
     }
 
+    @Operation(summary = "Get admin analytics summary", description = "Returns platform-wide aggregated analytics. Accessible by ADMINISTRATOR only.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Admin analytics summary returned successfully"),
+        @ApiResponse(responseCode = "403", description = "Access denied")
+    })
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     @GetMapping("/admin/summary")
     public ResponseEntity<AdminAnalyticsSummaryResponse> getAdminSummary(
