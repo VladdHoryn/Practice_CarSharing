@@ -23,28 +23,28 @@ const SecureImage = ({ src, alt, className, style }) => {
     useEffect(() => {
         if (!src) return;
 
-        const storedUser = localStorage.getItem('user');
-        if (!storedUser) {
-            setImgUrl(getDeterministicMock(src));
-            setLoading(false);
-            return;
-        }
-
         let localBlobUrl = null;
 
         const loadBinaryImage = async () => {
-            try {
-                setLoading(true);
-                const response = await apiClient.get(src, { responseType: 'blob' });
-                localBlobUrl = URL.createObjectURL(response.data);
-                setImgUrl(localBlobUrl);
-            } catch (err) {
-                console.warn(`Фото не знайдено на сервері (${src}), вмикаємо візуальний демо-режим.`);
-                setImgUrl(getDeterministicMock(src));
-            } finally {
-                setLoading(false);
-            }
-        };
+              try {
+                  setLoading(true);
+                  const response = await apiClient.get(src, { responseType: 'blob' });
+
+
+                  const blob = response.data;
+                  if (!blob || blob.size === 0 || !blob.type.startsWith('image/')) {
+                      throw new Error("Бекенд повернув порожній потік або помилку замість фотографії");
+                  }
+
+                  localBlobUrl = URL.createObjectURL(blob);
+                  setImgUrl(localBlobUrl);
+              } catch (err) {
+                  console.warn(`Фото не знайдено на сервері (${src}), вмикаємо візуальний демо-режим.`);
+                  setImgUrl(getDeterministicMock(src));
+              } finally {
+                  setLoading(false);
+              }
+          };
 
         loadBinaryImage();
 

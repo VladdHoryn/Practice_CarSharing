@@ -63,6 +63,10 @@ public class User {
         this.createdAt = LocalDate.now();
         this.updatedAt = LocalDateTime.now();
         this.isActive = true;
+
+        if (this.driverCode == null || this.driverCode.trim().isEmpty()) {
+        this.driverCode = DriverCodeGenerator.generate();
+      }
     }
 
     public void deactivate() {
