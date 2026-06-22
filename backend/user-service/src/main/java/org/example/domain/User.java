@@ -2,6 +2,8 @@ package org.example.domain;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
@@ -53,6 +55,9 @@ public class User {
     @Column(name = "driver_code", nullable = false, unique = true, length = 10)
     private String driverCode;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserDocument> documents = new ArrayList<>();
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDate.now();
@@ -71,4 +76,14 @@ public class User {
     public boolean isActive() {
         return isActive;
     }
+
+  public void addDocument(UserDocument document) {
+    documents.add(document);
+    document.setUser(this);
+  }
+
+  public void removeDocument(UserDocument document) {
+    documents.remove(document);
+    document.setUser(null);
+  }
 }
