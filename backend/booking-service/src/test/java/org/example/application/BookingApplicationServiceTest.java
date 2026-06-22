@@ -2,8 +2,11 @@ package org.example.application;
 
 import org.example.domain.Booking;
 import org.example.domain.BookingStatus;
+import org.example.infrastructure.client.CarServiceClient;
 import org.example.repository.BookingRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -12,140 +15,318 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class BookingApplicationServiceTest {
 
-  @Mock
-  private BookingRepository bookingRepository;
+    @Mock
+    private BookingRepository bookingRepository;
 
-  @InjectMocks
-  private BookingApplicationService bookingService;
+    @Mock
+    private CarServiceClient carServiceClient;
 
-  private Booking sampleBooking;
-  private Booking confirmedBooking;
+    @InjectMocks
+    private BookingApplicationService bookingService;
 
-  @BeforeEach
-  void setUp() {
-    sampleBooking = new Booking();
-    sampleBooking.setId(1L);
-    sampleBooking.setStatus(BookingStatus.PENDING);
+    private Booking pendingBooking;
+    private Booking cancelledBooking;
+    private Booking completedBooking;
 
-    confirmedBooking = new Booking();
-    confirmedBooking.setId(2L);
-    confirmedBooking.setStatus(BookingStatus.CONFIRMED);
-  }
+    @BeforeEach
+    void setUp() {
+        pendingBooking = new Booking();
+        pendingBooking.setId(1L);
+        pendingBooking.setUserId(10L);
+        pendingBooking.setCarId(20L);
+        pendingBooking.setStatus(BookingStatus.PENDING);
+        pendingBooking.setTotalPrice(BigDecimal.valueOf(300));
+        pendingBooking.setStartDate(LocalDateTime.now().plusDays(5));
+        pendingBooking.setEndDate(LocalDateTime.now().plusDays(8));
+        pendingBooking.setCancelDeadline(LocalDateTime.now().plusDays(3));
 
-  @Test
-  void testGetBookingById_Success() {
-    when(bookingRepository.findById(1L)).thenReturn(Optional.of(sampleBooking));
+        cancelledBooking = new Booking();
+        cancelledBooking.setId(2L);
+        cancelledBooking.setStatus(BookingStatus.CANCELLED);
+        cancelledBooking.setTotalPrice(BigDecimal.valueOf(100));
+        cancelledBooking.setStartDate(LocalDateTime.now().plusDays(1));
+        cancelledBooking.setEndDate(LocalDateTime.now().plusDays(3));
+        cancelledBooking.setCancelDeadline(LocalDateTime.now().minusDays(1));
 
-    Booking result = bookingService.getBookingById(1L);
+        completedBooking = new Booking();
+        completedBooking.setId(3L);
+        completedBooking.setStatus(BookingStatus.COMPLETED);
+        completedBooking.setTotalPrice(BigDecimal.valueOf(500));
+        completedBooking.setStartDate(LocalDateTime.now().minusDays(5));
+        completedBooking.setEndDate(LocalDateTime.now().minusDays(2));
+        completedBooking.setCancelDeadline(LocalDateTime.now().minusDays(7));
+    }
 
-    assertNotNull(result);
-    assertEquals(1L, result.getId());
-    assertEquals(BookingStatus.PENDING, result.getStatus());
-    verify(bookingRepository, times(1)).findById(1L);
-  }
+    @Nested
+    @DisplayName("getBookingById()")
+    class GetBookingByIdTests {
 
-  @Test
-  void testGetBookingById_NotFound_ThrowsIllegalArgumentException() {
-    when(bookingRepository.findById(99L)).thenReturn(Optional.empty());
+        @Test
+        void shouldReturnBookingWhenFound() {
+            when(bookingRepository.findById(1L)).thenReturn(Optional.of(pendingBooking));
+            Booking result = bookingService.getBookingById(1L);
+            assertThat(result.getId()).isEqualTo(1L);
+            assertThat(result.getStatus()).isEqualTo(BookingStatus.PENDING);
+        }
 
-    assertThrows(IllegalArgumentException.class, () -> {
-      bookingService.getBookingById(99L);
-    });
-    verify(bookingRepository, times(1)).findById(99L);
-  }
+        @Test
+        void shouldThrowIllegalArgumentExceptionWhenNotFound() {
+            when(bookingRepository.findById(99L)).thenReturn(Optional.empty());
+            assertThrows(IllegalArgumentException.class, () -> bookingService.getBookingById(99L));
+        }
+    }
 
-  @Test
-  void testCreateBooking_Success() {
-    when(bookingRepository.save(any(Booking.class))).thenReturn(sampleBooking);
+    @Nested
+    @DisplayName("getAllBookings()")
+    class GetAllBookingsTests {
 
-    LocalDateTime now = LocalDateTime.now();
-    Booking created = bookingService.createBooking(1L, 1L, now, now.plusDays(2), BigDecimal.valueOf(100));
+        @Test
+        void shouldReturnAllBookings() {
+            when(bookingRepository.findAll()).thenReturn(List.of(pendingBooking, completedBooking));
+            List<Booking> result = bookingService.getAllBookings();
+            assertThat(result).hasSize(2);
+        }
 
-    assertNotNull(created);
-    verify(bookingRepository, times(1)).save(any(Booking.class));
-  }
+        @Test
+        void shouldReturnEmptyListWhenNoBookings() {
+            when(bookingRepository.findAll()).thenReturn(Collections.emptyList());
+            assertThat(bookingService.getAllBookings()).isEmpty();
+        }
+    }
 
-  @Test
-  void testCreateBooking_AlternativeParameters() {
-    when(bookingRepository.save(any(Booking.class))).thenReturn(sampleBooking);
+    @Nested
+    @DisplayName("getUserBookings()")
+    class GetUserBookingsTests {
 
-    LocalDateTime now = LocalDateTime.now();
-    Booking created = bookingService.createBooking(2L, 5L, now.minusDays(1), now.plusDays(1), BigDecimal.ZERO);
+        @Test
+        void shouldReturnUserBookings() {
+            when(bookingRepository.findByUserId(10L)).thenReturn(List.of(pendingBooking));
+            List<Booking> result = bookingService.getUserBookings(10L);
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).getUserId()).isEqualTo(10L);
+        }
 
-    assertNotNull(created);
-    verify(bookingRepository, times(1)).save(any(Booking.class));
-  }
+        @Test
+        void shouldReturnEmptyForUserWithNoBookings() {
+            when(bookingRepository.findByUserId(99L)).thenReturn(Collections.emptyList());
+            assertThat(bookingService.getUserBookings(99L)).isEmpty();
+        }
+    }
 
-  @Test
-  void testDeleteBooking_Success() {
-    Long bookingId = 1L;
-    Booking nonActiveBooking = new Booking();
-    nonActiveBooking.setId(bookingId);
-    nonActiveBooking.setStatus(BookingStatus.CANCELLED);
 
-    when(bookingRepository.findById(bookingId)).thenReturn(Optional.of(nonActiveBooking));
-    doNothing().when(bookingRepository).delete(any(Booking.class));
+    @Nested
+    @DisplayName("createBooking()")
+    class CreateBookingTests {
 
-    assertDoesNotThrow(() -> bookingService.deleteBooking(bookingId));
-    verify(bookingRepository, times(1)).delete(any(Booking.class));
-  }
+        @Test
+        void shouldCreateBookingSuccessfully() {
+            when(bookingRepository.isCarAlreadyBooked(any(), any(), any())).thenReturn(false);
+            when(bookingRepository.save(any(Booking.class))).thenReturn(pendingBooking);
 
-  @Test
-  void testDeleteBooking_NotFound_ThrowsIllegalArgumentException() {
-    Long bookingId = 99L;
-    when(bookingRepository.findById(bookingId)).thenReturn(Optional.empty());
+            LocalDateTime now = LocalDateTime.now();
+            Booking created = bookingService.createBooking(
+                    10L, 20L, now.plusDays(1), now.plusDays(3), BigDecimal.valueOf(100));
 
-    assertThrows(RuntimeException.class, () -> bookingService.deleteBooking(bookingId));
-  }
+            assertNotNull(created);
+            verify(bookingRepository).save(any(Booking.class));
+        }
 
-  @Test
-  void testBookingStatusEnum_Pending() {
-    Booking booking = new Booking();
-    booking.setStatus(BookingStatus.PENDING);
-    assertEquals(BookingStatus.PENDING, booking.getStatus());
-  }
+        @Test
+        void shouldThrowWhenCarAlreadyBooked() {
+            when(bookingRepository.isCarAlreadyBooked(any(), any(), any())).thenReturn(true);
 
-  @Test
-  void testBookingStatusEnum_Confirmed() {
-    Booking booking = new Booking();
-    booking.setStatus(BookingStatus.CONFIRMED);
-    assertEquals(BookingStatus.CONFIRMED, booking.getStatus());
-  }
+            LocalDateTime now = LocalDateTime.now();
+            assertThrows(IllegalArgumentException.class, () ->
+                    bookingService.createBooking(10L, 20L, now.plusDays(1), now.plusDays(3),
+                            BigDecimal.valueOf(100)));
+            verify(bookingRepository, never()).save(any());
+        }
 
-  @Test
-  void testBookingIdAssignment() {
-    Booking booking = new Booking();
-    booking.setId(550L);
-    assertEquals(550L, booking.getId());
-  }
+        @Test
+        void shouldSetCreatedAtOnNewBooking() {
+            when(bookingRepository.isCarAlreadyBooked(any(), any(), any())).thenReturn(false);
+            when(bookingRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-  @Test
-  void testRepositoryFindById_DirectCall_Empty() {
-    when(bookingRepository.findById(100L)).thenReturn(Optional.empty());
-    Optional<Booking> result = bookingRepository.findById(100L);
-    assertTrue(result.isEmpty());
-  }
+            LocalDateTime now = LocalDateTime.now();
+            Booking created = bookingService.createBooking(
+                    10L, 20L, now.plusDays(1), now.plusDays(3), BigDecimal.valueOf(100));
 
-  @Test
-  void testRepositorySave_DirectCall() {
-    when(bookingRepository.save(sampleBooking)).thenReturn(sampleBooking);
-    Booking saved = bookingRepository.save(sampleBooking);
-    assertNotNull(saved);
-    assertEquals(1L, saved.getId());
-  }
+            assertThat(created.getCreatedAt()).isNotNull();
+        }
 
-  @Test
-  void testRepositoryDelete_DirectCall() {
-    doNothing().when(bookingRepository).delete(sampleBooking);
-    bookingRepository.delete(sampleBooking);
-    verify(bookingRepository, times(1)).delete(sampleBooking);
-  }
+        @Test
+        void shouldSetCancelDeadlineBasedOnStartDate() {
+            when(bookingRepository.isCarAlreadyBooked(any(), any(), any())).thenReturn(false);
+            when(bookingRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+            LocalDateTime startDate = LocalDateTime.now().plusDays(10);
+            Booking created = bookingService.createBooking(
+                    10L, 20L, startDate, startDate.plusDays(3), BigDecimal.valueOf(100));
+
+            assertThat(created.getCancelDeadline()).isEqualTo(startDate.minusDays(2));
+        }
+    }
+
+
+    @Nested
+    @DisplayName("changeStatus()")
+    class ChangeStatusTests {
+
+        @Test
+        void shouldChangeStatusSuccessfully() {
+            when(bookingRepository.findById(1L)).thenReturn(Optional.of(pendingBooking));
+            bookingService.changeStatus(1L, BookingStatus.CONFIRMED);
+            assertThat(pendingBooking.getStatus()).isEqualTo(BookingStatus.CONFIRMED);
+        }
+
+        @Test
+        void shouldThrowWhenBookingNotFound() {
+            when(bookingRepository.findById(99L)).thenReturn(Optional.empty());
+            assertThrows(IllegalArgumentException.class,
+                    () -> bookingService.changeStatus(99L, BookingStatus.CONFIRMED));
+        }
+    }
+
+
+    @Nested
+    @DisplayName("cancelBooking()")
+    class CancelBookingTests {
+
+        @Test
+        void shouldCancelBookingBeforeDeadline() {
+            pendingBooking.setCancelDeadline(LocalDateTime.now().plusDays(2));
+            when(bookingRepository.findById(1L)).thenReturn(Optional.of(pendingBooking));
+
+            Booking cancelled = bookingService.cancelBooking(1L);
+            assertThat(cancelled.getStatus()).isEqualTo(BookingStatus.CANCELLED);
+        }
+
+        @Test
+        void shouldThrowWhenCancellingCompletedBooking() {
+            completedBooking.setCancelDeadline(LocalDateTime.now().plusDays(1));
+            when(bookingRepository.findById(3L)).thenReturn(Optional.of(completedBooking));
+
+            assertThrows(IllegalStateException.class,
+                    () -> bookingService.cancelBooking(3L));
+        }
+
+        @Test
+        void shouldThrowWhenDeadlineExpired() {
+            pendingBooking.setCancelDeadline(LocalDateTime.now().minusDays(1));
+            when(bookingRepository.findById(1L)).thenReturn(Optional.of(pendingBooking));
+
+            assertThrows(IllegalStateException.class,
+                    () -> bookingService.cancelBooking(1L));
+        }
+    }
+
+
+    @Nested
+    @DisplayName("deleteBooking()")
+    class DeleteBookingTests {
+
+        @Test
+        void shouldDeleteCancelledBookingSuccessfully() {
+            when(bookingRepository.findById(2L)).thenReturn(Optional.of(cancelledBooking));
+            doNothing().when(bookingRepository).delete(any());
+
+            assertDoesNotThrow(() -> bookingService.deleteBooking(2L));
+            verify(bookingRepository).delete(cancelledBooking);
+        }
+
+        @Test
+        void shouldDeleteCompletedBookingSuccessfully() {
+            when(bookingRepository.findById(3L)).thenReturn(Optional.of(completedBooking));
+            doNothing().when(bookingRepository).delete(any());
+
+            assertDoesNotThrow(() -> bookingService.deleteBooking(3L));
+            verify(bookingRepository).delete(completedBooking);
+        }
+
+        @Test
+        void shouldThrowWhenDeletingActiveBooking() {
+            when(bookingRepository.findById(1L)).thenReturn(Optional.of(pendingBooking));
+
+            assertThrows(IllegalStateException.class,
+                    () -> bookingService.deleteBooking(1L));
+            verify(bookingRepository, never()).delete(any());
+        }
+
+        @Test
+        void shouldThrowWhenBookingNotFound() {
+            when(bookingRepository.findById(99L)).thenReturn(Optional.empty());
+            assertThrows(RuntimeException.class, () -> bookingService.deleteBooking(99L));
+        }
+    }
+
+
+    @Nested
+    @DisplayName("countBookingsByStatuses()")
+    class CountBookingsByStatusesTests {
+
+        @Test
+        void shouldReturnCountForGivenStatuses() {
+            when(bookingRepository.countBookingsByStatuses(any())).thenReturn(5L);
+            long count = bookingService.countBookingsByStatuses(
+                    List.of(BookingStatus.CONFIRMED, BookingStatus.PENDING));
+            assertThat(count).isEqualTo(5L);
+        }
+
+        @Test
+        void shouldReturnZeroWhenStatusListIsEmpty() {
+            long count = bookingService.countBookingsByStatuses(Collections.emptyList());
+            assertThat(count).isZero();
+            verify(bookingRepository, never()).countBookingsByStatuses(any());
+        }
+
+        @Test
+        void shouldReturnZeroWhenStatusListIsNull() {
+            long count = bookingService.countBookingsByStatuses(null);
+            assertThat(count).isZero();
+        }
+    }
+
+
+    @Nested
+    @DisplayName("sumLastMonthRevenue()")
+    class SumLastMonthRevenueTests {
+
+        @Test
+        void shouldReturnRevenueSum() {
+            when(bookingRepository.sumLastMonthRevenue(any(), any()))
+                    .thenReturn(BigDecimal.valueOf(1500));
+
+            BigDecimal result = bookingService.sumLastMonthRevenue(
+                    BookingStatus.COMPLETED, LocalDateTime.now().minusDays(30));
+            assertThat(result).isEqualTo(BigDecimal.valueOf(1500));
+        }
+    }
+
+
+    @Nested
+    @DisplayName("countUpcomingBookings()")
+    class CountUpcomingBookingsTests {
+
+        @Test
+        void shouldReturnUpcomingCount() {
+            when(bookingRepository.countUpcomingBookings(any(), any(), any())).thenReturn(7L);
+            long count = bookingService.countUpcomingBookings(
+                    List.of(BookingStatus.CONFIRMED),
+                    LocalDateTime.now(),
+                    LocalDateTime.now().plusDays(30));
+            assertThat(count).isEqualTo(7L);
+        }
+    }
 }
