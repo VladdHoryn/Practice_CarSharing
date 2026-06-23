@@ -1,8 +1,7 @@
-import apiClient from '../api/apiClient'; // 👑 ФІКС: використовуємо наш єдиний авторизований клієнт
+import apiClient from '../api/apiClient';
 
 export const analyticsService = {
     getOwnerSummary: async (ownerId) => {
-        // apiClient автоматично додасть headers: { Authorization: 'Bearer <токен>' }
         const response = await apiClient.get(`/api/v1/analytics/owners/${ownerId}/summary`, {
             params: {
                 completedStatus: 'COMPLETED',
@@ -15,7 +14,6 @@ export const analyticsService = {
         return response.data;
     },
 
-    // 👑 Збір аналітики для ADMINISTRATOR
     getAdminSummary: async () => {
         const response = await apiClient.get('/api/v1/analytics/admin/summary', {
             params: {

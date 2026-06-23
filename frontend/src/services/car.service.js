@@ -55,7 +55,6 @@ export const carService = {
         const formData = new FormData();
         formData.append('file', file);
 
-        // 👑 ФІКС: Видалили об'єкт headers, тепер завантаження фотографій машин не буде падати
         const response = await apiClient.post(`/car/v1/${carId}/images`, formData);
         return response.data;
     },

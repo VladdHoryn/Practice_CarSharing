@@ -9,7 +9,6 @@ const KycManagement = () => {
     const [isProfileReady, setIsProfileReady] = useState(false);
     const [loading, setLoading] = useState(true);
 
-    // 👑 Стейт для модального вікна детального перегляду
     const [selectedDocForModal, setSelectedDocForModal] = useState(null);
     const [isQueueMode, setIsQueueMode] = useState(true);
 
@@ -65,7 +64,6 @@ const KycManagement = () => {
             await documentService.verifyDocument(docId);
             toast.success("Документ успішно верифіковано! ✅");
 
-            // Якщо вікно деталей відчинене — закриваємо його
             setSelectedDocForModal(null);
 
             if (isQueueMode) {
@@ -94,7 +92,7 @@ const KycManagement = () => {
                 )}
             </div>
 
-            {/* Панель пошуку */}
+            {}
             <form onSubmit={handleInspectUser} style={{ display: 'flex', gap: '12px', marginBottom: '24px', background: '#fff', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
                 <input
                     type="number"
@@ -146,7 +144,7 @@ const KycManagement = () => {
                                     </td>
                                     <td style={{ padding: '16px', textAlign: 'center' }}>
                                         <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                                            {/* 👑 КНОПКА ДЕТАЛІ ДЛЯ РОЗГОРТАННЯ МОДАЛКИ */}
+                                            {}
                                             <button
                                                 onClick={() => setSelectedDocForModal(doc)}
                                                 style={{ padding: '6px 14px', background: '#0056b3', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}
@@ -174,7 +172,7 @@ const KycManagement = () => {
                 </div>
             )}
 
-            {/* 👑 ПОДВІЙНЕ ОНОВЛЕННЯ: МОДАЛЬНЕ ВІКНО НА ПОВНИЙ ЕКРАН ДЛЯ ПЕРЕГЛЯДУ ДОКУМЕНТА */}
+            {}
             {selectedDocForModal && (
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, backdropFilter: 'blur(4px)' }} onClick={() => setSelectedDocForModal(null)}>
                     <div style={{ background: '#fff', borderRadius: '16px', width: '600px', maxWidth: '95%', padding: '24px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column', gap: '16px' }} onClick={e => e.stopPropagation()}>

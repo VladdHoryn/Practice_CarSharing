@@ -80,7 +80,6 @@ const UserProfilePage = () => {
             userService.getUserByKeycloakId(parsedUser.id)
                 .then(realUserData => {
 
-                    // 👑 КРИТИЧНИЙ ФІКС БЛОКУВАННЯ: Якщо адмін заблокував юзера — моментально викидаємо з системи
                     if (realUserData && realUserData.isActive === false) {
                         toast.error("🛑 Ваш обліковий запис було заблоковано адміністратором системи.");
                         authService.logout();
@@ -434,11 +433,10 @@ const UserProfilePage = () => {
 
             try {
                 setIsChangingPassword(true);
-                // user.id — це Keycloak ID поточного залогіненого юзера
                 await userService.changePasswordByKeycloakId(user.id, passwordForm.newPassword);
 
                 toast.success("Пароль успішно оновлено! 🔐");
-                setPasswordForm({ newPassword: '', confirmPassword: '' }); // Очищаємо поля
+                setPasswordForm({ newPassword: '', confirmPassword: '' });
             } catch (err) {
                 console.error("Помилка зміни пароля:", err);
                 toast.error(err.response?.data?.message || "Не вдалося змінити пароль.");
@@ -549,7 +547,7 @@ const UserProfilePage = () => {
                     <h2 className={styles.tabTitle}>Замовити авто</h2>
                     <p className={styles.greeting}>Привіт, {user.firstName || 'Гість'}!</p>
 
-                    {/* 👑 Визначна позначка загальної готовності профілю */}
+                    {}
                     <div style={{ padding: '15px', borderRadius: '8px', marginBottom: '20px', background: isProfileVerified ? '#f6ffed' : '#fff1f0', border: isProfileVerified ? '1px solid #b7eb8f' : '1px solid #ffccc7', display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <span style={{ fontSize: '24px' }}>{isProfileVerified ? '✅' : '🛑'}</span>
                         <div>
@@ -898,7 +896,7 @@ const UserProfilePage = () => {
                                     {ownerAnalytics.monthlyRevenue?.length > 0 ? (
                                         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-around', height: '200px', paddingBottom: '20px', borderBottom: '2px solid #ddd' }}>
                                             {ownerAnalytics.monthlyRevenue.map(([monthNum, revenue], idx) => {
-                                                const barHeight = (revenue / maxRevenue) * 150; // Динамічна висота стовпчика
+                                                const barHeight = (revenue / maxRevenue) * 150;
                                                 return (
                                                     <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '60px', position: 'relative' }}>
                                                         <span style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '5px', color: '#0056b3' }}>{revenue}€</span>
@@ -945,7 +943,7 @@ const UserProfilePage = () => {
                         <>
                             <h2 className={styles.tabTitle}>Персональні дані</h2>
 
-                            {/* Форма 1: Зміна імені та прізвища */}
+                            {}
                             <form onSubmit={handleProfileSubmit}>
                                 <div className={styles.formGrid} style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '20px'}}>
                                     <div className={styles.inputGroup}>
@@ -966,7 +964,7 @@ const UserProfilePage = () => {
 
                             <hr style={{ border: 'none', borderTop: '1px solid #dee2e6', margin: '30px 0' }} />
 
-                            {/* Форма 2: Безпека та зміна пароля */}
+                            {}
                             <h3 className={styles.sectionSubtitle} style={{ marginBottom: '15px', fontSize: '18px', color: '#333' }}>🔒 Безпека облікового запису</h3>
                             <form onSubmit={handlePasswordSubmit}>
                                 <div className={styles.formGrid} style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '20px'}}>

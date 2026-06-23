@@ -26,7 +26,7 @@ const AdminAnalyticsPage = () => {
             <h1 style={{ fontSize: '26px', color: '#111', marginBottom: '5px', fontWeight: '800' }}>👑 Панель Супер-Адміністратора</h1>
             <p style={{ color: '#666', margin: '0 0 30px 0', fontSize: '14px' }}>Глобальний моніторинг фінансової та користувацької активності системи CarLink</p>
 
-            {/* Метрики користувачів та оборотів */}
+            {}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '20px', marginBottom: '35px' }}>
                 <div style={{ background: '#fff', padding: '20px', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid #eee' }}>
                     <div style={{ fontSize: '13px', color: '#888', fontWeight: 'bold' }}>Активні користувачі</div>
@@ -44,14 +44,14 @@ const AdminAnalyticsPage = () => {
                     <div style={{ fontSize: '13px', color: '#fa8c16', fontWeight: 'bold' }}>Поточні сесії</div>
                     <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#fa8c16', marginTop: '5px' }}>{data.totalBookings}</div>
                 </div>
-                <div style={{ background: '#fff', padding: '20px', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid #eee', background: '#e6f7ff' }}>
+                <div style={{ background: '#fff', padding: '20px', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', border: '1px solid #eee' }}>
                     <div style={{ fontSize: '13px', color: '#0050b3', fontWeight: 'bold' }}>Оборот за період</div>
                     <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#0050b3', marginTop: '5px' }}>{data.periodRevenue} €</div>
                 </div>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '30px' }}>
-                {/* Глобальний графік доходів платформи */}
+                {}
                 <div style={{ background: '#fff', padding: '25px', borderRadius: '12px', border: '1px solid #eee', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
                     <h3 style={{ margin: '0 0 25px 0', fontSize: '16px', color: '#222' }}>📊 Загальносистемний дохід мікросервісів по місяцях</h3>
                     <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-around', height: '220px', paddingBottom: '25px', borderBottom: '2px solid #f0f0f0' }}>
@@ -70,7 +70,7 @@ const AdminAnalyticsPage = () => {
                     </div>
                 </div>
 
-                {/* Пікові дні оренди */}
+                {}
                 <div style={{ background: '#fff', padding: '25px', borderRadius: '12px', border: '1px solid #eee', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
                     <h3 style={{ margin: '0 0 20px 0', fontSize: '16px', color: '#222' }}>📅 Аналітика пікових днів тижня (К-сть оренд)</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '20px' }}>

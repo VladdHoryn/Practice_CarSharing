@@ -28,13 +28,10 @@ const PaymentManagement = () => {
     const handleMarkAsPaid = async (payment) => {
         if (!window.confirm(`Підтвердити платіж #TX-${payment.id} для бронювання #BK-${payment.bookingId} вручну?`)) return;
         try {
-            // Направляємо валідний ENUM для мікросервісу букінгів
             await paymentService.changePaymentStatus(payment.bookingId, 'COMPLETED');
 
             toast.success(`Трансляцію оплати успішно підтверджено! 💳`);
 
-            // 👑 ФІКС ПРИМУСОВОЇ ЗМІНИ СТАТУСУ: Оскільки бекенд-транзакцій спить,
-            // ми оновлюємо статус в локальному стейті React на SUCCESS на льоту!
             setPayments(prevPayments =>
                 prevPayments.map(p =>
                     p.id === payment.id ? { ...p, status: 'SUCCESS' } : p

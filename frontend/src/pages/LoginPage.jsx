@@ -33,7 +33,6 @@ const LoginPage = () => {
                 setIsLoading(true);
                 const loginData = { email: credentials.email, password: credentials.password };
 
-                // 1. Авторизуємося в Keycloak (отримуємо токени)
                 const response = await authService.login(loginData);
                 if (response && (response.status === 401 || response.error)) {
                     throw new Error(response.message || "Невірний email або пароль.");
@@ -45,25 +44,22 @@ const LoginPage = () => {
                 }
                 const keycloakUser = JSON.parse(storedUser);
 
-                // 👑 КРИТИЧНИЙ ФІКС БЕЗПЕКИ: Миттєво йдемо в наш user-service за статусом із бази даних!
                 try {
                     const realDbUser = await userService.getUserByKeycloakId(keycloakUser.id);
 
                     if (realDbUser && realDbUser.isActive === false) {
-                        authService.logout(); // Очищаємо localStorage, закриваємо сесію
+                        authService.logout();
                         const blockedMsg = "🛑 Ваш обліковий запис заблоковано адміністратором. Доступ закрити.";
                         setError(blockedMsg);
                         toast.error(blockedMsg);
-                        return; // Зупиняємо логін, в каталог не пускаємо!
+                        return;
                     }
                 } catch (dbErr) {
                     console.error("Помилка верифікації статусу через DB:", dbErr);
-                    // Якщо бази немає — страхуємося, але пускаємо, або блокуємо за твоїм вибором
                 }
 
                 toast.success('Вхід успішний! 👋');
 
-                // Чистий редирект
                 if (keycloakUser.role === 'ADMINISTRATOR') {
                     navigate('/admin/dashboard');
                 } else {

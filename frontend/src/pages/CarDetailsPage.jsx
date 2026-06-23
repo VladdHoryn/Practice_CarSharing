@@ -108,7 +108,7 @@ const CarDetailsPage = () => {
                         <p className={styles.carSubtitle}>{car.year} рік, клас: {car.carClass}</p>
                     </div>
 
-                    {/* Велике активне фото з безпечним стрімінгом */}
+                    {}
                     <div className={styles.mainImagePlaceholder} style={{ background: '#f5f5f5', height: '380px', borderRadius: '8px', overflow: 'hidden' }}>
                         {activeImageId ? (
                             <SecureImage
@@ -123,7 +123,7 @@ const CarDetailsPage = () => {
                         )}
                     </div>
 
-                    {/* Динамічна інтерактивна стрічка мініатюр знизу */}
+                    {}
                     <div className={styles.thumbnailGallery} style={{ display: 'flex', gap: '10px', marginTop: '12px', overflowX: 'auto', paddingBottom: '5px' }}>
                         {images.map(img => (
                             <div

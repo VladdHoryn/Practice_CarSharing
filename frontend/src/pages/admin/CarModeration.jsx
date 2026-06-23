@@ -8,7 +8,6 @@ const CarModeration = () => {
     const [queue, setQueue] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // Стейт для перегляду всіх деталей та фотографій авто
     const [viewingCar, setViewingCar] = useState(null);
     const [carGallery, setCarGallery] = useState([]);
     const [galleryLoading, setImagesLoading] = useState(false);
@@ -87,16 +86,16 @@ const CarModeration = () => {
                                     <p className={styles.metaText}>Клас: {car.carClass} | Статус: {car.status}</p>
                                 </div>
 
-                                {/* 👑 ФІКС 3.1: Надійно відображаємо основне фото авто через SecureImage */}
+                                {}
                                 <div className={styles.photoThumb} onClick={() => handleOpenGallery(car)} style={{ width: '160px', height: '100px', cursor: 'pointer', marginTop: '10px', overflow: 'hidden', borderRadius: '6px', background: '#eaeaea' }} title="Переглянути всі фото">
                                     <SecureImage src={`/car/v1/${car.id}/images/main`} alt="Car Main preview" style={{ width: '100%', height: '100%' }} />
                                 </div>
                             </div>
                             <div style={{ display: 'flex', gap: '12px', marginTop: '15px', alignItems: 'center' }}>
                                 <button onClick={() => handleRejectSubmit(car.id)} className={styles.rejectBtn}>Відхилити ✖</button>
-                                {/* 👑 ФІКС 3.2: Додано перегляд повної інформації */}
+                                {}
                                 <button onClick={() => handleOpenGallery(car)} style={{ padding: '8px 14px', border: '1px solid #ccc', background: '#fff', borderRadius: '4px', cursor: 'pointer', fontSize: '13px', fontWeight: '500' }}>ⓘ Детальніше</button>
-                                {/* 👑 ФІКС 3.3: Забрано сраний лайк із кнопки */}
+                                {}
                                 <button onClick={() => handleApproveCar(car.id)} className={styles.approveBtn}>Прийняти в автопарк</button>
                             </div>
                         </div>
@@ -104,7 +103,7 @@ const CarModeration = () => {
                 </div>
             )}
 
-            {/* 👑 ФІКС 3.2: Модальне вікно перегляду повної фотогалереї та характеристик */}
+            {}
             {viewingCar && (
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1500 }}>
                     <div style={{ background: '#fff', padding: '25px', borderRadius: '12px', width: '600px', maxWidth: '90%', maxHeight: '85vh', overflowY: 'auto' }}>

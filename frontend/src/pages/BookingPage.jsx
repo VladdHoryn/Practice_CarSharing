@@ -212,7 +212,7 @@ const BookingPage = () => {
                    toast.success('Запрошення для співводіїв успішно розіслані! ✉️');
                } catch (inviteErr) {
                    console.error("Помилка відправки запрошень:", inviteErr);
-                   // Замість падіння всього додатка просто виводимо попередження
+
                    toast.warning("Оплата успішна, але сталася помилка надсилання інвайтів. Перевірте коди водіїв.");
                }
            }
@@ -338,7 +338,7 @@ const BookingPage = () => {
                                 </div>
                             )}
 
-                            {/* 👑 КРИТИЧНИЙ ФІКС: Повернули Google Pay та Apple Pay */}
+                            {}
                             <label style={{ display: 'flex', alignItems: 'center', padding: '15px', border: paymentMethod === 'GOOGLE_PAY' ? '2px solid #0056b3' : '1px solid #ddd', borderRadius: '8px', marginBottom: '10px', cursor: 'pointer', background: paymentMethod === 'GOOGLE_PAY' ? '#f8fbff' : '#fff' }}>
                                 <input type="radio" name="payMethod" checked={paymentMethod === 'GOOGLE_PAY'} onChange={() => setPaymentMethod('GOOGLE_PAY')} style={{marginRight: '15px'}} />
                                 📱 Google Pay

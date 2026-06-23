@@ -12,7 +12,6 @@ const CarManagement = () => {
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [carToDelete, setCarToDelete] = useState(null);
 
-    // 👑 ДОДАНО: Стейт для перегляду розширеної галереї фотографій авто
     const [viewingCar, setViewingCar] = useState(null);
     const [carGallery, setCarGallery] = useState([]);
     const [galleryLoading, setGalleryLoading] = useState(false);
@@ -45,7 +44,6 @@ const CarManagement = () => {
         fetchFleet();
     }, []);
 
-    // 👑 ДОДАНО: Метод підвантаження всіх пов'язаних зображень для обраного ТЗ
     const handleOpenGallery = async (car) => {
         try {
             setViewingCar(car);
@@ -193,7 +191,7 @@ const CarManagement = () => {
                 <div className={styles.grid}>
                     {filteredCars.map((car) => (
                         <div key={car.id} className={styles.carCard}>
-                            {/* 👑 ФІКС: Зробили головне прев'ю клікабельним для перегляду галереї */}
+                            {}
                             <div
                                 onClick={() => handleOpenGallery(car)}
                                 style={{ height: '140px', background: '#f5f5f5', borderRadius: '6px 6px 0 0', overflow: 'hidden', marginBottom: '10px', cursor: 'pointer', position: 'relative' }}
@@ -229,7 +227,7 @@ const CarManagement = () => {
                                 </select>
 
                                 <div style={{ display: 'flex', gap: '10px' }}>
-                                    {/* 👑 ДОДАНО: Кнопка швидкого виклику галереї */}
+                                    {}
                                     <button onClick={() => handleOpenGallery(car)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px' }} title="Переглянути фото">👁️</button>
                                     <button onClick={() => openEditModal(car)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px' }} title="Редагувати">✏️</button>
                                     <button onClick={() => setCarToDelete(car.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px' }} title="Видалити">🗑️</button>
@@ -240,7 +238,7 @@ const CarManagement = () => {
                 </div>
             )}
 
-            {/* Модалка створення/редагування авто */}
+            {}
             {isModalOpen && (
                 <div className={styles.modalOverlay}>
                     <div className={styles.modal} style={{ maxWidth: '520px' }}>
@@ -308,7 +306,7 @@ const CarManagement = () => {
                 </div>
             )}
 
-            {/* 👑 ДОДАНО: Модальне вікно перегляду ПОВНОЇ фотогалереї для автопарку (як у модерації) */}
+            {}
             {viewingCar && (
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1500 }}>
                     <div style={{ background: '#fff', padding: '25px', borderRadius: '12px', width: '600px', maxWidth: '90%', maxHeight: '85vh', overflowY: 'auto' }}>
@@ -345,7 +343,7 @@ const CarManagement = () => {
                 </div>
             )}
 
-            {/* Кастомний стильній Alert видалення авто */}
+            {}
             {carToDelete && (
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }}>
                     <div style={{ background: '#fff', padding: '25px', borderRadius: '10px', width: '380px', textAlign: 'center', boxShadow: '0 4px 15px rgba(0,0,0,0.15)' }}>

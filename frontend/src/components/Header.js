@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import styles from './Header.module.css';
-// Імпортуємо графічне лого з папки активів
+
 import logoImg from '../assets/logo.png';
 
 const Header = () => {
@@ -12,13 +12,13 @@ const Header = () => {
     return (
         <header className={styles.header} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '15px 40px', background: '#fff', borderBottom: '1px solid #eee' }}>
 
-            {/* 👑 ФІКС ЛОГОТИПУ: Збільшили висоту, додали правильне центрування та відступи від краю */}
+            {}
             <Link to="/catalog" style={{ display: 'flex', alignItems: 'center', padding: '5px 0', textDecoration: 'none' }}>
                 <img
                     src={logoImg}
                     alt="CarLink Logo"
                     style={{
-                        height: '52px',          // ✨ Збільшено для ідеальної читабельності тексту всередині лого
+                        height: '52px',
                         width: 'auto',
                         objectFit: 'contain',
                         display: 'block',

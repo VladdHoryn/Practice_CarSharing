@@ -65,7 +65,7 @@ const AdminDashboard = () => {
                 ))}
             </div>
 
-            {/* Сітка графіків Recharts */}
+            {}
             <div className={styles.chartsGrid}>
                 <div className={styles.chartBox}>
                     <h3>Динаміка доходів системи (€)</h3>

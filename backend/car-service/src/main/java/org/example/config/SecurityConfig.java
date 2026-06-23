@@ -38,8 +38,6 @@ public class SecurityConfig {
                                         .permitAll()
                                         .requestMatchers(HttpMethod.GET, "/car/v1/available")
                                         .permitAll()
-                                        // 👑 ДОДАНЕ ПРАВИЛО: Дозволяємо публічний доступ до
-                                        // фотографій автопарку
                                         .requestMatchers(HttpMethod.GET, "/car/v1/*/images/**")
                                         .permitAll()
                                         .anyRequest()

@@ -101,6 +101,6 @@ public class UserDocumentApplicationService {
     }
 
     public List<UserDocument> getAllSystemUnverifiedDocuments() {
-      return documentRepository.findByIsVerifiedFalse();
+        return documentRepository.findByIsVerifiedFalse();
     }
 }

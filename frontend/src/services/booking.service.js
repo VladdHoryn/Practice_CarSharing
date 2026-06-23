@@ -58,14 +58,14 @@ export const bookingService = {
 
     getOccupiedDatesByCarId: async (carId) => {
         const response = await apiClient.get(`/booking/v1/car/${carId}`);
-        return response.data; // [{ startDate: "...", endDate: "..." }]
+        return response.data;
     },
 
     getAvailableCarIds: async (startDate, endDate) => {
         const response = await apiClient.get('/booking/v1/cars/available', {
             params: { startDate, endDate }
         });
-        return response.data; // Повертає масив ID: [1, 3, 5]
+        return response.data;
     },
 
     getActiveCoDriversByBookingId: async (bookingId) => {

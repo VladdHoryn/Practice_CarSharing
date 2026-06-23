@@ -26,52 +26,52 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserDocumentController {
 
-  private final UserDocumentApplicationService documentService;
+    private final UserDocumentApplicationService documentService;
 
-  @PostMapping(value = "/user/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('RENTER')")
-  public ResponseEntity<UserDocumentResponse> uploadDocument(
-    @PathVariable Long userId,
-    @RequestParam("documentType") DocumentType documentType,
-    @RequestParam("file") MultipartFile file) {
+    @PostMapping(value = "/user/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('RENTER')")
+    public ResponseEntity<UserDocumentResponse> uploadDocument(
+            @PathVariable Long userId,
+            @RequestParam("documentType") DocumentType documentType,
+            @RequestParam("file") MultipartFile file) {
 
-    try {
-      UserDocument savedDoc =
-        documentService.uploadDocument(
-          userId,
-          documentType,
-          file.getBytes(),
-          file.getContentType(),
-          file.getOriginalFilename());
-      return ResponseEntity.ok(mapToResponse(savedDoc));
-    } catch (IOException e) {
-      throw new ResponseStatusException(
-        HttpStatus.INTERNAL_SERVER_ERROR, "Failed to process file bytes", e);
+        try {
+            UserDocument savedDoc =
+                    documentService.uploadDocument(
+                            userId,
+                            documentType,
+                            file.getBytes(),
+                            file.getContentType(),
+                            file.getOriginalFilename());
+            return ResponseEntity.ok(mapToResponse(savedDoc));
+        } catch (IOException e) {
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR, "Failed to process file bytes", e);
+        }
     }
-  }
 
-  @GetMapping("/user/{userId}")
-  @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('RENTER')")
-  public ResponseEntity<List<UserDocumentResponse>> getUserDocumentsInfo(
-    @PathVariable Long userId) {
-    List<UserDocumentResponse> responses =
-      documentService.getUserDocuments(userId).stream()
-        .map(this::mapToResponse)
-        .collect(Collectors.toList());
+    @GetMapping("/user/{userId}")
+    @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('RENTER')")
+    public ResponseEntity<List<UserDocumentResponse>> getUserDocumentsInfo(
+            @PathVariable Long userId) {
+        List<UserDocumentResponse> responses =
+                documentService.getUserDocuments(userId).stream()
+                        .map(this::mapToResponse)
+                        .collect(Collectors.toList());
 
-    return ResponseEntity.ok(responses);
-  }
+        return ResponseEntity.ok(responses);
+    }
 
     @GetMapping("/unverified")
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     public ResponseEntity<List<UserDocumentResponse>> getAllSystemUnverifiedDocuments() {
 
-      List<UserDocumentResponse> responses =
-        documentService.getAllSystemUnverifiedDocuments().stream()
-          .map(this::mapToResponse)
-          .collect(Collectors.toList());
+        List<UserDocumentResponse> responses =
+                documentService.getAllSystemUnverifiedDocuments().stream()
+                        .map(this::mapToResponse)
+                        .collect(Collectors.toList());
 
-      return ResponseEntity.ok(responses);
+        return ResponseEntity.ok(responses);
     }
 
     @GetMapping("/{documentId}/download")
@@ -79,40 +79,40 @@ public class UserDocumentController {
     public ResponseEntity<byte[]> downloadDocument(@PathVariable Long documentId) {
         UserDocument document = documentService.getDocumentById(documentId);
 
-    // 👑 ФІКС КИРИЛИЦІ: Формуємо безпечний заголовок з підтримкою UTF-8
-    ContentDisposition contentDisposition = ContentDisposition.builder("attachment")
-      .filename(document.getOriginalFileName(), StandardCharsets.UTF_8)
-      .build();
+        ContentDisposition contentDisposition =
+                ContentDisposition.builder("attachment")
+                        .filename(document.getOriginalFileName(), StandardCharsets.UTF_8)
+                        .build();
 
-    return ResponseEntity.ok()
-      .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())
-      .contentType(MediaType.parseMediaType(document.getContentType()))
-      .body(document.getFileData());
-  }
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())
+                .contentType(MediaType.parseMediaType(document.getContentType()))
+                .body(document.getFileData());
+    }
 
-  @GetMapping("/user/{userId}/status")
-  @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('RENTER')")
-  public ResponseEntity<Boolean> checkAllDocumentsVerified(@PathVariable Long userId) {
-    boolean status = documentService.areAllDocumentsVerifiedAndPresent(userId);
-    return ResponseEntity.ok(status);
-  }
+    @GetMapping("/user/{userId}/status")
+    @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('RENTER')")
+    public ResponseEntity<Boolean> checkAllDocumentsVerified(@PathVariable Long userId) {
+        boolean status = documentService.areAllDocumentsVerifiedAndPresent(userId);
+        return ResponseEntity.ok(status);
+    }
 
-  @PatchMapping("/{documentId}/verify")
-  @PreAuthorize("hasRole('ADMINISTRATOR')")
-  public ResponseEntity<Void> verifyDocument(@PathVariable Long documentId) {
-    documentService.verifyDocument(documentId);
-    return ResponseEntity.noContent().build();
-  }
+    @PatchMapping("/{documentId}/verify")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    public ResponseEntity<Void> verifyDocument(@PathVariable Long documentId) {
+        documentService.verifyDocument(documentId);
+        return ResponseEntity.noContent().build();
+    }
 
-  private UserDocumentResponse mapToResponse(UserDocument document) {
-    return UserDocumentResponse.builder()
-      .id(document.getId())
-      .userId(document.getUser() != null ? document.getUser().getId() : null)
-      .documentType(document.getDocumentType())
-      .originalFileName(document.getOriginalFileName())
-      .contentType(document.getContentType())
-      .isVerified(document.getIsVerified())
-      .uploadedAt(document.getUploadedAt())
-      .build();
-  }
+    private UserDocumentResponse mapToResponse(UserDocument document) {
+        return UserDocumentResponse.builder()
+                .id(document.getId())
+                .userId(document.getUser() != null ? document.getUser().getId() : null)
+                .documentType(document.getDocumentType())
+                .originalFileName(document.getOriginalFileName())
+                .contentType(document.getContentType())
+                .isVerified(document.getIsVerified())
+                .uploadedAt(document.getUploadedAt())
+                .build();
+    }
 }
