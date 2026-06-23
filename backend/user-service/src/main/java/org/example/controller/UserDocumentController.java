@@ -1,6 +1,7 @@
 package org.example.controller;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -8,6 +9,7 @@ import org.example.application.UserDocumentApplicationService;
 import org.example.domain.DocumentType;
 import org.example.domain.UserDocument;
 import org.example.dto.UserDocumentResponse;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -60,15 +62,30 @@ public class UserDocumentController {
         return ResponseEntity.ok(responses);
     }
 
+    @GetMapping("/unverified")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    public ResponseEntity<List<UserDocumentResponse>> getAllSystemUnverifiedDocuments() {
+
+        List<UserDocumentResponse> responses =
+                documentService.getAllSystemUnverifiedDocuments().stream()
+                        .map(this::mapToResponse)
+                        .collect(Collectors.toList());
+
+        return ResponseEntity.ok(responses);
+    }
+
     @GetMapping("/{documentId}/download")
     @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('RENTER')")
     public ResponseEntity<byte[]> downloadDocument(@PathVariable Long documentId) {
         UserDocument document = documentService.getDocumentById(documentId);
 
+        ContentDisposition contentDisposition =
+                ContentDisposition.builder("attachment")
+                        .filename(document.getOriginalFileName(), StandardCharsets.UTF_8)
+                        .build();
+
         return ResponseEntity.ok()
-                .header(
-                        HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"" + document.getOriginalFileName() + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())
                 .contentType(MediaType.parseMediaType(document.getContentType()))
                 .body(document.getFileData());
     }
@@ -90,6 +107,7 @@ public class UserDocumentController {
     private UserDocumentResponse mapToResponse(UserDocument document) {
         return UserDocumentResponse.builder()
                 .id(document.getId())
+                .userId(document.getUser() != null ? document.getUser().getId() : null)
                 .documentType(document.getDocumentType())
                 .originalFileName(document.getOriginalFileName())
                 .contentType(document.getContentType())

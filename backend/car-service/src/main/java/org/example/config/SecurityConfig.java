@@ -38,6 +38,8 @@ public class SecurityConfig {
                                         .permitAll()
                                         .requestMatchers(HttpMethod.GET, "/car/v1/available")
                                         .permitAll()
+                                        .requestMatchers(HttpMethod.GET, "/car/v1/*/images/**")
+                                        .permitAll()
                                         .anyRequest()
                                         .authenticated())
                 .oauth2ResourceServer(

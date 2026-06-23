@@ -8,29 +8,6 @@ CREATE INDEX idx_bookings_cancel_deadline ON bookings(cancel_deadline) WHERE sta
 
 CREATE INDEX idx_bookings_created_at ON bookings(created_at);
 
-CREATE OR REPLACE FUNCTION check_booking_overlap()
-RETURNS TRIGGER AS $$
-BEGIN
-
-    IF EXISTS (
-        SELECT 1 FROM bookings
-        WHERE car_id = NEW.car_id
-          AND id != NEW.id
-          AND status IN ('CONFIRMED', 'PENDING')
-    ) THEN
-        RAISE EXCEPTION 'Car % is already booked for the requested period', NEW.car_id;
-    END IF;
-
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-DROP TRIGGER IF EXISTS trigger_prevent_overlap ON bookings;
-CREATE TRIGGER trigger_prevent_overlap
-    BEFORE INSERT OR UPDATE ON bookings
-    FOR EACH ROW
-    EXECUTE FUNCTION check_booking_overlap();
-
 CREATE OR REPLACE FUNCTION update_booking_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN

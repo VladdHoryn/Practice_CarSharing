@@ -99,4 +99,8 @@ public class UserDocumentApplicationService {
                                 new IllegalArgumentException(
                                         "Document not found with id: " + documentId));
     }
+
+    public List<UserDocument> getAllSystemUnverifiedDocuments() {
+        return documentRepository.findByIsVerifiedFalse();
+    }
 }

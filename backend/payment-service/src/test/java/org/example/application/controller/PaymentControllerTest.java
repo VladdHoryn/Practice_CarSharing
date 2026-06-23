@@ -26,6 +26,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
@@ -38,6 +41,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @WebMvcTest(controllers = PaymentController.class)
 @Import(TestSecurityConfig.class)
+@ImportAutoConfiguration({
+    SecurityAutoConfiguration.class,
+    UserDetailsServiceAutoConfiguration.class
+}) // Додано
 class PaymentControllerTest {
 
     @MockitoBean private JwtDecoder jwtDecoder;

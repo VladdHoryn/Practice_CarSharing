@@ -25,14 +25,22 @@ const PaymentManagement = () => {
         fetchPayments();
     }, []);
 
-    const handleMarkAsPaid = async (bookingId) => {
-        if (!window.confirm(`Підтвердити платіж для бронювання #BK-${bookingId} як CONFIRMED вручну?`)) return;
+    const handleMarkAsPaid = async (payment) => {
+        if (!window.confirm(`Підтвердити платіж #TX-${payment.id} для бронювання #BK-${payment.bookingId} вручну?`)) return;
         try {
-            await paymentService.changePaymentStatus(bookingId, 'CONFIRMED');
+            await paymentService.changePaymentStatus(payment.bookingId, 'COMPLETED');
+
             toast.success(`Трансляцію оплати успішно підтверджено! 💳`);
-            fetchPayments();
+
+            setPayments(prevPayments =>
+                prevPayments.map(p =>
+                    p.id === payment.id ? { ...p, status: 'SUCCESS' } : p
+                )
+            );
         } catch (err) {
-            toast.error('Не вдалося оновити статус фінансової операції.');
+            console.error("Помилка фінансової операції:", err);
+            const serverMessage = err.response?.data?.message || err.response?.data || err.message;
+            toast.error(`Помилка сервера: ${serverMessage}`);
         }
     };
 
@@ -44,7 +52,7 @@ const PaymentManagement = () => {
             <div className={styles.filterBar}>
                 <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className={styles.select}>
                     <option value="ALL">Всі транзакції</option>
-                    <option value="PAID">PAID</option>
+                    <option value="SUCCESS">SUCCESS</option>
                     <option value="PENDING">PENDING</option>
                     <option value="FAILED">FAILED</option>
                 </select>
@@ -57,8 +65,8 @@ const PaymentManagement = () => {
                     <table className={styles.table}>
                         <thead>
                         <tr>
-                            <th>ID Транзакції</th>
-                            <th>ID Бронювання</th>
+                            <th>ID Trans</th>
+                            <th>ID Booking</th>
                             <th>Сума</th>
                             <th>Метод</th>
                             <th>Статус</th>
@@ -72,11 +80,15 @@ const PaymentManagement = () => {
                                 <td>#BK-{p.bookingId}</td>
                                 <td><strong>{p.amount} {p.currency}</strong></td>
                                 <td>{p.method}</td>
-                                <td><span className={`${styles.statusBadge} ${styles[p.status?.toLowerCase() || 'pending']}`}>{p.status}</span></td>
                                 <td>
-                                    {p.status !== 'PAID' && p.status !== 'CONFIRMED' ? (
-                                        <button onClick={() => handleMarkAsPaid(p.bookingId)} className={styles.actionBtn}>
-                                            ✅ Mark as Paid
+                                    <span className={`${styles.statusBadge} ${styles[p.status?.toLowerCase() || 'pending']}`}>
+                                        {p.status}
+                                    </span>
+                                </td>
+                                <td>
+                                    {p.status === 'PENDING' ? (
+                                        <button onClick={() => handleMarkAsPaid(p)} className={styles.actionBtn}>
+                                            Mark as Paid
                                         </button>
                                     ) : (
                                         <span style={{ fontSize: '13px', color: '#94a3b8', fontStyle: 'italic' }}>Проведено</span>

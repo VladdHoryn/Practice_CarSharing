@@ -14,4 +14,6 @@ public interface UserDocumentRepository extends JpaRepository<UserDocument, Long
     List<UserDocument> findByUserId(Long userId);
 
     Optional<UserDocument> findByUserIdAndDocumentType(Long userId, DocumentType documentType);
+
+    List<UserDocument> findByIsVerifiedFalse();
 }

@@ -13,18 +13,17 @@ SELECT
   data.status::booking_driver_status_enum
 FROM (
        VALUES
-         (1, 5, 'renter2@carsharing.com', 'RNT5PL91ZX', 'PENDING'),
+         (1, 4, 'renter1@carsharing.com', 'RNT2GH68JK', 'PENDING'),
          (1, 6, 'renter3@carsharing.com', 'RNT8CV24DF', 'ACCEPTED'),
          (2, 4, 'renter1@carsharing.com', 'RNT2GH68JK', 'PENDING'),
-         (3, 7, 'renter4@carsharing.com', 'RNT1MN73QA', 'DECLINED'),
+         (3, 5, 'renter2@carsharing.com', 'RNT5PL91ZX', 'DECLINED'),
          (4, 5, 'renter2@carsharing.com', 'RNT5PL91ZX', 'ACCEPTED'),
          (5, 6, 'renter3@carsharing.com', 'RNT8CV24DF', 'PENDING'),
          (6, 7, 'renter4@carsharing.com', 'RNT1MN73QA', 'ACCEPTED'),
-         (7, 4, 'renter1@carsharing.com', 'RNT2GH68JK', 'PENDING'),
-         (8, 5, 'renter2@carsharing.com', 'RNT5PL91ZX', 'DECLINED'),
+         (7, 7, 'renter4@carsharing.com', 'RNT1MN73QA', 'PENDING'),
+         (8, 4, 'renter1@carsharing.com', 'RNT2GH68JK', 'DECLINED'),
          (9, 6, 'renter3@carsharing.com', 'RNT8CV24DF', 'ACCEPTED'),
-         (10, 4, 'renter1@carsharing.com', 'RNT2GH68JK', 'PENDING'),
-         (11, 5, 'renter2@carsharing.com', 'RNT5PL91ZX', 'ACCEPTED')
+         (10, 4, 'renter1@carsharing.com', 'RNT2GH68JK', 'PENDING')
      ) AS data(
                booking_id,
                user_id,

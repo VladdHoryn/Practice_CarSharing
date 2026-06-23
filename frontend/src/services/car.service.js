@@ -36,10 +36,10 @@ export const carService = {
         return response.data;
     },
 
-  getCarImages: async (carId) => {
-    const response = await apiClient.get(`/car/v1/${carId}/images`);
-    return response.data;
-  },
+    getCarImages: async (carId) => {
+        const response = await apiClient.get(`/car/v1/${carId}/images`);
+        return response.data;
+    },
 
     getUnconfirmedCars: async () => {
         const response = await apiClient.get('/car/v1/unconfirmed');
@@ -50,19 +50,22 @@ export const carService = {
         const response = await apiClient.post(`/car/v1/${id}/moderation/confirm`);
         return response.data;
     },
+
     uploadCarImage: async (carId, file) => {
         const formData = new FormData();
         formData.append('file', file);
-        const response = await apiClient.post(`/car/v1/${carId}/images`, formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            }
-        });
+
+        const response = await apiClient.post(`/car/v1/${carId}/images`, formData);
         return response.data;
     },
+
     cancelModeration: async (id) => {
         const response = await apiClient.post(`/car/v1/${id}/moderation/cancel`);
         return response.data;
-    }
+    },
 
+    getCarsByOwnerId: async (ownerId) => {
+        const response = await apiClient.get(`/car/v1/owner/${ownerId}`);
+        return response.data;
+    }
 };
