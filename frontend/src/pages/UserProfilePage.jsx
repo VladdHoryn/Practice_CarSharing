@@ -7,6 +7,7 @@ import { bookingService } from '../services/booking.service';
 import { carService } from '../services/car.service';
 import { toast } from 'react-toastify';
 import SecureImage from '../components/SecureImage';
+import { analyticsService } from '../services/analytics.service';
 
 const Icons = {
     order: <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>,
@@ -36,12 +37,14 @@ const UserProfilePage = () => {
     const [allSystemDrivers, setAllInvitations] = useState([]);
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [inviteForm, setInviteForm] = useState({ bookingId: '', email: '', driverCode: '' });
+    const [ownerAnalytics, setOwnerAnalytics] = useState(null);
+    const [analyticsLoading, setAnalyticsLoading] = useState(false);
 
     const [showCarModal, setShowCarModal] = useState(false);
     const [editingCar, setEditingCar] = useState(null);
     const [carForm, setCarForm] = useState({ brand: '', model: '', year: 2026, carClass: 'ECONOMY', pricePerDay: '', imageUrl: '' });
     const [profileForm, setProfileForm] = useState({ firstName: '', lastName: '' });
-   const [passwordForm, setPasswordForm] = useState({ newPassword: '', confirmPassword: '' });
+    const [passwordForm, setPasswordForm] = useState({ newPassword: '', confirmPassword: '' });
     const [isChangingPassword, setIsChangingPassword] = useState(false);
     const [expandedBookingId, setExpandedBookingId] = useState(null);
     const [bookingCoDrivers, setBookingCoDrivers] = useState([]);
@@ -122,7 +125,7 @@ const UserProfilePage = () => {
             if (!storedUser) return;
             const parsedUser = JSON.parse(storedUser);
 
-            // 👑 ОНОВЛЕНО 1.1: Тепер беремо абсолютно всі авто власника з нового ендпоінту беку
+
             carService.getCarsByOwnerId(parsedUser.dbId)
                 .then(data => {
                     setOwnerCars(data);
@@ -193,26 +196,40 @@ const UserProfilePage = () => {
     };
 
     useEffect(() => {
-        const storedUser = localStorage.getItem('user');
-        if (!storedUser) return;
-        const parsedUser = JSON.parse(storedUser);
+            const storedUser = localStorage.getItem('user');
+            if (!storedUser) return;
+            const parsedUser = JSON.parse(storedUser);
 
-        if (activeTab === 'history' && parsedUser.dbId) {
-            loadRenterHistory(parsedUser.dbId);
-        }
+            if (activeTab === 'history' && parsedUser.dbId) {
+                loadRenterHistory(parsedUser.dbId);
+            }
 
-        if (activeTab === 'invitations' && parsedUser.dbId) {
-            bookingService.getInvitationsByUserId(parsedUser.dbId)
-                .then(data => {
-                    setIncomingInvites(data.filter(i => i.status === 'PENDING'));
-                })
-                .catch(err => console.error(err));
-        }
+            if (activeTab === 'invitations' && parsedUser.dbId) {
+                bookingService.getInvitationsByUserId(parsedUser.dbId)
+                    .then(data => {
+                        setIncomingInvites(data.filter(i => i.status === 'PENDING'));
+                    })
+                    .catch(err => console.error(err));
+            }
 
-        if (activeTab === 'owner_bookings' && parsedUser.dbId) {
-            loadOwnerBookings(parsedUser.dbId);
-        }
-    }, [activeTab]);
+            if (activeTab === 'owner_bookings' && parsedUser.dbId) {
+                loadOwnerBookings(parsedUser.dbId);
+            }
+
+            if (activeTab === 'analytics' && parsedUser.dbId) {
+                setAnalyticsLoading(true);
+                analyticsService.getOwnerSummary(parsedUser.dbId)
+                    .then(data => {
+                        setOwnerAnalytics(data);
+                    })
+                    .catch(err => {
+                        console.error("Помилка завантаження модуля аналітики OWNER:", err);
+                    })
+                    .finally(() => {
+                        setAnalyticsLoading(false);
+                    });
+            }
+        }, [activeTab]);
 
     const handleInvitationResponse = async (id, action) => {
         try {
@@ -671,16 +688,88 @@ const UserProfilePage = () => {
         }
 
         if (activeTab === 'analytics') {
-            return (
-                <>
-                    <h2 className={styles.tabTitle}>Аналітика та звіти</h2>
-                    <div className={styles.statsContainer}>
-                        <div className={styles.statCard}><div className={styles.statCardTitle}>Кількість бронювань</div><div className={styles.statCardValue}>150</div></div>
-                        <div className={styles.statCard}><div className={styles.statCardTitle}>Загальна виручка</div><div className={styles.statCardValue}>250 000 грн</div></div>
-                    </div>
-                </>
-            );
-        }
+                    if (analyticsLoading) return <div style={{ textAlign: 'center', padding: '40px' }}>Обчислення фінансових метрик... ⏳</div>;
+                    if (!ownerAnalytics) return <div style={{ textAlign: 'center', padding: '40px', color: '#dc3545' }}>Не вдалося завантажити аналітичні дані.</div>;
+
+                    const ukrMonths = { 1: 'Січ', 2: 'Лют', 3: 'Бер', 4: 'Квіт', 5: 'Трав', 6: 'Черв', 7: 'Лип', 8: 'Серп', 9: 'Верес', 10: 'Жовт', 11: 'Листоп', 12: 'Груд' };
+
+
+                    const maxRevenue = ownerAnalytics.monthlyRevenue?.length > 0
+                        ? Math.max(...ownerAnalytics.monthlyRevenue.map(m => m[1]))
+                        : 100;
+
+                    return (
+                        <>
+                            <h2 className={styles.tabTitle}>📊 Фінансовий дашборд автопарку</h2>
+
+
+                            <div className={styles.statsContainer} style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '15px', marginBottom: '30px' }}>
+                                <div className={styles.statCard} style={{ background: '#f8fbff', border: '1px solid #d6e4ff' }}>
+                                    <div className={styles.statCardTitle} style={{ color: '#555', fontSize: '13px' }}>Всього машин</div>
+                                    <div className={styles.statCardValue} style={{ fontSize: '24px', color: '#0056b3' }}>{ownerAnalytics.totalCars}</div>
+                                </div>
+                                <div className={styles.statCard}>
+                                    <div className={styles.statCardTitle} style={{ color: '#555', fontSize: '13px' }}>Загальні бронювання</div>
+                                    <div className={styles.statCardValue} style={{ fontSize: '24px' }}>{ownerAnalytics.totalBookings}</div>
+                                </div>
+                                <div className={styles.statCard} style={{ background: '#f6ffed', border: '1px solid #b7eb8f' }}>
+                                    <div className={styles.statCardTitle} style={{ color: '#555', fontSize: '13px' }}>Завершені сесії</div>
+                                    <div className={styles.statCardValue} style={{ fontSize: '24px', color: '#389e0d' }}>{ownerAnalytics.completedBookings}</div>
+                                </div>
+                                <div className={styles.statCard} style={{ background: '#fff7e6', border: '1px solid #ffd591' }}>
+                                    <div className={styles.statCardTitle} style={{ color: '#555', fontSize: '13px' }}>Загальний виторг</div>
+                                    <div className={styles.statCardValue} style={{ fontSize: '24px', color: '#d46b08' }}>{ownerAnalytics.totalRevenue} €</div>
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '20px', marginTop: '20px' }}>
+
+                                <div style={{ background: '#fff', padding: '20px', borderRadius: '8px', border: '1px solid #eee' }}>
+                                    <h3 style={{ margin: '0 0 20px 0', fontSize: '16px', color: '#333' }}>📈 Динаміка доходів за місяцями</h3>
+                                    {ownerAnalytics.monthlyRevenue?.length > 0 ? (
+                                        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-around', height: '200px', paddingBottom: '20px', borderBottom: '2px solid #ddd' }}>
+                                            {ownerAnalytics.monthlyRevenue.map(([monthNum, revenue], idx) => {
+                                                const barHeight = (revenue / maxRevenue) * 150; // Динамічна висота стовпчика
+                                                return (
+                                                    <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '60px', position: 'relative' }}>
+                                                        <span style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '5px', color: '#0056b3' }}>{revenue}€</span>
+                                                        <div style={{ height: `${barHeight}px`, width: '35px', background: 'linear-gradient(180deg, #3ba4f6 0%, #0056b3 100%)', borderRadius: '4px 4px 0 0', transition: 'height 0.3s ease' }}></div>
+                                                        <span style={{ position: 'absolute', bottom: '-22px', fontSize: '12px', color: '#666', fontWeight: '500' }}>{ukrMonths[monthNum] || monthNum}</span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    ) : (
+                                        <div style={{ textAlign: 'center', color: '#999', paddingTop: '60px' }}>Дані про щомісячні доходи відсутні.</div>
+                                    )}
+                                </div>
+
+
+                                <div style={{ background: '#fff', padding: '20px', borderRadius: '8px', border: '1px solid #eee' }}>
+                                    <h3 style={{ margin: '0 0 15px 0', fontSize: '16px', color: '#333' }}>🚗 Завантаженість парку (Поточний тиждень)</h3>
+                                    {ownerAnalytics.weeklyLoad?.length > 0 ? (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '15px' }}>
+                                            {ownerAnalytics.weeklyLoad.map(([dateStr, loadCount], idx) => (
+                                                <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                    <span style={{ width: '80px', fontSize: '12px', color: '#555' }}>{dateStr}</span>
+                                                    <div style={{ flex: 1, background: '#f5f5f5', height: '14px', borderRadius: '4px', overflow: 'hidden' }}>
+                                                        <div style={{ width: `${Math.min(loadCount * 20, 100)}%`, background: '#28a745', height: '100%' }}></div>
+                                                    </div>
+                                                    <span style={{ fontSize: '12px', fontWeight: 'bold', width: '20px' }}>{loadCount}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div style={{ textAlign: 'center', color: '#777', padding: '40px 10px', background: '#fafafa', borderRadius: '6px', border: '1px dashed #ccc', marginTop: '20px' }}>
+                                            <div style={{ fontSize: '24px', marginBottom: '5px' }}>💤</div>
+                                            <div style={{ fontSize: '13px', fontStyle: 'italic' }}>Всі 9 машин власника відпочивають. На цьому тижні активних сесій оренди немає.</div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </>
+                    );
+                }
 
         if (activeTab === 'profile') {
                     return (
