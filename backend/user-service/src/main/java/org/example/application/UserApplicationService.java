@@ -40,8 +40,6 @@ public class UserApplicationService {
     @Value("${keycloak.realm}")
     private String realm;
 
-
-
     @Transactional
     public UserResponse createUser(UserRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -187,6 +185,28 @@ public class UserApplicationService {
         user.deactivate();
 
         return mapToResponse(userRepository.save(user));
+    }
+
+    public void changePassword(String keycloakId, String newPassword) {
+        try {
+            CredentialRepresentation passwordCred = new CredentialRepresentation();
+            passwordCred.setTemporary(false);
+            passwordCred.setType(CredentialRepresentation.PASSWORD);
+            passwordCred.setValue(newPassword);
+
+            UserResource userResource = keycloak.realm(realm).users().get(keycloakId);
+
+            userResource.resetPassword(passwordCred);
+
+            log.info("Password successfully updated for user {} in Keycloak", keycloakId);
+
+        } catch (NotFoundException e) {
+            log.error("User {} not found in Keycloak realm {}", keycloakId, realm);
+            throw new RuntimeException("User not found in Keycloak");
+        } catch (Exception e) {
+            log.error("Error changing password for user {}: {}", keycloakId, e.getMessage());
+            throw new RuntimeException("Failed to change password in Keycloak", e);
+        }
     }
 
     private UserResponse mapToResponse(User user) {

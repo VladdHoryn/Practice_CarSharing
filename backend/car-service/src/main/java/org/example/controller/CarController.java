@@ -44,7 +44,10 @@ public class CarController {
                 car.getStatus());
     }
 
-    @Operation(summary = "Create car", description = "Creates a new car listing. Set to UNCONFIRMED until approved. Accessible by OWNER or ADMINISTRATOR.")
+    @Operation(
+            summary = "Create car",
+            description =
+                    "Creates a new car listing. Set to UNCONFIRMED until approved. Accessible by OWNER or ADMINISTRATOR.")
     @ApiResponses({
         @ApiResponse(responseCode = "201", description = "Car created"),
         @ApiResponse(responseCode = "400", description = "Invalid request data"),
@@ -68,7 +71,10 @@ public class CarController {
                 .body(toResponse(createdCar));
     }
 
-    @Operation(summary = "Update car", description = "Updates car details. Resets status to UNCONFIRMED. Accessible by OWNER or ADMINISTRATOR.")
+    @Operation(
+            summary = "Update car",
+            description =
+                    "Updates car details. Resets status to UNCONFIRMED. Accessible by OWNER or ADMINISTRATOR.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Car updated"),
         @ApiResponse(responseCode = "400", description = "Car not found or currently rented"),
@@ -117,7 +123,9 @@ public class CarController {
         return ResponseEntity.ok(carService.getAllCars().stream().map(car -> car.getId()).toList());
     }
 
-    @Operation(summary = "Get unconfirmed cars", description = "Returns cars pending moderation. Accessible by OWNER or ADMINISTRATOR.")
+    @Operation(
+            summary = "Get unconfirmed cars",
+            description = "Returns cars pending moderation. Accessible by OWNER or ADMINISTRATOR.")
     @ApiResponse(responseCode = "200", description = "Unconfirmed cars returned")
     @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
     @GetMapping("/unconfirmed")
@@ -126,7 +134,10 @@ public class CarController {
                 carService.getUnconfirmedCars().stream().map(this::toResponse).toList());
     }
 
-    @Operation(summary = "Get cars by owner ID", description = "Returns all cars belonging to the specified owner. Accessible by OWNER or ADMINISTRATOR.")
+    @Operation(
+            summary = "Get cars by owner ID",
+            description =
+                    "Returns all cars belonging to the specified owner. Accessible by OWNER or ADMINISTRATOR.")
     @ApiResponse(responseCode = "200", description = "Owner's cars returned")
     @PreAuthorize("hasAnyRole('OWNER', 'ADMINISTRATOR')")
     @GetMapping("/owner/{id}")
@@ -150,7 +161,10 @@ public class CarController {
         return carService.isAvailableById(id);
     }
 
-    @Operation(summary = "Rent a car", description = "Marks a car as rented by the given user. Accessible by RENTER or ADMINISTRATOR.")
+    @Operation(
+            summary = "Rent a car",
+            description =
+                    "Marks a car as rented by the given user. Accessible by RENTER or ADMINISTRATOR.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Car rented successfully"),
         @ApiResponse(responseCode = "400", description = "Car not available for rent"),
@@ -163,7 +177,9 @@ public class CarController {
         return ResponseEntity.ok(toResponse(carService.rentCar(carId, request.userId())));
     }
 
-    @Operation(summary = "Return a car", description = "Marks a rented car as returned. Accessible by RENTER.")
+    @Operation(
+            summary = "Return a car",
+            description = "Marks a rented car as returned. Accessible by RENTER.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Car returned successfully"),
         @ApiResponse(responseCode = "400", description = "Car is not currently rented"),
@@ -175,7 +191,9 @@ public class CarController {
         return ResponseEntity.ok(toResponse(carService.returnCar(carId)));
     }
 
-    @Operation(summary = "Send car to maintenance", description = "Marks the car as under maintenance. Accessible by OWNER.")
+    @Operation(
+            summary = "Send car to maintenance",
+            description = "Marks the car as under maintenance. Accessible by OWNER.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Car sent to maintenance"),
         @ApiResponse(responseCode = "403", description = "Access denied")
@@ -186,7 +204,9 @@ public class CarController {
         return ResponseEntity.ok(toResponse(carService.sendToMaintenance(carId)));
     }
 
-    @Operation(summary = "Complete car maintenance", description = "Marks maintenance as complete. Accessible by OWNER.")
+    @Operation(
+            summary = "Complete car maintenance",
+            description = "Marks maintenance as complete. Accessible by OWNER.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Maintenance completed"),
         @ApiResponse(responseCode = "403", description = "Access denied")
@@ -197,7 +217,9 @@ public class CarController {
         return ResponseEntity.ok(toResponse(carService.completeMaintenance(carId)));
     }
 
-    @Operation(summary = "Delete car", description = "Deletes a car by ID. Accessible by OWNER or ADMINISTRATOR.")
+    @Operation(
+            summary = "Delete car",
+            description = "Deletes a car by ID. Accessible by OWNER or ADMINISTRATOR.")
     @ApiResponses({
         @ApiResponse(responseCode = "204", description = "Car deleted"),
         @ApiResponse(responseCode = "400", description = "Car not found"),
@@ -224,7 +246,9 @@ public class CarController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Confirm car (admin)", description = "Approves a car listing making it AVAILABLE.")
+    @Operation(
+            summary = "Confirm car (admin)",
+            description = "Approves a car listing making it AVAILABLE.")
     @ApiResponses({
         @ApiResponse(responseCode = "204", description = "Car confirmed"),
         @ApiResponse(responseCode = "403", description = "Access denied")
