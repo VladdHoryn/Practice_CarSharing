@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import styles from './LoginPage.module.css';
 import { authService } from '../services/auth.service';
 import { toast } from 'react-toastify';
+import { userService } from '../services/user.service';
 
 const LoginPage = () => {
     const navigate = useNavigate();
@@ -25,49 +26,66 @@ const LoginPage = () => {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError(null);
+            e.preventDefault();
+            setError(null);
 
-        try {
-            setIsLoading(true);
-            const loginData = { email: credentials.email, password: credentials.password };
+            try {
+                setIsLoading(true);
+                const loginData = { email: credentials.email, password: credentials.password };
 
-            const response = await authService.login(loginData);
-            if (response && (response.status === 401 || response.error)) {
-                throw new Error(response.message || "Невірний email або пароль.");
+                // 1. Авторизуємося в Keycloak (отримуємо токени)
+                const response = await authService.login(loginData);
+                if (response && (response.status === 401 || response.error)) {
+                    throw new Error(response.message || "Невірний email або пароль.");
+                }
+
+                const storedUser = localStorage.getItem('user');
+                if (!storedUser) {
+                    throw new Error("Невірний email або пароль.");
+                }
+                const keycloakUser = JSON.parse(storedUser);
+
+                // 👑 КРИТИЧНИЙ ФІКС БЕЗПЕКИ: Миттєво йдемо в наш user-service за статусом із бази даних!
+                try {
+                    const realDbUser = await userService.getUserByKeycloakId(keycloakUser.id);
+
+                    if (realDbUser && realDbUser.isActive === false) {
+                        authService.logout(); // Очищаємо localStorage, закриваємо сесію
+                        const blockedMsg = "🛑 Ваш обліковий запис заблоковано адміністратором. Доступ закрити.";
+                        setError(blockedMsg);
+                        toast.error(blockedMsg);
+                        return; // Зупиняємо логін, в каталог не пускаємо!
+                    }
+                } catch (dbErr) {
+                    console.error("Помилка верифікації статусу через DB:", dbErr);
+                    // Якщо бази немає — страхуємося, але пускаємо, або блокуємо за твоїм вибором
+                }
+
+                toast.success('Вхід успішний! 👋');
+
+                // Чистий редирект
+                if (keycloakUser.role === 'ADMINISTRATOR') {
+                    navigate('/admin/dashboard');
+                } else {
+                    navigate('/catalog');
+                }
+
+            } catch (err) {
+                console.error('Помилка входу:', err);
+                const errorMsg = err.response?.data?.message || err.message || "Невірний email або пароль.";
+                setError(errorMsg);
+                toast.error(errorMsg);
+            } finally {
+                setIsLoading(false);
             }
-
-            const storedUser = localStorage.getItem('user');
-            if (!storedUser) {
-                throw new Error("Невірний email або пароль.");
-            }
-
-            const user = JSON.parse(storedUser);
-            toast.success('Вхід успішний! 👋');
-
-
-            if (user.role === 'ADMINISTRATOR') {
-                navigate('/admin/dashboard');
-            } else {
-                navigate('/catalog');
-            }
-
-        } catch (err) {
-            console.error('Помилка входу:', err);
-            const errorMsg = err.response?.data?.message || err.message || "Невірний email або пароль.";
-            setError(errorMsg);
-            toast.error(errorMsg);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+        };
 
     return (
         <div className={styles.pageContainer}>
             <div className={styles.authCard}>
                 <h2 className={styles.title}>Вхід</h2>
 
-                {error && <div style={{color: 'red', marginBottom: '15px', textAlign: 'center'}}>{error}</div>}
+                {error && <div style={{color: 'red', marginBottom: '15px', textAlign: 'center', fontSize: '13px', fontWeight: 'bold'}}>{error}</div>}
 
                 <form onSubmit={handleSubmit}>
                     <div className={styles.formGroup}>

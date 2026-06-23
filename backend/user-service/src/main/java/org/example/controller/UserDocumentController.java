@@ -107,6 +107,7 @@ public class UserDocumentController {
   private UserDocumentResponse mapToResponse(UserDocument document) {
     return UserDocumentResponse.builder()
       .id(document.getId())
+      .userId(document.getUser() != null ? document.getUser().getId() : null)
       .documentType(document.getDocumentType())
       .originalFileName(document.getOriginalFileName())
       .contentType(document.getContentType())

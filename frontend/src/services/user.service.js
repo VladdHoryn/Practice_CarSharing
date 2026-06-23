@@ -22,15 +22,14 @@ export const userService = {
     },
 
     activateUserByKeycloak: async (keycloakId) => {
-        const response = await apiClient.patch(`/user/v1/${keycloakId}/activate`);
+        const response = await apiClient.patch(`/user/v1/keycloak/${keycloakId}/activate`);
         return response.data;
     },
 
     deactivateUserByKeycloak: async (keycloakId) => {
-        const response = await apiClient.patch(`/user/v1/${keycloakId}/deactivate`);
+        const response = await apiClient.patch(`/user/v1/keycloak/${keycloakId}/deactivate`);
         return response.data;
     },
-
 
     changePasswordByKeycloakId: async (keycloakId, newPassword) => {
         const response = await apiClient.put(`/user/v1/keycloak/${keycloakId}/password`, {

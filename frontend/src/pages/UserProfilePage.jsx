@@ -35,6 +35,7 @@ const UserProfilePage = () => {
     const [uploadedDocs, setUploadedDocs] = useState([]);
     const [isProfileVerified, setIsProfileVerified] = useState(false);
     const [docsLoading, setDocsLoading] = useState(false);
+
     const [incomingInvites, setIncomingInvites] = useState([]);
     const [ownerBookings, setOwnerBookings] = useState([]);
     const [selectedOwnerBooking, setSelectedOwnerBooking] = useState(null);
@@ -53,7 +54,7 @@ const UserProfilePage = () => {
     const [expandedBookingId, setExpandedBookingId] = useState(null);
     const [bookingCoDrivers, setBookingCoDrivers] = useState([]);
     const [coDriversLoading, setCoDriversLoading] = useState(false);
-
+    const [previewDoc, setPreviewDoc] = useState(null);
     const renterMenu = [
         { id: 'order', label: 'Замовити авто', icon: Icons.order },
         { id: 'history', label: 'Історія замовлень', icon: Icons.history },
@@ -78,10 +79,18 @@ const UserProfilePage = () => {
 
             userService.getUserByKeycloakId(parsedUser.id)
                 .then(realUserData => {
+
+                    // 👑 КРИТИЧНИЙ ФІКС БЛОКУВАННЯ: Якщо адмін заблокував юзера — моментально викидаємо з системи
+                    if (realUserData && realUserData.isActive === false) {
+                        toast.error("🛑 Ваш обліковий запис було заблоковано адміністратором системи.");
+                        authService.logout();
+                        navigate('/login');
+                        return;
+                    }
+
                     const nameParts = realUserData.fullName ? realUserData.fullName.split(' ') : [''];
                     const fName = nameParts[0] || '';
                     const lName = nameParts.slice(1).join(' ') || '';
-
 
                     setUser({
                         id: parsedUser.id,
@@ -104,7 +113,6 @@ const UserProfilePage = () => {
                         lastName: nameParts.slice(1).join(' ') || '',
                         email: parsedUser.email,
                         role: parsedUser.role,
-
                         driverCode: parsedUser.driverCode || 'Немає зв\'язку'
                     });
                     setProfileForm({
@@ -747,95 +755,106 @@ const UserProfilePage = () => {
             );
         }
 
-        if (activeTab === 'docs') {
-            const documentTypes = [
-                { type: 'PASSPORT_MAIN', label: 'Паспорт: 1-2 сторінка або ID-картка' },
-                { type: 'PASSPORT_REGISTRATION', label: 'Паспорт: прописка / витяг' },
-                { type: 'DRIVING_LICENSE', label: 'Водійське посвідчення' }
-            ];
+  if (activeTab === 'docs') {
+              const documentTypes = [
+                  { type: 'PASSPORT_MAIN', label: 'Паспорт: 1-2 сторінка або ID-картка' },
+                  { type: 'PASSPORT_REGISTRATION', label: 'Паспорт: прописка / витяг' },
+                  { type: 'DRIVING_LICENSE', label: 'Водійське посвідчення' }
+              ];
 
-            const handleFileChange = async (type, file) => {
-                             if (!file) return;
-                             try {
-                                 setDocsLoading(true);
-                                 const dbId = JSON.parse(localStorage.getItem('user'))?.dbId;
 
-                                 // 👑 КРИТИЧНИЙ ФІКС КИРИЛИЦІ: замінюємо українську назву на безпечний ASCII-код
-                                 const fileExtension = file.name.split('.').pop();
-                                 const safeName = `user_${dbId}_doc_${type}_${Date.now()}.${fileExtension}`;
-                                 const safeFile = new File([file], safeName, { type: file.type });
 
-                                 // Відправляємо на сервер уже очищений файл
-                                 await documentService.uploadDocument(dbId, type, safeFile);
-                                 toast.success("Документ успішно надіслано на модерацію! 📄");
+              const handleFileChange = async (type, file) => {
+                  if (!file) return;
+                  try {
+                      setDocsLoading(true);
+                      const dbId = JSON.parse(localStorage.getItem('user'))?.dbId;
 
-                                 const meta = await documentService.getMetadata(dbId);
-                                 setUploadedDocs(meta || []);
-                                 const status = await documentService.getProfileStatus(dbId);
-                                 setIsProfileVerified(status);
-                             } catch (err) {
-                                 toast.error("Не вдалося завантажити файл документа.");
-                             } finally {
-                                 setDocsLoading(false);
-                             }
-                         };
+                      const fileExtension = file.name.split('.').pop();
+                      const safeName = `user_${dbId}_doc_${type}_${Date.now()}.${fileExtension}`;
+                      const safeFile = new File([file], safeName, { type: file.type });
 
-            return (
-                <>
-                    <h2 className={styles.tabTitle}>🛡️ Центр державної верифікації профілю</h2>
-                    <p className={styles.infoText}>Для відкриття можливості оренди та спільних поїздок, завантажте скани обов’язкових документів (формати PDF, PNG, JPEG).</p>
+                      await documentService.uploadDocument(dbId, type, safeFile);
+                      toast.success("Документ успішно надіслано на модерацію! 📄");
 
-                    {docsLoading && <div style={{ color: '#0056b3', fontWeight: 'bold', marginBottom: '15px' }}>Стрімінг файлів у хмару сховища... ⏳</div>}
+                      const meta = await documentService.getMetadata(dbId);
+                      setUploadedDocs(meta || []);
+                      const status = await documentService.getProfileStatus(dbId);
+                      setIsProfileVerified(status);
+                  } catch (err) {
+                      toast.error("Не вдалося завантажити файл документа.");
+                  } finally {
+                      setDocsLoading(false);
+                  }
+              };
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '20px' }}>
-                        {documentTypes.map(doc => {
-                            const meta = (uploadedDocs || []).find(d => d.documentType === doc.type);
-                            return (
-                                <div key={doc.type} style={{ padding: '15px', background: '#fff', borderRadius: '8px', border: '1px solid #eef0f2', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <div>
-                                        <div style={{ mountaineer: '600', fontSize: '14px', color: '#222', fontWeight: 'bold' }}>{doc.label}</div>
-                                        {meta ? (
-                                            <div style={{ marginTop: '5px', fontSize: '12px', color: '#666' }}>
-                                                📄 {meta.originalFileName} <br/>
-                                                📅 Завантажено: {meta.uploadedAt?.split('T')[0]}
-                                            </div>
-                                        ) : (
-                                            <div style={{ marginTop: '5px', fontSize: '12px', color: '#999', fontStyle: 'italic' }}>Файл відсутній</div>
-                                        )}
-                                    </div>
+              return (
+                  <>
+                      <h2 className={styles.tabTitle}>🛡️ Центр державної верифікації профілю</h2>
+                      <p className={styles.infoText}>Для відкриття можливості оренди та спільних поїздок, завантажте скани обов’язкових документів (формати PDF, PNG, JPEG).</p>
 
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                        {meta ? (
-                                            <span style={{ fontSize: '11px', fontWeight: 'bold', padding: '4px 10px', borderRadius: '4px', backgroundColor: meta.isVerified ? '#d4edda' : '#fff3cd', color: meta.isVerified ? '#155724' : '#856404' }}>
-                                                {meta.isVerified ? '● ВЕРИФІКОВАНО' : '● НА ПЕРЕВІРЦІ'}
-                                            </span>
-                                        ) : (
-                                            <span style={{ fontSize: '11px', fontWeight: 'bold', padding: '4px 10px', borderRadius: '4px', backgroundColor: '#f5f5f5', color: '#777' }}>
-                                                ОБОВ'ЯЗКОВО
-                                            </span>
-                                        )}
+                      {docsLoading && <div style={{ color: '#0056b3', fontWeight: 'bold', marginBottom: '15px' }}>Стрімінг файлів у хмару сховища... ⏳</div>}
 
-                                        <input
-                                            type="file"
-                                            id={`file-${doc.type}`}
-                                            accept="image/png, image/jpeg, image/jpg, application/pdf"
-                                            onChange={(e) => handleFileChange(doc.type, e.target.files[0])}
-                                            style={{ display: 'none' }}
-                                        />
-                                        <button
-                                            onClick={() => document.getElementById(`file-${doc.type}`).click()}
-                                            style={{ padding: '6px 12px', border: '1px solid #0056b3', background: '#f8fbff', color: '#0056b3', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
-                                        >
-                                            {meta ? 'Оновити 🔄' : 'Обрати файл 📁'}
-                                        </button>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </>
-            );
-        }
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '20px' }}>
+                          {documentTypes.map(doc => {
+                              const meta = (uploadedDocs || []).find(d => d.documentType === doc.type);
+                              return (
+                                  <div key={doc.type} style={{ padding: '15px', background: '#fff', borderRadius: '8px', border: '1px solid #eef0f2', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                      <div>
+                                          <div style={{ fontSize: '14px', color: '#222', fontWeight: 'bold' }}>{doc.label}</div>
+                                          {meta ? (
+                                              <div style={{ marginTop: '5px', fontSize: '12px', color: '#666' }}>
+                                                  📄 {meta.originalFileName} <br/>
+                                                  📅 Завантажено: {meta.uploadedAt?.split('T')[0]}
+                                              </div>
+                                          ) : (
+                                              <div style={{ marginTop: '5px', fontSize: '12px', color: '#999', fontStyle: 'italic' }}>Файл відсутній</div>
+                                          )}
+                                      </div>
+
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                          {meta && (
+                                              <button
+                                                  onClick={() => setPreviewDoc(meta)}
+                                                  style={{ padding: '6px 10px', background: '#e2f1fe', color: '#0056b3', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
+                                              >
+                                                  👁️ Огляд
+                                              </button>
+                                          )}
+
+                                          <span style={{ fontSize: '11px', fontWeight: 'bold', padding: '4px 10px', borderRadius: '4px', backgroundColor: meta ? (meta.isVerified ? '#d4edda' : '#fff3cd') : '#f5f5f5', color: meta ? (meta.isVerified ? '#155724' : '#856404') : '#777' }}>
+                                              {meta ? (meta.isVerified ? '● ВЕРИФІКОВАНО' : '● НА ПЕРЕВІРЦІ') : 'ОБОВ\'ЯЗКОВО'}
+                                          </span>
+
+                                          <input type="file" id={`file-${doc.type}`} accept="image/png, image/jpeg, image/jpg, application/pdf" onChange={(e) => handleFileChange(doc.type, e.target.files[0])} style={{ display: 'none' }} />
+                                          <button onClick={() => document.getElementById(`file-${doc.type}`).click()} style={{ padding: '6px 12px', border: '1px solid #0056b3', background: '#f8fbff', color: '#0056b3', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
+                                              {meta ? 'Оновити 🔄' : 'Обрати файл 📁'}
+                                          </button>
+                                      </div>
+                                  </div>
+                              );
+                          })}
+                      </div>
+
+                      {previewDoc && (
+                          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }} onClick={() => setPreviewDoc(null)}>
+                              <div style={{ background: '#fff', padding: '20px', borderRadius: '8px', maxWidth: '80%', maxHeight: '80%', overflow: 'auto' }} onClick={e => e.stopPropagation()}>
+                                  <h3 style={{marginTop: 0}}>Перегляд: {previewDoc.originalFileName}</h3>
+                                  {previewDoc.contentType.includes('image') ? (
+                                      <SecureImage src={`/document/v1/${previewDoc.id}/download`} style={{ maxWidth: '100%', maxHeight: '500px' }} />
+                                  ) : (
+                                      <div style={{ padding: '20px', textAlign: 'center' }}>
+                                          <p>Це PDF документ.</p>
+                                          <a href={`http://localhost:8100/document/v1/${previewDoc.id}/download`} target="_blank" rel="noreferrer" style={{ color: '#0056b3', fontWeight: 'bold' }}>Відкрити файл ↗</a>
+                                      </div>
+                                  )}
+                                  <button onClick={() => setPreviewDoc(null)} style={{ marginTop: '15px', padding: '8px 16px', cursor: 'pointer' }}>Закрити</button>
+                              </div>
+                          </div>
+                      )}
+                  </>
+              );
+          }
 
         if (activeTab === 'analytics') {
                     if (analyticsLoading) return <div style={{ textAlign: 'center', padding: '40px' }}>Обчислення фінансових метрик... ⏳</div>;
