@@ -6,6 +6,7 @@ import { bookingService } from '../services/booking.service';
 import SecureImage from '../components/SecureImage';
 import { toast } from 'react-toastify';
 import catalogBanner from '../assets/catalog-banner.png';
+import { documentService } from '../services/document.service';
 
 const CarCatalogPage = () => {
     const [cars, setCars] = useState([]);
@@ -120,6 +121,29 @@ const CarCatalogPage = () => {
         if (filters.sortBy === 'newest') return b.id - a.id;
         return 0;
     });
+
+    const handleBookingClick = async (carId) => {
+        if (!user || !user.dbId) {
+            toast.error('Будь ласка, увійдіть у систему для бронювання автомобіля.');
+            navigate('/login');
+            return;
+        }
+        try {
+            const isVerified = await documentService.getProfileStatus(user.dbId);
+            if (isVerified) {
+                navigate(`/book/${carId}`);
+            } else {
+                toast.error('🛑 Бронювання заблоковано! Ваш профіль ще не верифіковано адміністратором.');
+            }
+        } catch (err) {
+            if (err.response?.status === 404) {
+                toast.error('🛑 Бронювання недоступне! Ви не завантажили обовʼязкові документи в особистому кабінеті.');
+            } else {
+                console.error("Помилка KYC валідації:", err);
+                toast.error('Помилка перевірки статусу профілю.');
+            }
+        }
+    };
 
     if (loading) return <div style={{padding: '100px', textAlign: 'center'}}>Завантаження автопарку... 🚗</div>;
     if (error) return <div style={{padding: '100px', textAlign: 'center', color: 'red'}}>{error}</div>;
@@ -247,9 +271,10 @@ const CarCatalogPage = () => {
                                         <li><span className={styles.specLabel}>Коробка:</span> Автомат </li>
                                     </ul>
                                     <div className={styles.cardActions}>
-                                            {!isOwner && (
-                                                <button className={styles.bookBtn} onClick={() => navigate(`/book/${car.id}`)}>🚗 Забронювати</button>
-                                            )}
+
+                                       {!isOwner && (
+                                            <button className={styles.bookBtn} onClick={() => handleBookingClick(car.id)}>🚗 Забронювати</button>
+                                        )}
                                             <Link
                                                 to={`/catalog/${car.id}`}
                                                 className={styles.detailsBtn}

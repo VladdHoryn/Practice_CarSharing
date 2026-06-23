@@ -16,6 +16,11 @@ export const documentService = {
         return response.data;
     },
 
+    getUnverifiedDocuments: async () => {
+        const response = await apiClient.get(`${BASE_URL}/unverified`);
+        return response.data;
+    },
+
     getProfileStatus: async (userId) => {
         const response = await apiClient.get(`${BASE_URL}/user/${userId}/status`);
         return response.data;

@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import styles from './CarDetailsPage.module.css';
 import { carService } from '../services/car.service';
 import SecureImage from '../components/SecureImage';
+import { documentService } from '../services/document.service';
+import { toast } from 'react-toastify';
 
 const CarDetailsPage = () => {
     const { id } = useParams();
@@ -60,6 +62,29 @@ const CarDetailsPage = () => {
 
         loadCarGallery();
     }, [car]);
+
+    const handleBookingClick = async (carId) => {
+        if (!user || !user.dbId) {
+            toast.error('Будь ласка, увійдіть у систему для оренди.');
+            navigate('/login');
+            return;
+        }
+        try {
+            const isVerified = await documentService.getProfileStatus(user.dbId);
+            if (isVerified) {
+                navigate(`/book/${carId}`);
+            } else {
+                toast.error('🛑 Бронювання заблоковано! Ваш профіль очікує на перевірку адміністратором.');
+            }
+        } catch (err) {
+            if (err.response?.status === 404) {
+                toast.error('🛑 Бронювання відхилено! Перейдіть у профіль та завантажте пакет обовʼязкових документів.');
+            } else {
+                console.error("Помилка KYC валідації:", err);
+                toast.error('Помилка синхронізації статусу верифікації.');
+            }
+        }
+    };
 
     if (loading) return <div className={styles.pageContainer} style={{padding: '100px', textAlign: 'center'}}>Завантаження інформації про авто... ⏳</div>;
     if (error) return <div className={styles.pageContainer} style={{padding: '100px', textAlign: 'center', color: 'red'}}>{error}</div>;
@@ -135,8 +160,9 @@ const CarDetailsPage = () => {
                         ))}
                     </ul>
                         {!isOwner && (
-                            <button className={styles.bookBtn} onClick={() => navigate(`/book/${car.id}`)}>
-                                <span style={{fontSize: '18px'}}>⏱</span> ЗАБРОНЮВАТИ АВТО
+                            <button className={styles.bookBtn} onClick={() => handleBookingClick(car.id)}>
+                                <span style={{fontSize: '18px'}}>⏱</span>
+                                ЗАБРОНЮВАТИ АВТО
                             </button>
                         )}
 
