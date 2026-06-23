@@ -29,22 +29,25 @@ const UserManagement = () => {
     }, []);
 
     const handleToggleBlock = async (user) => {
-        const actionText = user.isActive ? 'деактивувати' : 'активувати';
-        if (!window.confirm(`Ви впевнені, що хочете ${actionText} користувача ${user.fullName}?`)) return;
+            const actionText = user.isActive ? 'деактивувати' : 'активувати';
+            if (!window.confirm(`Ви впевнені, що хочете ${actionText} користувача ${user.fullName}?`)) return;
 
-        try {
-            if (user.isActive) {
-                await userService.deactivateUserByKeycloak(user.keycloakId);
-                toast.warning(`Користувача ${user.fullName} заблоковано.`);
-            } else {
-                await userService.activateUserByKeycloak(user.keycloakId);
-                toast.success(`Користувача ${user.fullName} активовано!`);
+            try {
+                if (user.isActive) {
+                    await userService.deactivateUserByKeycloak(user.keycloakId);
+                    toast.warning(`Користувача ${user.fullName} заблоковано. 🔒`);
+                } else {
+                    await userService.activateUserByKeycloak(user.keycloakId);
+                    toast.success(`Користувача ${user.fullName} успішно активовано! 🔓`);
+                }
+                setUsers(prevUsers =>
+                    prevUsers.map(u => u.keycloakId === user.keycloakId ? { ...u, isActive: !u.isActive } : u)
+                );
+            } catch (err) {
+                console.error("Помилка зміни статусу користувача:", err);
+                toast.error('Не вдалося змінити статус користувача на бекенді.');
             }
-            fetchUsers();
-        } catch (err) {
-            toast.error('Помилка при зміні статусу користувача. Перевірте CORS PATCH на шлюзі.');
-        }
-    };
+        };
 
     const processedUsers = users
         .filter(user => {

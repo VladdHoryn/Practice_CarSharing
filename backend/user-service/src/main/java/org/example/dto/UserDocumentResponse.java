@@ -11,6 +11,7 @@ import lombok.Data;
 @Builder
 public class UserDocumentResponse {
     private Long id;
+    private Long userId;
     private DocumentType documentType;
     private String originalFileName;
     private String contentType;

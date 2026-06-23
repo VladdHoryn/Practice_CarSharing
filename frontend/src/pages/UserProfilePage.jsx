@@ -7,6 +7,9 @@ import { bookingService } from '../services/booking.service';
 import { carService } from '../services/car.service';
 import { toast } from 'react-toastify';
 import SecureImage from '../components/SecureImage';
+import { analyticsService } from '../services/analytics.service';
+import { documentService } from '../services/document.service';
+
 
 const Icons = {
     order: <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>,
@@ -22,12 +25,16 @@ const Icons = {
 const UserProfilePage = () => {
     const navigate = useNavigate();
 
-    const [selectedFile, setSelectedFile] = useState(null);
+    const [selectedFiles, setSelectedFiles] = useState([]);
+    const [ownerBookingFilter, setOwnerBookingFilter] = useState('ALL');
 
     const [user, setUser] = useState({ id: '', firstName: '', lastName: '', email: '', role: '', driverCode: '' });
     const [activeTab, setActiveTab] = useState('');
     const [bookings, setBookings] = useState([]);
     const [ownerCars, setOwnerCars] = useState([]);
+    const [uploadedDocs, setUploadedDocs] = useState([]);
+    const [isProfileVerified, setIsProfileVerified] = useState(false);
+    const [docsLoading, setDocsLoading] = useState(false);
 
     const [incomingInvites, setIncomingInvites] = useState([]);
     const [ownerBookings, setOwnerBookings] = useState([]);
@@ -35,16 +42,19 @@ const UserProfilePage = () => {
     const [allSystemDrivers, setAllInvitations] = useState([]);
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [inviteForm, setInviteForm] = useState({ bookingId: '', email: '', driverCode: '' });
+    const [ownerAnalytics, setOwnerAnalytics] = useState(null);
+    const [analyticsLoading, setAnalyticsLoading] = useState(false);
 
     const [showCarModal, setShowCarModal] = useState(false);
     const [editingCar, setEditingCar] = useState(null);
     const [carForm, setCarForm] = useState({ brand: '', model: '', year: 2026, carClass: 'ECONOMY', pricePerDay: '', imageUrl: '' });
     const [profileForm, setProfileForm] = useState({ firstName: '', lastName: '' });
-
+    const [passwordForm, setPasswordForm] = useState({ newPassword: '', confirmPassword: '' });
+    const [isChangingPassword, setIsChangingPassword] = useState(false);
     const [expandedBookingId, setExpandedBookingId] = useState(null);
     const [bookingCoDrivers, setBookingCoDrivers] = useState([]);
     const [coDriversLoading, setCoDriversLoading] = useState(false);
-
+    const [previewDoc, setPreviewDoc] = useState(null);
     const renterMenu = [
         { id: 'order', label: 'Замовити авто', icon: Icons.order },
         { id: 'history', label: 'Історія замовлень', icon: Icons.history },
@@ -69,10 +79,18 @@ const UserProfilePage = () => {
 
             userService.getUserByKeycloakId(parsedUser.id)
                 .then(realUserData => {
+
+                    // 👑 КРИТИЧНИЙ ФІКС БЛОКУВАННЯ: Якщо адмін заблокував юзера — моментально викидаємо з системи
+                    if (realUserData && realUserData.isActive === false) {
+                        toast.error("🛑 Ваш обліковий запис було заблоковано адміністратором системи.");
+                        authService.logout();
+                        navigate('/login');
+                        return;
+                    }
+
                     const nameParts = realUserData.fullName ? realUserData.fullName.split(' ') : [''];
                     const fName = nameParts[0] || '';
                     const lName = nameParts.slice(1).join(' ') || '';
-
 
                     setUser({
                         id: parsedUser.id,
@@ -80,7 +98,6 @@ const UserProfilePage = () => {
                         lastName: lName,
                         email: realUserData.email || parsedUser.email,
                         role: parsedUser.role,
-                        // Беремо реальний код з бази даних без жодних штучних генерацій на фронті
                         driverCode: realUserData.driverCode || realUserData.driver_code || 'Генерується...'
                     });
                     setProfileForm({
@@ -96,7 +113,6 @@ const UserProfilePage = () => {
                         lastName: nameParts.slice(1).join(' ') || '',
                         email: parsedUser.email,
                         role: parsedUser.role,
-
                         driverCode: parsedUser.driverCode || 'Немає зв\'язку'
                     });
                     setProfileForm({
@@ -121,12 +137,12 @@ const UserProfilePage = () => {
             if (!storedUser) return;
             const parsedUser = JSON.parse(storedUser);
 
-            carService.getUnconfirmedCars()
+
+            carService.getCarsByOwnerId(parsedUser.dbId)
                 .then(data => {
-                    const myCars = data.filter(car => Number(car.userId) === Number(parsedUser.dbId));
-                    setOwnerCars(myCars);
+                    setOwnerCars(data);
                 })
-                .catch(err => console.error("Помилка завантаження авто власника:", err));
+                .catch(err => console.error("Помилка завантаження всього автопарку власника:", err));
         }
     }, [activeTab, user.role]);
 
@@ -174,47 +190,85 @@ const UserProfilePage = () => {
 
     const loadOwnerBookings = async (dbId) => {
         try {
-            const allBookings = await bookingService.getAllBookings();
-            const allCars = await carService.getAllCars();
+            const ownerBookingsData = await bookingService.getBookingsByOwnerId(dbId);
+            const ownerCarsData = await carService.getCarsByOwnerId(dbId);
             const drivers = await bookingService.getAllInvitations();
 
             setAllInvitations(drivers || []);
 
-            const myCarIds = allCars.filter(c => Number(c.userId) === Number(dbId)).map(c => c.id);
-            const filteredBookings = allBookings.filter(b => myCarIds.includes(b.carId));
-
-            const enriched = await Promise.all(filteredBookings.map(async (b) => {
-                const car = allCars.find(c => c.id === b.carId);
+            const enriched = ownerBookingsData.map(b => {
+                const car = ownerCarsData.find(c => c.id === b.carId);
                 return { ...b, carName: car ? `${car.brand} ${car.model}` : `Машина #${b.carId}` };
-            }));
+            });
 
-            setOwnerBookings(enriched.sort((a, b) => b.id - a.id));
+            setOwnerBookings(enriched);
         } catch (err) {
             console.error("Помилка завантаження замовлень для власника:", err);
         }
     };
 
     useEffect(() => {
-        const storedUser = localStorage.getItem('user');
-        if (!storedUser) return;
-        const parsedUser = JSON.parse(storedUser);
+            const storedUser = localStorage.getItem('user');
+            if (!storedUser) return;
+            const parsedUser = JSON.parse(storedUser);
 
-        if (activeTab === 'history' && parsedUser.dbId) {
-            loadRenterHistory(parsedUser.dbId);
-        }
+            if (activeTab === 'history' && parsedUser.dbId) {
+                loadRenterHistory(parsedUser.dbId);
+            }
 
-        if (activeTab === 'invitations' && parsedUser.dbId) {
-            bookingService.getInvitationsByUserId(parsedUser.dbId)
-                .then(data => {
-                    setIncomingInvites(data.filter(i => i.status === 'PENDING'));
-                })
-                .catch(err => console.error(err));
-        }
+            if (activeTab === 'invitations' && parsedUser.dbId) {
+                bookingService.getInvitationsByUserId(parsedUser.dbId)
+                    .then(data => {
+                        setIncomingInvites(data.filter(i => i.status === 'PENDING'));
+                    })
+                    .catch(err => console.error(err));
+            }
 
-        if (activeTab === 'owner_bookings' && parsedUser.dbId) {
-            loadOwnerBookings(parsedUser.dbId);
-        }
-    }, [activeTab]);
+            if (activeTab === 'owner_bookings' && parsedUser.dbId) {
+                loadOwnerBookings(parsedUser.dbId);
+            }
+
+            if (activeTab === 'analytics' && parsedUser.dbId) {
+                setAnalyticsLoading(true);
+                analyticsService.getOwnerSummary(parsedUser.dbId)
+                    .then(data => {
+                        setOwnerAnalytics(data);
+                    })
+                    .catch(err => {
+                        console.error("Помилка завантаження модуля аналітики OWNER:", err);
+                    })
+                    .finally(() => {
+                        setAnalyticsLoading(false);
+                    });
+            }
+
+
+            if (['order', 'invitations', 'docs'].includes(activeTab) && parsedUser.dbId) {
+                documentService.getProfileStatus(parsedUser.dbId)
+                    .then(status => {
+                        setIsProfileVerified(status);
+                    })
+                    .catch(err => {
+                        if (err.response?.status === 404) {
+                            setIsProfileVerified(false);
+                        } else {
+                            console.error("Помилка перевірки KYC статусу:", err);
+                        }
+                    });
+
+                documentService.getMetadata(parsedUser.dbId)
+                    .then(meta => {
+                        setUploadedDocs(meta || []);
+                    })
+                    .catch(err => {
+                        if (err.response?.status === 404) {
+                            setUploadedDocs([]);
+                        } else {
+                            console.error("Помилка завантаження метаданих документів:", err);
+                        }
+                    });
+            }
+        }, [activeTab]);
 
     const handleInvitationResponse = async (id, action) => {
         try {
@@ -274,18 +328,20 @@ const UserProfilePage = () => {
     const handleLogout = () => { authService.logout(); navigate('/login'); };
 
     const openCreateCarModal = () => {
-        setEditingCar(null);
-        setCarForm({ brand: '', model: '', year: 2026, carClass: 'ECONOMY', pricePerDay: '' });
-        setSelectedFile(null);
-        setShowCarModal(true);
-    };
+            setEditingCar(null);
+            setCarForm({ brand: '', model: '', year: 2026, carClass: 'ECONOMY', pricePerDay: '' });
 
-    const openEditCarModal = (car) => {
-        setEditingCar(car);
-        setCarForm({ brand: car.brand, model: car.model, year: car.year, carClass: car.carClass, pricePerDay: car.pricePerDay, imageUrl: car.imageUrl || '' });
-        setSelectedFile(null);
-        setShowCarModal(true);
-    };
+            setSelectedFiles([]);
+            setShowCarModal(true);
+        };
+
+        const openEditCarModal = (car) => {
+            setEditingCar(car);
+            setCarForm({ brand: car.brand, model: car.model, year: car.year, carClass: car.carClass, pricePerDay: car.pricePerDay, imageUrl: car.imageUrl || '' });
+
+            setSelectedFiles([]);
+            setShowCarModal(true);
+        };
 
     const handleCarFormChange = (e) => {
         const { name, value } = e.target;
@@ -311,8 +367,10 @@ const UserProfilePage = () => {
             if (editingCar) {
                 const updatedCar = await carService.updateCar(editingCar.id, payload);
 
-                if (selectedFile) {
-                    await carService.uploadCarImage(editingCar.id, selectedFile);
+                if (selectedFiles.length > 0) {
+                    for (const file of selectedFiles) {
+                        await carService.uploadCarImage(editingCar.id, file);
+                    }
                 }
 
                 setOwnerCars(ownerCars.map(c => c.id === editingCar.id ? updatedCar : c));
@@ -320,12 +378,15 @@ const UserProfilePage = () => {
             } else {
                 const newCar = await carService.createCar(payload);
 
-                if (selectedFile) {
-                    await carService.uploadCarImage(newCar.id, selectedFile);
+
+                if (selectedFiles.length > 0) {
+                    for (const file of selectedFiles) {
+                        await carService.uploadCarImage(newCar.id, file);
+                    }
                 }
 
                 setOwnerCars([...ownerCars, newCar]);
-                toast.success('Нове авто додано разом із фотографією! 📸');
+                toast.success('Нове авто додано разом із пакетом фотографій! 📸');
             }
             setShowCarModal(false);
         } catch (err) {
@@ -363,6 +424,29 @@ const UserProfilePage = () => {
         } catch (err) { toast.error('Не вдалося оновити дані.'); }
     };
 
+    const handlePasswordSubmit = async (e) => {
+            e.preventDefault();
+
+            if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+                toast.warning("Паролі не збігаються! 🛑");
+                return;
+            }
+
+            try {
+                setIsChangingPassword(true);
+                // user.id — це Keycloak ID поточного залогіненого юзера
+                await userService.changePasswordByKeycloakId(user.id, passwordForm.newPassword);
+
+                toast.success("Пароль успішно оновлено! 🔐");
+                setPasswordForm({ newPassword: '', confirmPassword: '' }); // Очищаємо поля
+            } catch (err) {
+                console.error("Помилка зміни пароля:", err);
+                toast.error(err.response?.data?.message || "Не вдалося змінити пароль.");
+            } finally {
+                setIsChangingPassword(false);
+            }
+        };
+
     const renderTabContent = () => {
         if (activeTab === 'fleet') {
             return (
@@ -397,23 +481,43 @@ const UserProfilePage = () => {
 
         if (activeTab === 'owner_bookings') {
             const currentBookingDrivers = allSystemDrivers.filter(d => d.bookingId === selectedOwnerBooking?.id);
+            const filteredBookings = ownerBookings.filter(ob => {
+                if (ownerBookingFilter === 'ALL') return true;
+                return ob.status === ownerBookingFilter;
+            }).sort((a, b) => b.id - a.id);
+
             return (
                 <>
                     <h2 className={styles.tabTitle}>📋 Сесії оренди вашого автопарку</h2>
+                    <div style={{ marginBottom: '20px', display: 'flex', gap: '10px', alignItems: 'center' }}>
+                        <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#555' }}>Фільтр статусів:</span>
+                        <select
+                            value={ownerBookingFilter}
+                            onChange={(e) => setOwnerBookingFilter(e.target.value)}
+                            style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #ccc', background: '#fff', fontSize: '14px', cursor: 'pointer' }}
+                        >
+                            <option value="ALL">Всі замовлення</option>
+                            <option value="CREATED">CREATED</option>
+                            <option value="CONFIRMED">CONFIRMED</option>
+                            <option value="COMPLETED">COMPLETED</option>
+                            <option value="CANCELLED">CANCELLED</option>
+                        </select>
+                    </div>
+
                     <table className={styles.historyTable}>
                         <thead>
-                            <tr><th>ID</th><th>Транспорт</th><th>Період активності</th><th>Загальна вартість</th><th>Статус</th></tr>
+                        <tr><th>ID</th><th>Транспорт</th><th>Період активності</th><th>Загальна вартість</th><th>Статус</th></tr>
                         </thead>
                         <tbody>
-                            {ownerBookings.map(ob => (
-                                <tr key={ob.id} onClick={() => setSelectedOwnerBooking(ob)} style={{ cursor: 'pointer' }}>
-                                    <td>#BK-{ob.id}</td>
-                                    <td><strong>{ob.carName}</strong></td>
-                                    <td>{ob.startDate.split('T')[0]} — {ob.endDate.split('T')[0]}</td>
-                                    <td>{ob.totalPrice}€</td>
-                                    <td><span className={styles.statusBadge}>{ob.status}</span></td>
-                                </tr>
-                            ))}
+                        {filteredBookings.map(ob => (
+                            <tr key={ob.id} onClick={() => setSelectedOwnerBooking(ob)} style={{ cursor: 'pointer' }}>
+                                <td>#BK-{ob.id}</td>
+                                <td><strong>{ob.carName}</strong></td>
+                                <td>{ob.startDate.split('T')[0]} — {ob.endDate.split('T')[0]}</td>
+                                <td>{ob.totalPrice}€</td>
+                                <td><span className={styles.statusBadge}>{ob.status}</span></td>
+                            </tr>
+                        ))}
                         </tbody>
                     </table>
 
@@ -444,10 +548,36 @@ const UserProfilePage = () => {
                 <>
                     <h2 className={styles.tabTitle}>Замовити авто</h2>
                     <p className={styles.greeting}>Привіт, {user.firstName || 'Гість'}!</p>
-                    <p className={styles.infoText}>Спеціально для вас ми відображаємо статус доступності для всіх авто, щоб процес підбору стал для вас ще швидше та зрозуміліше.</p>
+
+                    {/* 👑 Визначна позначка загальної готовності профілю */}
+                    <div style={{ padding: '15px', borderRadius: '8px', marginBottom: '20px', background: isProfileVerified ? '#f6ffed' : '#fff1f0', border: isProfileVerified ? '1px solid #b7eb8f' : '1px solid #ffccc7', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <span style={{ fontSize: '24px' }}>{isProfileVerified ? '✅' : '🛑'}</span>
+                        <div>
+                            <strong style={{ color: isProfileVerified ? '#389e0d' : '#cf1322', fontSize: '15px' }}>
+                                {isProfileVerified ? 'Ваш аккаунт повністю верифіковано!' : 'Потрібна верифікація документів'}
+                            </strong>
+                            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#555', lineHeight: '1.4' }}>
+                                {isProfileVerified
+                                    ? 'Доступ до створення бронювань та спільних поїздок повністю активовано. Щасливої дороги!'
+                                    : 'Бронювання авто недоступне. Будь ласка, перейдіть у вкладку "Документи", завантажте необхідні файли та дочекайтеся перевірки адміністратором.'}
+                            </p>
+                        </div>
+                    </div>
+
                     <p className={styles.greeting}>Ваша персональна знижка на оренду авто становить <span className={styles.discount} style={{color: '#28a745', fontWeight: 'bold'}}>0%</span></p>
-                    <p className={styles.infoText}>Для замовлення авто натисніть кнопку ниже.</p>
-                    <button className={styles.primaryBtn} onClick={() => navigate('/catalog')}>ЗАБРОНЮВАТИ АВТО</button>
+
+                    <button
+                        className={styles.primaryBtn}
+                        onClick={() => navigate('/catalog')}
+                        disabled={!isProfileVerified}
+                        style={{
+                            opacity: isProfileVerified ? 1 : 0.5,
+                            cursor: isProfileVerified ? 'pointer' : 'not-allowed',
+                            backgroundColor: isProfileVerified ? '#0056b3' : '#718096'
+                        }}
+                    >
+                        {isProfileVerified ? 'ЗАБРОНЮВАТИ АВТО' : 'БРОНЮВАННЯ БЛОКОВАНО'}
+                    </button>
                 </>
             );
         }
@@ -506,10 +636,15 @@ const UserProfilePage = () => {
                                                 <div style={{ fontSize: '13px', color: '#333' }}>
                                                     <div style={{ fontWeight: 'bold', color: '#0056b3', marginBottom: '8px' }}>👥 Учасники цієї сесії оренди:</div>
 
-
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '15px', background: '#f8f9fa', padding: '8px 12px', borderRadius: '6px', border: '1px solid #e3e6f0', width: 'fit-content', minWidth: '450px', marginBottom: '8px' }}>
                                                         <span>🔑 <strong>Основний водій (Орендатор):</strong></span>
-                                                        <span style={{ fontSize: '12px', color: '#666' }}>ID Користувача: #{order.userId} {order.isCoDriver ? '' : '(Це ви)'}</span>
+                                                        <span style={{ fontSize: '13px', color: '#333' }}>
+                                                            {order.isCoDriver ? (
+                                                                <strong>{order.userEmail || order.renterEmail || order.fullName || `Користувач #${order.userId}`}</strong>
+                                                            ) : (
+                                                                <span style={{ backgroundColor: '#fff3cd', color: '#856404', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>Ви</span>
+                                                            )}
+                                                        </span>
                                                         <span style={{
                                                             fontSize: '11px',
                                                             fontWeight: 'bold',
@@ -592,7 +727,23 @@ const UserProfilePage = () => {
                                         <td><strong>Бронювання #{invite.bookingId}</strong></td>
                                         <td><code>{invite.driverCode}</code></td>
                                         <td>
-                                            <button onClick={() => handleInvitationResponse(invite.id, 'accept')} style={{padding: '5px 10px', marginRight: '10px', backgroundColor: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer'}}>Прийняти </button>
+                                            <button
+                                                onClick={() => handleInvitationResponse(invite.id, 'accept')}
+                                                disabled={!isProfileVerified}
+                                                style={{
+                                                    padding: '5px 10px',
+                                                    marginRight: '10px',
+                                                    backgroundColor: '#28a745',
+                                                    color: '#fff',
+                                                    border: 'none',
+                                                    borderRadius: '4px',
+                                                    cursor: isProfileVerified ? 'pointer' : 'not-allowed',
+                                                    opacity: isProfileVerified ? 1 : 0.5
+                                                }}
+                                                title={!isProfileVerified ? "Пройдіть верифікацію для спільної поїздки" : ""}
+                                            >
+                                                Прийняти
+                                            </button>
                                             <button onClick={() => handleInvitationResponse(invite.id, 'decline')} style={{padding: '5px 10px', backgroundColor: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer'}}>Відхилити</button>
                                         </td>
                                     </tr>
@@ -604,60 +755,252 @@ const UserProfilePage = () => {
             );
         }
 
-        if (activeTab === 'docs') {
-            return (
-                <>
-                    <h2 className={styles.tabTitle}>Завантажені документи</h2>
-                    <p className={styles.infoText}>Тут ви можете завантажити зображення документів, що засвідчують вашу особу.</p>
-                    <div className={styles.docRow} style={{marginBottom: '15px'}}><div className={styles.docLabel} style={{marginBottom: '5px', fontSize: '14px'}}>Паспорт 1 та 2 сторінка</div><input type="file" className={styles.docInput} /></div>
-                    <div className={styles.docRow} style={{marginBottom: '15px'}}><div className={styles.docLabel} style={{marginBottom: '5px', fontSize: '14px'}}>Паспорт прописка</div><input type="file" className={styles.docInput} /></div>
-                    <div className={styles.docRow} style={{marginBottom: '20px'}}><div className={styles.docLabel} style={{marginBottom: '5px', fontSize: '14px'}}>Водійське посвідчення</div><input type="file" className={styles.docInput} /></div>
-                    <button className={styles.primaryBtn}>Надіслати документи</button>
-                </>
-            );
-        }
+  if (activeTab === 'docs') {
+              const documentTypes = [
+                  { type: 'PASSPORT_MAIN', label: 'Паспорт: 1-2 сторінка або ID-картка' },
+                  { type: 'PASSPORT_REGISTRATION', label: 'Паспорт: прописка / витяг' },
+                  { type: 'DRIVING_LICENSE', label: 'Водійське посвідчення' }
+              ];
+
+
+
+              const handleFileChange = async (type, file) => {
+                  if (!file) return;
+                  try {
+                      setDocsLoading(true);
+                      const dbId = JSON.parse(localStorage.getItem('user'))?.dbId;
+
+                      const fileExtension = file.name.split('.').pop();
+                      const safeName = `user_${dbId}_doc_${type}_${Date.now()}.${fileExtension}`;
+                      const safeFile = new File([file], safeName, { type: file.type });
+
+                      await documentService.uploadDocument(dbId, type, safeFile);
+                      toast.success("Документ успішно надіслано на модерацію! 📄");
+
+                      const meta = await documentService.getMetadata(dbId);
+                      setUploadedDocs(meta || []);
+                      const status = await documentService.getProfileStatus(dbId);
+                      setIsProfileVerified(status);
+                  } catch (err) {
+                      toast.error("Не вдалося завантажити файл документа.");
+                  } finally {
+                      setDocsLoading(false);
+                  }
+              };
+
+              return (
+                  <>
+                      <h2 className={styles.tabTitle}>🛡️ Центр державної верифікації профілю</h2>
+                      <p className={styles.infoText}>Для відкриття можливості оренди та спільних поїздок, завантажте скани обов’язкових документів (формати PDF, PNG, JPEG).</p>
+
+                      {docsLoading && <div style={{ color: '#0056b3', fontWeight: 'bold', marginBottom: '15px' }}>Стрімінг файлів у хмару сховища... ⏳</div>}
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '20px' }}>
+                          {documentTypes.map(doc => {
+                              const meta = (uploadedDocs || []).find(d => d.documentType === doc.type);
+                              return (
+                                  <div key={doc.type} style={{ padding: '15px', background: '#fff', borderRadius: '8px', border: '1px solid #eef0f2', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                      <div>
+                                          <div style={{ fontSize: '14px', color: '#222', fontWeight: 'bold' }}>{doc.label}</div>
+                                          {meta ? (
+                                              <div style={{ marginTop: '5px', fontSize: '12px', color: '#666' }}>
+                                                  📄 {meta.originalFileName} <br/>
+                                                  📅 Завантажено: {meta.uploadedAt?.split('T')[0]}
+                                              </div>
+                                          ) : (
+                                              <div style={{ marginTop: '5px', fontSize: '12px', color: '#999', fontStyle: 'italic' }}>Файл відсутній</div>
+                                          )}
+                                      </div>
+
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                          {meta && (
+                                              <button
+                                                  onClick={() => setPreviewDoc(meta)}
+                                                  style={{ padding: '6px 10px', background: '#e2f1fe', color: '#0056b3', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
+                                              >
+                                                  👁️ Огляд
+                                              </button>
+                                          )}
+
+                                          <span style={{ fontSize: '11px', fontWeight: 'bold', padding: '4px 10px', borderRadius: '4px', backgroundColor: meta ? (meta.isVerified ? '#d4edda' : '#fff3cd') : '#f5f5f5', color: meta ? (meta.isVerified ? '#155724' : '#856404') : '#777' }}>
+                                              {meta ? (meta.isVerified ? '● ВЕРИФІКОВАНО' : '● НА ПЕРЕВІРЦІ') : 'ОБОВ\'ЯЗКОВО'}
+                                          </span>
+
+                                          <input type="file" id={`file-${doc.type}`} accept="image/png, image/jpeg, image/jpg, application/pdf" onChange={(e) => handleFileChange(doc.type, e.target.files[0])} style={{ display: 'none' }} />
+                                          <button onClick={() => document.getElementById(`file-${doc.type}`).click()} style={{ padding: '6px 12px', border: '1px solid #0056b3', background: '#f8fbff', color: '#0056b3', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
+                                              {meta ? 'Оновити 🔄' : 'Обрати файл 📁'}
+                                          </button>
+                                      </div>
+                                  </div>
+                              );
+                          })}
+                      </div>
+
+                      {previewDoc && (
+                          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }} onClick={() => setPreviewDoc(null)}>
+                              <div style={{ background: '#fff', padding: '20px', borderRadius: '8px', maxWidth: '80%', maxHeight: '80%', overflow: 'auto' }} onClick={e => e.stopPropagation()}>
+                                  <h3 style={{marginTop: 0}}>Перегляд: {previewDoc.originalFileName}</h3>
+                                  {previewDoc.contentType.includes('image') ? (
+                                      <SecureImage src={`/document/v1/${previewDoc.id}/download`} style={{ maxWidth: '100%', maxHeight: '500px' }} />
+                                  ) : (
+                                      <div style={{ padding: '20px', textAlign: 'center' }}>
+                                          <p>Це PDF документ.</p>
+                                          <a href={`http://localhost:8100/document/v1/${previewDoc.id}/download`} target="_blank" rel="noreferrer" style={{ color: '#0056b3', fontWeight: 'bold' }}>Відкрити файл ↗</a>
+                                      </div>
+                                  )}
+                                  <button onClick={() => setPreviewDoc(null)} style={{ marginTop: '15px', padding: '8px 16px', cursor: 'pointer' }}>Закрити</button>
+                              </div>
+                          </div>
+                      )}
+                  </>
+              );
+          }
 
         if (activeTab === 'analytics') {
-            return (
-                <>
-                    <h2 className={styles.tabTitle}>Аналітика та звіти</h2>
-                    <div className={styles.statsContainer}>
-                        <div className={styles.statCard}><div className={styles.statCardTitle}>Кількість бронювань</div><div className={styles.statCardValue}>150</div></div>
-                        <div className={styles.statCard}><div className={styles.statCardTitle}>Загальна виручка</div><div className={styles.statCardValue}>250 000 грн</div></div>
-                    </div>
-                </>
-            );
-        }
+                    if (analyticsLoading) return <div style={{ textAlign: 'center', padding: '40px' }}>Обчислення фінансових метрик... ⏳</div>;
+                    if (!ownerAnalytics) return <div style={{ textAlign: 'center', padding: '40px', color: '#dc3545' }}>Не вдалося завантажити аналітичні дані.</div>;
+
+                    const ukrMonths = { 1: 'Січ', 2: 'Лют', 3: 'Бер', 4: 'Квіт', 5: 'Трав', 6: 'Черв', 7: 'Лип', 8: 'Серп', 9: 'Верес', 10: 'Жовт', 11: 'Листоп', 12: 'Груд' };
+
+
+                    const maxRevenue = ownerAnalytics.monthlyRevenue?.length > 0
+                        ? Math.max(...ownerAnalytics.monthlyRevenue.map(m => m[1]))
+                        : 100;
+
+                    return (
+                        <>
+                            <h2 className={styles.tabTitle}>📊 Фінансовий дашборд автопарку</h2>
+
+
+                            <div className={styles.statsContainer} style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '15px', marginBottom: '30px' }}>
+                                <div className={styles.statCard} style={{ background: '#f8fbff', border: '1px solid #d6e4ff' }}>
+                                    <div className={styles.statCardTitle} style={{ color: '#555', fontSize: '13px' }}>Всього машин</div>
+                                    <div className={styles.statCardValue} style={{ fontSize: '24px', color: '#0056b3' }}>{ownerAnalytics.totalCars}</div>
+                                </div>
+                                <div className={styles.statCard}>
+                                    <div className={styles.statCardTitle} style={{ color: '#555', fontSize: '13px' }}>Загальні бронювання</div>
+                                    <div className={styles.statCardValue} style={{ fontSize: '24px' }}>{ownerAnalytics.totalBookings}</div>
+                                </div>
+                                <div className={styles.statCard} style={{ background: '#f6ffed', border: '1px solid #b7eb8f' }}>
+                                    <div className={styles.statCardTitle} style={{ color: '#555', fontSize: '13px' }}>Завершені сесії</div>
+                                    <div className={styles.statCardValue} style={{ fontSize: '24px', color: '#389e0d' }}>{ownerAnalytics.completedBookings}</div>
+                                </div>
+                                <div className={styles.statCard} style={{ background: '#fff7e6', border: '1px solid #ffd591' }}>
+                                    <div className={styles.statCardTitle} style={{ color: '#555', fontSize: '13px' }}>Загальний виторг</div>
+                                    <div className={styles.statCardValue} style={{ fontSize: '24px', color: '#d46b08' }}>{ownerAnalytics.totalRevenue} €</div>
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '20px', marginTop: '20px' }}>
+
+                                <div style={{ background: '#fff', padding: '20px', borderRadius: '8px', border: '1px solid #eee' }}>
+                                    <h3 style={{ margin: '0 0 20px 0', fontSize: '16px', color: '#333' }}>📈 Динаміка доходів за місяцями</h3>
+                                    {ownerAnalytics.monthlyRevenue?.length > 0 ? (
+                                        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-around', height: '200px', paddingBottom: '20px', borderBottom: '2px solid #ddd' }}>
+                                            {ownerAnalytics.monthlyRevenue.map(([monthNum, revenue], idx) => {
+                                                const barHeight = (revenue / maxRevenue) * 150; // Динамічна висота стовпчика
+                                                return (
+                                                    <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '60px', position: 'relative' }}>
+                                                        <span style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '5px', color: '#0056b3' }}>{revenue}€</span>
+                                                        <div style={{ height: `${barHeight}px`, width: '35px', background: 'linear-gradient(180deg, #3ba4f6 0%, #0056b3 100%)', borderRadius: '4px 4px 0 0', transition: 'height 0.3s ease' }}></div>
+                                                        <span style={{ position: 'absolute', bottom: '-22px', fontSize: '12px', color: '#666', fontWeight: '500' }}>{ukrMonths[monthNum] || monthNum}</span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    ) : (
+                                        <div style={{ textAlign: 'center', color: '#999', paddingTop: '60px' }}>Дані про щомісячні доходи відсутні.</div>
+                                    )}
+                                </div>
+
+
+                                <div style={{ background: '#fff', padding: '20px', borderRadius: '8px', border: '1px solid #eee' }}>
+                                    <h3 style={{ margin: '0 0 15px 0', fontSize: '16px', color: '#333' }}>🚗 Завантаженість парку (Поточний тиждень)</h3>
+                                    {ownerAnalytics.weeklyLoad?.length > 0 ? (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '15px' }}>
+                                            {ownerAnalytics.weeklyLoad.map(([dateStr, loadCount], idx) => (
+                                                <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                    <span style={{ width: '80px', fontSize: '12px', color: '#555' }}>{dateStr}</span>
+                                                    <div style={{ flex: 1, background: '#f5f5f5', height: '14px', borderRadius: '4px', overflow: 'hidden' }}>
+                                                        <div style={{ width: `${Math.min(loadCount * 20, 100)}%`, background: '#28a745', height: '100%' }}></div>
+                                                    </div>
+                                                    <span style={{ fontSize: '12px', fontWeight: 'bold', width: '20px' }}>{loadCount}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div style={{ textAlign: 'center', color: '#777', padding: '40px 10px', background: '#fafafa', borderRadius: '6px', border: '1px dashed #ccc', marginTop: '20px' }}>
+                                            <div style={{ fontSize: '24px', marginBottom: '5px' }}>💤</div>
+                                            <div style={{ fontSize: '13px', fontStyle: 'italic' }}>Всі 9 машин власника відпочивають. На цьому тижні активних сесій оренди немає.</div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </>
+                    );
+                }
 
         if (activeTab === 'profile') {
-            return (
-                <>
-                    <h2 className={styles.tabTitle}>Персональні дані</h2>
-                    <form onSubmit={handleProfileSubmit}>
-                        <div className={styles.formGrid} style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '20px'}}>
-                            <div className={styles.inputGroup}>
-                                <label style={{display: 'block', marginBottom: '5px'}}>Ім'я</label>
-                                <input type="text" value={profileForm.firstName} onChange={(e) => setProfileForm({...profileForm, firstName: e.target.value})} style={{width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc'}} />
-                            </div>
-                            <div className={styles.inputGroup}>
-                                <label style={{display: 'block', marginBottom: '5px'}}>Прізвище</label>
-                                <input type="text" value={profileForm.lastName} onChange={(e) => setProfileForm({...profileForm, lastName: e.target.value})} style={{width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc'}} />
-                            </div>
-                            <div className={styles.inputGroup} style={{gridColumn: '1 / span 2'}}>
-                                <label style={{display: 'block', marginBottom: '5px'}}>Email (не змінюється)</label>
-                                <input type="email" value={user.email} disabled style={{width: '100%', padding: '8px', background:'#eee', cursor: 'not-allowed', borderRadius: '4px', border: '1px solid #ccc'}}/>
-                            </div>
-                        </div>
-                        <h3 className={styles.sectionSubtitle} style={{marginTop: '20px', marginBottom: '10px'}}>Зміна пароля (через Keycloak Console)</h3>
-                        <div className={styles.formGrid} style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '20px'}}>
-                            <div className={styles.inputGroup}><label style={{display: 'block', marginBottom: '5px'}}>Новий пароль</label><input type="password" disabled placeholder="Зміна в кабінеті Keycloak" style={{width: '100%', padding: '8px', background:'#eee', borderRadius: '4px', border: '1px solid #ccc'}}/></div>
-                            <div className={styles.inputGroup}><label style={{display: 'block', marginBottom: '5px'}}>Повторіть новий пароль</label><input type="password" disabled placeholder="Зміна в кабінеті Keycloak" style={{width: '100%', padding: '8px', background:'#eee', borderRadius: '4px', border: '1px solid #ccc'}}/></div>
-                        </div>
-                        <button type="submit" className={styles.primaryBtn}>Зберегти зміни</button>
-                    </form>
-                </>
-            );
-        }
+                    return (
+                        <>
+                            <h2 className={styles.tabTitle}>Персональні дані</h2>
+
+                            {/* Форма 1: Зміна імені та прізвища */}
+                            <form onSubmit={handleProfileSubmit}>
+                                <div className={styles.formGrid} style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '20px'}}>
+                                    <div className={styles.inputGroup}>
+                                        <label style={{display: 'block', marginBottom: '5px'}}>Ім'я</label>
+                                        <input type="text" value={profileForm.firstName} onChange={(e) => setProfileForm({...profileForm, firstName: e.target.value})} style={{width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc'}} />
+                                    </div>
+                                    <div className={styles.inputGroup}>
+                                        <label style={{display: 'block', marginBottom: '5px'}}>Прізвище</label>
+                                        <input type="text" value={profileForm.lastName} onChange={(e) => setProfileForm({...profileForm, lastName: e.target.value})} style={{width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc'}} />
+                                    </div>
+                                    <div className={styles.inputGroup} style={{gridColumn: '1 / span 2'}}>
+                                        <label style={{display: 'block', marginBottom: '5px'}}>Email (не змінюється)</label>
+                                        <input type="email" value={user.email} disabled style={{width: '100%', padding: '8px', background:'#eee', cursor: 'not-allowed', borderRadius: '4px', border: '1px solid #ccc'}}/>
+                                    </div>
+                                </div>
+                                <button type="submit" className={styles.primaryBtn} style={{marginBottom: '0'}}>Зберегти зміни профілю</button>
+                            </form>
+
+                            <hr style={{ border: 'none', borderTop: '1px solid #dee2e6', margin: '30px 0' }} />
+
+                            {/* Форма 2: Безпека та зміна пароля */}
+                            <h3 className={styles.sectionSubtitle} style={{ marginBottom: '15px', fontSize: '18px', color: '#333' }}>🔒 Безпека облікового запису</h3>
+                            <form onSubmit={handlePasswordSubmit}>
+                                <div className={styles.formGrid} style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '20px'}}>
+                                    <div className={styles.inputGroup}>
+                                        <label style={{display: 'block', marginBottom: '5px'}}>Новий пароль</label>
+                                        <input
+                                            type="password"
+                                            required
+                                            minLength="6"
+                                            placeholder="Введіть новий пароль"
+                                            value={passwordForm.newPassword}
+                                            onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
+                                            style={{width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc'}}
+                                        />
+                                    </div>
+                                    <div className={styles.inputGroup}>
+                                        <label style={{display: 'block', marginBottom: '5px'}}>Повторіть новий пароль</label>
+                                        <input
+                                            type="password"
+                                            required
+                                            placeholder="Повторіть пароль"
+                                            value={passwordForm.confirmPassword}
+                                            onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
+                                            style={{width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc'}}
+                                        />
+                                    </div>
+                                </div>
+                                <button type="submit" className={styles.primaryBtn} style={{ backgroundColor: '#28a745' }} disabled={isChangingPassword}>
+                                    {isChangingPassword ? 'Оновлення...' : 'ЗМІНИТИ ПАРОЛЬ'}
+                                </button>
+                            </form>
+                        </>
+                    );
+                }
         return null;
     };
 
@@ -723,41 +1066,59 @@ const UserProfilePage = () => {
                                     <option value="ECONOMY">Economy</option><option value="COMFORT">Comfort</option><option value="BUSINESS">Business</option><option value="LUXURY">Luxury</option>
                                 </select>
                             </div>
+
                             <div style={{ marginBottom: '20px' }}>
-                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Фотографія автомобіля</label>
+                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Фотографії автомобіля (Можна декілька за раз)</label>
                                 <input
                                     type="file"
+                                    multiple
                                     accept="image/png, image/jpeg, image/jpg"
                                     onChange={(e) => {
-                                        if (e.target.files && e.target.files[0]) {
-                                            setSelectedFile(e.target.files[0]);
+                                        if (e.target.files) {
+                                            const filesArray = Array.from(e.target.files);
+                                            setSelectedFiles(prevFiles => {
+                                                const uniqueNewFiles = filesArray.filter(
+                                                    newFile => !prevFiles.some(prevFile => prevFile.name === newFile.name && prevFile.size === newFile.size)
+                                                );
+                                                return [...prevFiles, ...uniqueNewFiles];
+                                            });
                                         }
                                     }}
-                                    style={{
-                                        width: '100%',
-                                        padding: '8px',
-                                        border: '1px dashed #0056b3',
-                                        borderRadius: '4px',
-                                        background: '#f8fbff',
-                                        cursor: 'pointer'
-                                    }}
+                                    style={{ width: '100%', padding: '8px', border: '1px dashed #0056b3', borderRadius: '4px', background: '#f8fbff', cursor: 'pointer' }}
                                 />
-                                {selectedFile && (
-                                    <span style={{ fontSize: '12px', color: '#28a745', display: 'block', marginTop: '4px' }}>
-                                        ✓ Обрано файл: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
-                                    </span>
+
+                                {selectedFiles.length > 0 && (
+                                    <div style={{ marginTop: '12px', maxHeight: '130px', overflowY: 'auto', background: '#fff', padding: '10px', borderRadius: '6px', border: '1px solid #ddd' }}>
+                                        <div style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '6px', color: '#333' }}>Обрані медіафайли ({selectedFiles.length}):</div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                            {selectedFiles.map((file, i) => (
+                                                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f1f3f9', padding: '4px 8px', borderRadius: '4px', fontSize: '12px' }}>
+                                                    <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '85%' }}>📷 {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setSelectedFiles(selectedFiles.filter((_, idx) => idx !== i))}
+                                                        style={{ background: 'none', border: 'none', color: '#dc3545', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px', padding: '0 4px' }}
+                                                        title="Прибрати зі списку"
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
                                 )}
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <button type="button" onClick={() => setShowCarModal(false)} style={{ padding: '10px 20px', background: '#ccc', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Скасувати</button>
-                                <button type="submit" style={{ padding: '10px 20px', background: '#0056b3', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Зберегти</button>
+
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px' }}>
+                                <button type="button" onClick={() => setShowCarModal(false)} style={{ padding: '10px 20px', background: '#ccc', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Скасувати</button>
+                                <button type="submit" style={{ padding: '10px 20px', background: '#0056b3', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Зберегти</button>
                             </div>
                         </form>
                     </div>
                 </div>
             )}
         </div>
-    );
+    )
 };
 
 export default UserProfilePage;
