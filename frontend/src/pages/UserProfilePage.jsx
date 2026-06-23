@@ -22,7 +22,8 @@ const Icons = {
 const UserProfilePage = () => {
     const navigate = useNavigate();
 
-    const [selectedFile, setSelectedFile] = useState(null);
+    const [selectedFiles, setSelectedFiles] = useState([]);
+    const [ownerBookingFilter, setOwnerBookingFilter] = useState('ALL');
 
     const [user, setUser] = useState({ id: '', firstName: '', lastName: '', email: '', role: '', driverCode: '' });
     const [activeTab, setActiveTab] = useState('');
@@ -80,7 +81,6 @@ const UserProfilePage = () => {
                         lastName: lName,
                         email: realUserData.email || parsedUser.email,
                         role: parsedUser.role,
-                        // Беремо реальний код з бази даних без жодних штучних генерацій на фронті
                         driverCode: realUserData.driverCode || realUserData.driver_code || 'Генерується...'
                     });
                     setProfileForm({
@@ -121,12 +121,12 @@ const UserProfilePage = () => {
             if (!storedUser) return;
             const parsedUser = JSON.parse(storedUser);
 
-            carService.getUnconfirmedCars()
+            // 👑 ОНОВЛЕНО 1.1: Тепер беремо абсолютно всі авто власника з нового ендпоінту беку
+            carService.getCarsByOwnerId(parsedUser.dbId)
                 .then(data => {
-                    const myCars = data.filter(car => Number(car.userId) === Number(parsedUser.dbId));
-                    setOwnerCars(myCars);
+                    setOwnerCars(data);
                 })
-                .catch(err => console.error("Помилка завантаження авто власника:", err));
+                .catch(err => console.error("Помилка завантаження всього автопарку власника:", err));
         }
     }, [activeTab, user.role]);
 
@@ -174,21 +174,18 @@ const UserProfilePage = () => {
 
     const loadOwnerBookings = async (dbId) => {
         try {
-            const allBookings = await bookingService.getAllBookings();
-            const allCars = await carService.getAllCars();
+            const ownerBookingsData = await bookingService.getBookingsByOwnerId(dbId);
+            const ownerCarsData = await carService.getCarsByOwnerId(dbId);
             const drivers = await bookingService.getAllInvitations();
 
             setAllInvitations(drivers || []);
 
-            const myCarIds = allCars.filter(c => Number(c.userId) === Number(dbId)).map(c => c.id);
-            const filteredBookings = allBookings.filter(b => myCarIds.includes(b.carId));
-
-            const enriched = await Promise.all(filteredBookings.map(async (b) => {
-                const car = allCars.find(c => c.id === b.carId);
+            const enriched = ownerBookingsData.map(b => {
+                const car = ownerCarsData.find(c => c.id === b.carId);
                 return { ...b, carName: car ? `${car.brand} ${car.model}` : `Машина #${b.carId}` };
-            }));
+            });
 
-            setOwnerBookings(enriched.sort((a, b) => b.id - a.id));
+            setOwnerBookings(enriched);
         } catch (err) {
             console.error("Помилка завантаження замовлень для власника:", err);
         }
@@ -274,18 +271,20 @@ const UserProfilePage = () => {
     const handleLogout = () => { authService.logout(); navigate('/login'); };
 
     const openCreateCarModal = () => {
-        setEditingCar(null);
-        setCarForm({ brand: '', model: '', year: 2026, carClass: 'ECONOMY', pricePerDay: '' });
-        setSelectedFile(null);
-        setShowCarModal(true);
-    };
+            setEditingCar(null);
+            setCarForm({ brand: '', model: '', year: 2026, carClass: 'ECONOMY', pricePerDay: '' });
 
-    const openEditCarModal = (car) => {
-        setEditingCar(car);
-        setCarForm({ brand: car.brand, model: car.model, year: car.year, carClass: car.carClass, pricePerDay: car.pricePerDay, imageUrl: car.imageUrl || '' });
-        setSelectedFile(null);
-        setShowCarModal(true);
-    };
+            setSelectedFiles([]);
+            setShowCarModal(true);
+        };
+
+        const openEditCarModal = (car) => {
+            setEditingCar(car);
+            setCarForm({ brand: car.brand, model: car.model, year: car.year, carClass: car.carClass, pricePerDay: car.pricePerDay, imageUrl: car.imageUrl || '' });
+
+            setSelectedFiles([]);
+            setShowCarModal(true);
+        };
 
     const handleCarFormChange = (e) => {
         const { name, value } = e.target;
@@ -310,9 +309,11 @@ const UserProfilePage = () => {
 
             if (editingCar) {
                 const updatedCar = await carService.updateCar(editingCar.id, payload);
-
-                if (selectedFile) {
-                    await carService.uploadCarImage(editingCar.id, selectedFile);
+                
+                if (selectedFiles.length > 0) {
+                    for (const file of selectedFiles) {
+                        await carService.uploadCarImage(editingCar.id, file);
+                    }
                 }
 
                 setOwnerCars(ownerCars.map(c => c.id === editingCar.id ? updatedCar : c));
@@ -320,12 +321,15 @@ const UserProfilePage = () => {
             } else {
                 const newCar = await carService.createCar(payload);
 
-                if (selectedFile) {
-                    await carService.uploadCarImage(newCar.id, selectedFile);
+                // 👑 ФІКС 1.3: Послідовне пакетне завантаження для нового автомобіля
+                if (selectedFiles.length > 0) {
+                    for (const file of selectedFiles) {
+                        await carService.uploadCarImage(newCar.id, file);
+                    }
                 }
 
                 setOwnerCars([...ownerCars, newCar]);
-                toast.success('Нове авто додано разом із фотографією! 📸');
+                toast.success('Нове авто додано разом із пакетом фотографій! 📸');
             }
             setShowCarModal(false);
         } catch (err) {
@@ -397,23 +401,43 @@ const UserProfilePage = () => {
 
         if (activeTab === 'owner_bookings') {
             const currentBookingDrivers = allSystemDrivers.filter(d => d.bookingId === selectedOwnerBooking?.id);
+            const filteredBookings = ownerBookings.filter(ob => {
+                if (ownerBookingFilter === 'ALL') return true;
+                return ob.status === ownerBookingFilter;
+            }).sort((a, b) => b.id - a.id);
+
             return (
                 <>
                     <h2 className={styles.tabTitle}>📋 Сесії оренди вашого автопарку</h2>
+                    <div style={{ marginBottom: '20px', display: 'flex', gap: '10px', alignItems: 'center' }}>
+                        <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#555' }}>Фільтр статусів:</span>
+                        <select
+                            value={ownerBookingFilter}
+                            onChange={(e) => setOwnerBookingFilter(e.target.value)}
+                            style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #ccc', background: '#fff', fontSize: '14px', cursor: 'pointer' }}
+                        >
+                            <option value="ALL">Всі замовлення</option>
+                            <option value="CREATED">CREATED</option>
+                            <option value="CONFIRMED">CONFIRMED</option>
+                            <option value="COMPLETED">COMPLETED</option>
+                            <option value="CANCELLED">CANCELLED</option>
+                        </select>
+                    </div>
+
                     <table className={styles.historyTable}>
                         <thead>
-                            <tr><th>ID</th><th>Транспорт</th><th>Період активності</th><th>Загальна вартість</th><th>Статус</th></tr>
+                        <tr><th>ID</th><th>Транспорт</th><th>Період активності</th><th>Загальна вартість</th><th>Статус</th></tr>
                         </thead>
                         <tbody>
-                            {ownerBookings.map(ob => (
-                                <tr key={ob.id} onClick={() => setSelectedOwnerBooking(ob)} style={{ cursor: 'pointer' }}>
-                                    <td>#BK-{ob.id}</td>
-                                    <td><strong>{ob.carName}</strong></td>
-                                    <td>{ob.startDate.split('T')[0]} — {ob.endDate.split('T')[0]}</td>
-                                    <td>{ob.totalPrice}€</td>
-                                    <td><span className={styles.statusBadge}>{ob.status}</span></td>
-                                </tr>
-                            ))}
+                        {filteredBookings.map(ob => (
+                            <tr key={ob.id} onClick={() => setSelectedOwnerBooking(ob)} style={{ cursor: 'pointer' }}>
+                                <td>#BK-{ob.id}</td>
+                                <td><strong>{ob.carName}</strong></td>
+                                <td>{ob.startDate.split('T')[0]} — {ob.endDate.split('T')[0]}</td>
+                                <td>{ob.totalPrice}€</td>
+                                <td><span className={styles.statusBadge}>{ob.status}</span></td>
+                            </tr>
+                        ))}
                         </tbody>
                     </table>
 
@@ -506,10 +530,15 @@ const UserProfilePage = () => {
                                                 <div style={{ fontSize: '13px', color: '#333' }}>
                                                     <div style={{ fontWeight: 'bold', color: '#0056b3', marginBottom: '8px' }}>👥 Учасники цієї сесії оренди:</div>
 
-
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '15px', background: '#f8f9fa', padding: '8px 12px', borderRadius: '6px', border: '1px solid #e3e6f0', width: 'fit-content', minWidth: '450px', marginBottom: '8px' }}>
                                                         <span>🔑 <strong>Основний водій (Орендатор):</strong></span>
-                                                        <span style={{ fontSize: '12px', color: '#666' }}>ID Користувача: #{order.userId} {order.isCoDriver ? '' : '(Це ви)'}</span>
+                                                        <span style={{ fontSize: '13px', color: '#333' }}>
+                                                            {order.isCoDriver ? (
+                                                                <strong>{order.userEmail || order.renterEmail || order.fullName || `Користувач #${order.userId}`}</strong>
+                                                            ) : (
+                                                                <span style={{ backgroundColor: '#fff3cd', color: '#856404', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>Ви</span>
+                                                            )}
+                                                        </span>
                                                         <span style={{
                                                             fontSize: '11px',
                                                             fontWeight: 'bold',
@@ -723,41 +752,59 @@ const UserProfilePage = () => {
                                     <option value="ECONOMY">Economy</option><option value="COMFORT">Comfort</option><option value="BUSINESS">Business</option><option value="LUXURY">Luxury</option>
                                 </select>
                             </div>
+
                             <div style={{ marginBottom: '20px' }}>
-                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Фотографія автомобіля</label>
+                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Фотографії автомобіля (Можна декілька за раз)</label>
                                 <input
                                     type="file"
+                                    multiple
                                     accept="image/png, image/jpeg, image/jpg"
                                     onChange={(e) => {
-                                        if (e.target.files && e.target.files[0]) {
-                                            setSelectedFile(e.target.files[0]);
+                                        if (e.target.files) {
+                                            const filesArray = Array.from(e.target.files);
+                                            setSelectedFiles(prevFiles => {
+                                                const uniqueNewFiles = filesArray.filter(
+                                                    newFile => !prevFiles.some(prevFile => prevFile.name === newFile.name && prevFile.size === newFile.size)
+                                                );
+                                                return [...prevFiles, ...uniqueNewFiles];
+                                            });
                                         }
                                     }}
-                                    style={{
-                                        width: '100%',
-                                        padding: '8px',
-                                        border: '1px dashed #0056b3',
-                                        borderRadius: '4px',
-                                        background: '#f8fbff',
-                                        cursor: 'pointer'
-                                    }}
+                                    style={{ width: '100%', padding: '8px', border: '1px dashed #0056b3', borderRadius: '4px', background: '#f8fbff', cursor: 'pointer' }}
                                 />
-                                {selectedFile && (
-                                    <span style={{ fontSize: '12px', color: '#28a745', display: 'block', marginTop: '4px' }}>
-                                        ✓ Обрано файл: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
-                                    </span>
+
+                                {selectedFiles.length > 0 && (
+                                    <div style={{ marginTop: '12px', maxHeight: '130px', overflowY: 'auto', background: '#fff', padding: '10px', borderRadius: '6px', border: '1px solid #ddd' }}>
+                                        <div style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '6px', color: '#333' }}>Обрані медіафайли ({selectedFiles.length}):</div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                            {selectedFiles.map((file, i) => (
+                                                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f1f3f9', padding: '4px 8px', borderRadius: '4px', fontSize: '12px' }}>
+                                                    <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '85%' }}>📷 {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setSelectedFiles(selectedFiles.filter((_, idx) => idx !== i))}
+                                                        style={{ background: 'none', border: 'none', color: '#dc3545', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px', padding: '0 4px' }}
+                                                        title="Прибрати зі списку"
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
                                 )}
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <button type="button" onClick={() => setShowCarModal(false)} style={{ padding: '10px 20px', background: '#ccc', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Скасувати</button>
-                                <button type="submit" style={{ padding: '10px 20px', background: '#0056b3', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Зберегти</button>
+                            </div> {/* 👑 ТУТ ПОЧИНАЮТЬСЯ ТВОЇ ПРОПУЩЕНІ ТЕГИ ТА КНОПКИ ДІЇ */}
+
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px' }}>
+                                <button type="button" onClick={() => setShowCarModal(false)} style={{ padding: '10px 20px', background: '#ccc', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Скасувати</button>
+                                <button type="submit" style={{ padding: '10px 20px', background: '#0056b3', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Зберегти</button>
                             </div>
                         </form>
                     </div>
                 </div>
             )}
         </div>
-    );
+    )
 };
 
 export default UserProfilePage;

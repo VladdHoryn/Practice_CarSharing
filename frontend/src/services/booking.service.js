@@ -71,5 +71,9 @@ export const bookingService = {
     getActiveCoDriversByBookingId: async (bookingId) => {
         const response = await apiClient.get(`/booking/v1/drivers/${bookingId}/active`);
         return response.data;
+    },
+    getBookingsByOwnerId: async (ownerId) => {
+        const response = await apiClient.get(`/booking/v1/owners/${ownerId}/bookings`);
+        return response.data;
     }
 };

@@ -63,6 +63,10 @@ export const carService = {
     cancelModeration: async (id) => {
         const response = await apiClient.post(`/car/v1/${id}/moderation/cancel`);
         return response.data;
-    }
+    },
 
+    getCarsByOwnerId: async (ownerId) => {
+        const response = await apiClient.get(`/car/v1/owner/${ownerId}`);
+        return response.data;
+    }
 };
