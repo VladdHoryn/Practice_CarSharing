@@ -5,8 +5,6 @@ import { carService } from '../services/car.service';
 import { bookingService } from '../services/booking.service';
 import SecureImage from '../components/SecureImage';
 import { toast } from 'react-toastify';
-
-// Імпортуємо новий автомобільний Hero-банер
 import catalogBanner from '../assets/catalog-banner.png';
 
 const CarCatalogPage = () => {
@@ -14,7 +12,9 @@ const CarCatalogPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
-
+    const userStr = localStorage.getItem('user');
+    const user = userStr ? JSON.parse(userStr) : null;
+    const isOwner = user && user.role === 'OWNER';
     const [availableCarIds, setAvailableCarIds] = useState(null);
     const todayStr = new Date().toLocaleDateString('en-CA');
 
@@ -126,8 +126,6 @@ const CarCatalogPage = () => {
 
     return (
         <div className={styles.pageContainer} style={{ maxWidth: '1300px', margin: '0 auto', padding: '0 20px' }}>
-
-            {/* 👑 КРИТИЧНИЙ ФІКС ВЕРСТКИ: Банер тепер високий, просторий, а машина по центру! */}
             <div
                 className={styles.heroSection}
                 style={{
@@ -249,9 +247,17 @@ const CarCatalogPage = () => {
                                         <li><span className={styles.specLabel}>Коробка:</span> Автомат </li>
                                     </ul>
                                     <div className={styles.cardActions}>
-                                        <button className={styles.bookBtn} onClick={() => navigate(`/book/${car.id}`)}>🚗 Забронювати</button>
-                                        <Link to={`/catalog/${car.id}`} className={styles.detailsBtn}>ⓘ Детальніше</Link>
-                                    </div>
+                                            {!isOwner && (
+                                                <button className={styles.bookBtn} onClick={() => navigate(`/book/${car.id}`)}>🚗 Забронювати</button>
+                                            )}
+                                            <Link
+                                                to={`/catalog/${car.id}`}
+                                                className={styles.detailsBtn}
+                                                style={isOwner ? { width: '100%', textAlign: 'center', justifyContent: 'center' } : {}}
+                                            >
+                                                ⓘ Детальніше
+                                            </Link>
+                                        </div>
                                 </div>
                             ))
                         ) : (

@@ -134,16 +134,11 @@ const CarDetailsPage = () => {
                             </li>
                         ))}
                     </ul>
-
-                    {isOwner ? (
-                        <div className={styles.ownerWarning}>
-                            ⚠️ Партнерам із роллю OWNER заборонено бронювати автомобілі.
-                        </div>
-                    ) : (
-                        <button className={styles.bookBtn} onClick={() => navigate(`/book/${car.id}`)}>
-                            <span style={{fontSize: '18px'}}>⏱</span> ЗАБРОНЮВАТИ АВТО
-                        </button>
-                    )}
+                        {!isOwner && (
+                            <button className={styles.bookBtn} onClick={() => navigate(`/book/${car.id}`)}>
+                                <span style={{fontSize: '18px'}}>⏱</span> ЗАБРОНЮВАТИ АВТО
+                            </button>
+                        )}
 
                     <div className={styles.ageNotice}>
                         <span>ⓘ</span>

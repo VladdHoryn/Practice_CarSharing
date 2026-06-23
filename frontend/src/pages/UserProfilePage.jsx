@@ -41,7 +41,8 @@ const UserProfilePage = () => {
     const [editingCar, setEditingCar] = useState(null);
     const [carForm, setCarForm] = useState({ brand: '', model: '', year: 2026, carClass: 'ECONOMY', pricePerDay: '', imageUrl: '' });
     const [profileForm, setProfileForm] = useState({ firstName: '', lastName: '' });
-
+   const [passwordForm, setPasswordForm] = useState({ newPassword: '', confirmPassword: '' });
+    const [isChangingPassword, setIsChangingPassword] = useState(false);
     const [expandedBookingId, setExpandedBookingId] = useState(null);
     const [bookingCoDrivers, setBookingCoDrivers] = useState([]);
     const [coDriversLoading, setCoDriversLoading] = useState(false);
@@ -309,7 +310,7 @@ const UserProfilePage = () => {
 
             if (editingCar) {
                 const updatedCar = await carService.updateCar(editingCar.id, payload);
-                
+
                 if (selectedFiles.length > 0) {
                     for (const file of selectedFiles) {
                         await carService.uploadCarImage(editingCar.id, file);
@@ -366,6 +367,29 @@ const UserProfilePage = () => {
             toast.success('Персональні дані успішно оновлено!');
         } catch (err) { toast.error('Не вдалося оновити дані.'); }
     };
+
+    const handlePasswordSubmit = async (e) => {
+            e.preventDefault();
+
+            if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+                toast.warning("Паролі не збігаються! 🛑");
+                return;
+            }
+
+            try {
+                setIsChangingPassword(true);
+                // user.id — це Keycloak ID поточного залогіненого юзера
+                await userService.changePasswordByKeycloakId(user.id, passwordForm.newPassword);
+
+                toast.success("Пароль успішно оновлено! 🔐");
+                setPasswordForm({ newPassword: '', confirmPassword: '' }); // Очищаємо поля
+            } catch (err) {
+                console.error("Помилка зміни пароля:", err);
+                toast.error(err.response?.data?.message || "Не вдалося змінити пароль.");
+            } finally {
+                setIsChangingPassword(false);
+            }
+        };
 
     const renderTabContent = () => {
         if (activeTab === 'fleet') {
@@ -659,34 +683,66 @@ const UserProfilePage = () => {
         }
 
         if (activeTab === 'profile') {
-            return (
-                <>
-                    <h2 className={styles.tabTitle}>Персональні дані</h2>
-                    <form onSubmit={handleProfileSubmit}>
-                        <div className={styles.formGrid} style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '20px'}}>
-                            <div className={styles.inputGroup}>
-                                <label style={{display: 'block', marginBottom: '5px'}}>Ім'я</label>
-                                <input type="text" value={profileForm.firstName} onChange={(e) => setProfileForm({...profileForm, firstName: e.target.value})} style={{width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc'}} />
-                            </div>
-                            <div className={styles.inputGroup}>
-                                <label style={{display: 'block', marginBottom: '5px'}}>Прізвище</label>
-                                <input type="text" value={profileForm.lastName} onChange={(e) => setProfileForm({...profileForm, lastName: e.target.value})} style={{width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc'}} />
-                            </div>
-                            <div className={styles.inputGroup} style={{gridColumn: '1 / span 2'}}>
-                                <label style={{display: 'block', marginBottom: '5px'}}>Email (не змінюється)</label>
-                                <input type="email" value={user.email} disabled style={{width: '100%', padding: '8px', background:'#eee', cursor: 'not-allowed', borderRadius: '4px', border: '1px solid #ccc'}}/>
-                            </div>
-                        </div>
-                        <h3 className={styles.sectionSubtitle} style={{marginTop: '20px', marginBottom: '10px'}}>Зміна пароля (через Keycloak Console)</h3>
-                        <div className={styles.formGrid} style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '20px'}}>
-                            <div className={styles.inputGroup}><label style={{display: 'block', marginBottom: '5px'}}>Новий пароль</label><input type="password" disabled placeholder="Зміна в кабінеті Keycloak" style={{width: '100%', padding: '8px', background:'#eee', borderRadius: '4px', border: '1px solid #ccc'}}/></div>
-                            <div className={styles.inputGroup}><label style={{display: 'block', marginBottom: '5px'}}>Повторіть новий пароль</label><input type="password" disabled placeholder="Зміна в кабінеті Keycloak" style={{width: '100%', padding: '8px', background:'#eee', borderRadius: '4px', border: '1px solid #ccc'}}/></div>
-                        </div>
-                        <button type="submit" className={styles.primaryBtn}>Зберегти зміни</button>
-                    </form>
-                </>
-            );
-        }
+                    return (
+                        <>
+                            <h2 className={styles.tabTitle}>Персональні дані</h2>
+
+                            {/* Форма 1: Зміна імені та прізвища */}
+                            <form onSubmit={handleProfileSubmit}>
+                                <div className={styles.formGrid} style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '20px'}}>
+                                    <div className={styles.inputGroup}>
+                                        <label style={{display: 'block', marginBottom: '5px'}}>Ім'я</label>
+                                        <input type="text" value={profileForm.firstName} onChange={(e) => setProfileForm({...profileForm, firstName: e.target.value})} style={{width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc'}} />
+                                    </div>
+                                    <div className={styles.inputGroup}>
+                                        <label style={{display: 'block', marginBottom: '5px'}}>Прізвище</label>
+                                        <input type="text" value={profileForm.lastName} onChange={(e) => setProfileForm({...profileForm, lastName: e.target.value})} style={{width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc'}} />
+                                    </div>
+                                    <div className={styles.inputGroup} style={{gridColumn: '1 / span 2'}}>
+                                        <label style={{display: 'block', marginBottom: '5px'}}>Email (не змінюється)</label>
+                                        <input type="email" value={user.email} disabled style={{width: '100%', padding: '8px', background:'#eee', cursor: 'not-allowed', borderRadius: '4px', border: '1px solid #ccc'}}/>
+                                    </div>
+                                </div>
+                                <button type="submit" className={styles.primaryBtn} style={{marginBottom: '0'}}>Зберегти зміни профілю</button>
+                            </form>
+
+                            <hr style={{ border: 'none', borderTop: '1px solid #dee2e6', margin: '30px 0' }} />
+
+                            {/* Форма 2: Безпека та зміна пароля */}
+                            <h3 className={styles.sectionSubtitle} style={{ marginBottom: '15px', fontSize: '18px', color: '#333' }}>🔒 Безпека облікового запису</h3>
+                            <form onSubmit={handlePasswordSubmit}>
+                                <div className={styles.formGrid} style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '20px'}}>
+                                    <div className={styles.inputGroup}>
+                                        <label style={{display: 'block', marginBottom: '5px'}}>Новий пароль</label>
+                                        <input
+                                            type="password"
+                                            required
+                                            minLength="6"
+                                            placeholder="Введіть новий пароль"
+                                            value={passwordForm.newPassword}
+                                            onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
+                                            style={{width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc'}}
+                                        />
+                                    </div>
+                                    <div className={styles.inputGroup}>
+                                        <label style={{display: 'block', marginBottom: '5px'}}>Повторіть новий пароль</label>
+                                        <input
+                                            type="password"
+                                            required
+                                            placeholder="Повторіть пароль"
+                                            value={passwordForm.confirmPassword}
+                                            onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
+                                            style={{width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc'}}
+                                        />
+                                    </div>
+                                </div>
+                                <button type="submit" className={styles.primaryBtn} style={{ backgroundColor: '#28a745' }} disabled={isChangingPassword}>
+                                    {isChangingPassword ? 'Оновлення...' : 'ЗМІНИТИ ПАРОЛЬ'}
+                                </button>
+                            </form>
+                        </>
+                    );
+                }
         return null;
     };
 
