@@ -8,6 +8,8 @@ import { carService } from '../services/car.service';
 import { toast } from 'react-toastify';
 import SecureImage from '../components/SecureImage';
 import { analyticsService } from '../services/analytics.service';
+import { documentService } from '../services/document.service';
+
 
 const Icons = {
     order: <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>,
@@ -30,7 +32,9 @@ const UserProfilePage = () => {
     const [activeTab, setActiveTab] = useState('');
     const [bookings, setBookings] = useState([]);
     const [ownerCars, setOwnerCars] = useState([]);
-
+    const [uploadedDocs, setUploadedDocs] = useState([]);
+    const [isProfileVerified, setIsProfileVerified] = useState(false);
+    const [docsLoading, setDocsLoading] = useState(false);
     const [incomingInvites, setIncomingInvites] = useState([]);
     const [ownerBookings, setOwnerBookings] = useState([]);
     const [selectedOwnerBooking, setSelectedOwnerBooking] = useState(null);
@@ -229,6 +233,33 @@ const UserProfilePage = () => {
                         setAnalyticsLoading(false);
                     });
             }
+
+
+            if (['order', 'invitations', 'docs'].includes(activeTab) && parsedUser.dbId) {
+                documentService.getProfileStatus(parsedUser.dbId)
+                    .then(status => {
+                        setIsProfileVerified(status);
+                    })
+                    .catch(err => {
+                        if (err.response?.status === 404) {
+                            setIsProfileVerified(false);
+                        } else {
+                            console.error("Помилка перевірки KYC статусу:", err);
+                        }
+                    });
+
+                documentService.getMetadata(parsedUser.dbId)
+                    .then(meta => {
+                        setUploadedDocs(meta || []);
+                    })
+                    .catch(err => {
+                        if (err.response?.status === 404) {
+                            setUploadedDocs([]);
+                        } else {
+                            console.error("Помилка завантаження метаданих документів:", err);
+                        }
+                    });
+            }
         }, [activeTab]);
 
     const handleInvitationResponse = async (id, action) => {
@@ -339,7 +370,7 @@ const UserProfilePage = () => {
             } else {
                 const newCar = await carService.createCar(payload);
 
-                // 👑 ФІКС 1.3: Послідовне пакетне завантаження для нового автомобіля
+
                 if (selectedFiles.length > 0) {
                     for (const file of selectedFiles) {
                         await carService.uploadCarImage(newCar.id, file);
@@ -509,10 +540,36 @@ const UserProfilePage = () => {
                 <>
                     <h2 className={styles.tabTitle}>Замовити авто</h2>
                     <p className={styles.greeting}>Привіт, {user.firstName || 'Гість'}!</p>
-                    <p className={styles.infoText}>Спеціально для вас ми відображаємо статус доступності для всіх авто, щоб процес підбору стал для вас ще швидше та зрозуміліше.</p>
+
+                    {/* 👑 Визначна позначка загальної готовності профілю */}
+                    <div style={{ padding: '15px', borderRadius: '8px', marginBottom: '20px', background: isProfileVerified ? '#f6ffed' : '#fff1f0', border: isProfileVerified ? '1px solid #b7eb8f' : '1px solid #ffccc7', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <span style={{ fontSize: '24px' }}>{isProfileVerified ? '✅' : '🛑'}</span>
+                        <div>
+                            <strong style={{ color: isProfileVerified ? '#389e0d' : '#cf1322', fontSize: '15px' }}>
+                                {isProfileVerified ? 'Ваш аккаунт повністю верифіковано!' : 'Потрібна верифікація документів'}
+                            </strong>
+                            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#555', lineHeight: '1.4' }}>
+                                {isProfileVerified
+                                    ? 'Доступ до створення бронювань та спільних поїздок повністю активовано. Щасливої дороги!'
+                                    : 'Бронювання авто недоступне. Будь ласка, перейдіть у вкладку "Документи", завантажте необхідні файли та дочекайтеся перевірки адміністратором.'}
+                            </p>
+                        </div>
+                    </div>
+
                     <p className={styles.greeting}>Ваша персональна знижка на оренду авто становить <span className={styles.discount} style={{color: '#28a745', fontWeight: 'bold'}}>0%</span></p>
-                    <p className={styles.infoText}>Для замовлення авто натисніть кнопку ниже.</p>
-                    <button className={styles.primaryBtn} onClick={() => navigate('/catalog')}>ЗАБРОНЮВАТИ АВТО</button>
+
+                    <button
+                        className={styles.primaryBtn}
+                        onClick={() => navigate('/catalog')}
+                        disabled={!isProfileVerified}
+                        style={{
+                            opacity: isProfileVerified ? 1 : 0.5,
+                            cursor: isProfileVerified ? 'pointer' : 'not-allowed',
+                            backgroundColor: isProfileVerified ? '#0056b3' : '#718096'
+                        }}
+                    >
+                        {isProfileVerified ? 'ЗАБРОНЮВАТИ АВТО' : 'БРОНЮВАННЯ БЛОКОВАНО'}
+                    </button>
                 </>
             );
         }
@@ -662,7 +719,23 @@ const UserProfilePage = () => {
                                         <td><strong>Бронювання #{invite.bookingId}</strong></td>
                                         <td><code>{invite.driverCode}</code></td>
                                         <td>
-                                            <button onClick={() => handleInvitationResponse(invite.id, 'accept')} style={{padding: '5px 10px', marginRight: '10px', backgroundColor: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer'}}>Прийняти </button>
+                                            <button
+                                                onClick={() => handleInvitationResponse(invite.id, 'accept')}
+                                                disabled={!isProfileVerified}
+                                                style={{
+                                                    padding: '5px 10px',
+                                                    marginRight: '10px',
+                                                    backgroundColor: '#28a745',
+                                                    color: '#fff',
+                                                    border: 'none',
+                                                    borderRadius: '4px',
+                                                    cursor: isProfileVerified ? 'pointer' : 'not-allowed',
+                                                    opacity: isProfileVerified ? 1 : 0.5
+                                                }}
+                                                title={!isProfileVerified ? "Пройдіть верифікацію для спільної поїздки" : ""}
+                                            >
+                                                Прийняти
+                                            </button>
                                             <button onClick={() => handleInvitationResponse(invite.id, 'decline')} style={{padding: '5px 10px', backgroundColor: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer'}}>Відхилити</button>
                                         </td>
                                     </tr>
@@ -675,14 +748,91 @@ const UserProfilePage = () => {
         }
 
         if (activeTab === 'docs') {
+            const documentTypes = [
+                { type: 'PASSPORT_MAIN', label: 'Паспорт: 1-2 сторінка або ID-картка' },
+                { type: 'PASSPORT_REGISTRATION', label: 'Паспорт: прописка / витяг' },
+                { type: 'DRIVING_LICENSE', label: 'Водійське посвідчення' }
+            ];
+
+            const handleFileChange = async (type, file) => {
+                             if (!file) return;
+                             try {
+                                 setDocsLoading(true);
+                                 const dbId = JSON.parse(localStorage.getItem('user'))?.dbId;
+
+                                 // 👑 КРИТИЧНИЙ ФІКС КИРИЛИЦІ: замінюємо українську назву на безпечний ASCII-код
+                                 const fileExtension = file.name.split('.').pop();
+                                 const safeName = `user_${dbId}_doc_${type}_${Date.now()}.${fileExtension}`;
+                                 const safeFile = new File([file], safeName, { type: file.type });
+
+                                 // Відправляємо на сервер уже очищений файл
+                                 await documentService.uploadDocument(dbId, type, safeFile);
+                                 toast.success("Документ успішно надіслано на модерацію! 📄");
+
+                                 const meta = await documentService.getMetadata(dbId);
+                                 setUploadedDocs(meta || []);
+                                 const status = await documentService.getProfileStatus(dbId);
+                                 setIsProfileVerified(status);
+                             } catch (err) {
+                                 toast.error("Не вдалося завантажити файл документа.");
+                             } finally {
+                                 setDocsLoading(false);
+                             }
+                         };
+
             return (
                 <>
-                    <h2 className={styles.tabTitle}>Завантажені документи</h2>
-                    <p className={styles.infoText}>Тут ви можете завантажити зображення документів, що засвідчують вашу особу.</p>
-                    <div className={styles.docRow} style={{marginBottom: '15px'}}><div className={styles.docLabel} style={{marginBottom: '5px', fontSize: '14px'}}>Паспорт 1 та 2 сторінка</div><input type="file" className={styles.docInput} /></div>
-                    <div className={styles.docRow} style={{marginBottom: '15px'}}><div className={styles.docLabel} style={{marginBottom: '5px', fontSize: '14px'}}>Паспорт прописка</div><input type="file" className={styles.docInput} /></div>
-                    <div className={styles.docRow} style={{marginBottom: '20px'}}><div className={styles.docLabel} style={{marginBottom: '5px', fontSize: '14px'}}>Водійське посвідчення</div><input type="file" className={styles.docInput} /></div>
-                    <button className={styles.primaryBtn}>Надіслати документи</button>
+                    <h2 className={styles.tabTitle}>🛡️ Центр державної верифікації профілю</h2>
+                    <p className={styles.infoText}>Для відкриття можливості оренди та спільних поїздок, завантажте скани обов’язкових документів (формати PDF, PNG, JPEG).</p>
+
+                    {docsLoading && <div style={{ color: '#0056b3', fontWeight: 'bold', marginBottom: '15px' }}>Стрімінг файлів у хмару сховища... ⏳</div>}
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '20px' }}>
+                        {documentTypes.map(doc => {
+                            const meta = (uploadedDocs || []).find(d => d.documentType === doc.type);
+                            return (
+                                <div key={doc.type} style={{ padding: '15px', background: '#fff', borderRadius: '8px', border: '1px solid #eef0f2', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div>
+                                        <div style={{ mountaineer: '600', fontSize: '14px', color: '#222', fontWeight: 'bold' }}>{doc.label}</div>
+                                        {meta ? (
+                                            <div style={{ marginTop: '5px', fontSize: '12px', color: '#666' }}>
+                                                📄 {meta.originalFileName} <br/>
+                                                📅 Завантажено: {meta.uploadedAt?.split('T')[0]}
+                                            </div>
+                                        ) : (
+                                            <div style={{ marginTop: '5px', fontSize: '12px', color: '#999', fontStyle: 'italic' }}>Файл відсутній</div>
+                                        )}
+                                    </div>
+
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        {meta ? (
+                                            <span style={{ fontSize: '11px', fontWeight: 'bold', padding: '4px 10px', borderRadius: '4px', backgroundColor: meta.isVerified ? '#d4edda' : '#fff3cd', color: meta.isVerified ? '#155724' : '#856404' }}>
+                                                {meta.isVerified ? '● ВЕРИФІКОВАНО' : '● НА ПЕРЕВІРЦІ'}
+                                            </span>
+                                        ) : (
+                                            <span style={{ fontSize: '11px', fontWeight: 'bold', padding: '4px 10px', borderRadius: '4px', backgroundColor: '#f5f5f5', color: '#777' }}>
+                                                ОБОВ'ЯЗКОВО
+                                            </span>
+                                        )}
+
+                                        <input
+                                            type="file"
+                                            id={`file-${doc.type}`}
+                                            accept="image/png, image/jpeg, image/jpg, application/pdf"
+                                            onChange={(e) => handleFileChange(doc.type, e.target.files[0])}
+                                            style={{ display: 'none' }}
+                                        />
+                                        <button
+                                            onClick={() => document.getElementById(`file-${doc.type}`).click()}
+                                            style={{ padding: '6px 12px', border: '1px solid #0056b3', background: '#f8fbff', color: '#0056b3', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
+                                        >
+                                            {meta ? 'Оновити 🔄' : 'Обрати файл 📁'}
+                                        </button>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
                 </>
             );
         }
@@ -938,7 +1088,7 @@ const UserProfilePage = () => {
                                         </div>
                                     </div>
                                 )}
-                            </div> {/* 👑 ТУТ ПОЧИНАЮТЬСЯ ТВОЇ ПРОПУЩЕНІ ТЕГИ ТА КНОПКИ ДІЇ */}
+                            </div>
 
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px' }}>
                                 <button type="button" onClick={() => setShowCarModal(false)} style={{ padding: '10px 20px', background: '#ccc', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Скасувати</button>
