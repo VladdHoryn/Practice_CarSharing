@@ -60,6 +60,18 @@ public class UserDocumentController {
         return ResponseEntity.ok(responses);
     }
 
+    @GetMapping("/unverified")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    public ResponseEntity<List<UserDocumentResponse>> getAllSystemUnverifiedDocuments() {
+
+      List<UserDocumentResponse> responses =
+        documentService.getAllSystemUnverifiedDocuments().stream()
+          .map(this::mapToResponse)
+          .collect(Collectors.toList());
+
+      return ResponseEntity.ok(responses);
+    }
+
     @GetMapping("/{documentId}/download")
     @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('RENTER')")
     public ResponseEntity<byte[]> downloadDocument(@PathVariable Long documentId) {
